@@ -9,3 +9,4 @@ license       = "GPL-3.0"
 
 requires "nim >= 0.17.2"
 requires "nim-sndfile >= 0.1.0"
+requires "nim-portaudio >= 0.1.3"
