@@ -1,11 +1,19 @@
 from os import commandLineParams
 
-import nim-vorbis
-import portaudio
+import vorbis/vorbisfile as VF
+import portaudio as PA
 
 let args = commandLineParams()
 
 if args.len == 1:
-  echo repr(Initialize())
+  var vf: VF.TOggVorbis_File
 
-  echo repr(Terminate())
+  if not VF.fopen(args[0], vf.addr) == 0:
+    echo "cannot open '" & args[0] & "'"
+    quit(1)
+
+  echo repr(VF.info(vf.addr, -1))
+
+  echo repr(PA.Initialize())
+
+  echo repr(PA.Terminate())
