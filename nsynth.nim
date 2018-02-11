@@ -1,7 +1,19 @@
 from os import commandLineParams
+import math as m
 
 import vorbis/vorbisfile as VF
 import portaudio as PA
+
+
+proc makeTable(size: int, fn: proc (n: int, max: int): float32): seq[float32] =
+  result = newSeq[float32](size)
+  for i in 0..<size:
+    result[i] = fn(i, size)
+
+proc sin(n: int, max: int): float32 =
+  let i = float(n) / float(max)
+  result = m.sin(i * 2 * m.PI)
+
 
 let args = commandLineParams()
 
