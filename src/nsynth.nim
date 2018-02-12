@@ -96,8 +96,8 @@ when isMainModule:
   if args.len == 0:
     playWithPA("0000000000000000")
 
-elif args.len == 1:
-  var vf: VF.TOggVorbis_File
+  elif args.len == 1:
+    playWithPA(args[0])
 
   # var vf: VF.TOggVorbis_File
 
