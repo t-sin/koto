@@ -14,22 +14,33 @@ type
     sampleRate*: float64
     bufferSize*: uint64
 
-  TSound* = tuple[sndout: SoundOut, wtosc: wt.WaveTableOcillator]
+const seq_step = 16
+type
+  StepSequencer* = ref object
+    tempo*: float64
+    sequence*: string
+    noteDuration*: int
+    osc*: wt.WaveTableOcillator
+    time*: float64
+
+type
+  TSound* = tuple[sndout: SoundOut, seq: StepSequencer]
   TStereo* = tuple[left, right: float32]
 
 proc playWithPA() =
   echo "============== initialize pa  ==============="
   echo repr(PA.Initialize())
 
-
   proc fillingWithTable(inBuf, outBuf: pointer,
                         framesPerBuf: culong,
                         timeInfo: ptr TStreamCallbackTimeInfo,
                         stateusFlags: TStreamCallbackFlags,
                         userData: pointer): cint {.cdecl.} =
-    var outBuf = cast[ptr array[int, TStereo]](outBuf)
-    var snd = cast[ptr TSound](userData)
-    wt.fillBuffer(snd.wtosc, 880, snd.sndout.sampleRate, outBuf, int(framesPerBuf))
+    let
+      outBuf = cast[ptr array[int, TStereo]](outBuf)
+      snd = cast[ptr TSound](userData)
+      osc = snd.seq.osc
+    wt.fillBuffer(osc, 880, snd.sndout.sampleRate, outBuf, int(snd.sndout.bufferSize))
 
   var
     stream: PStream
@@ -38,11 +49,17 @@ proc playWithPA() =
       sampleFormat: PA.TSampleFormat.sfFloat32,
       sampleRate: 44100,
       bufferSize: 1024)
-    wt_osc = wt.WaveTableOcillator(
-      tableSize: 1024, interpolFn: wt.linear_interpolate, tablePos: 0)
-    snd = (sndout, wt_osc)
+    osc = wt.WaveTableOcillator(
+      tableSize: 512, interpolFn: wt.linear_interpolate, tablePos: 0)
+    stepseq = StepSequencer(
+      tempo: 120,
+      sequence: "0000000000000000",
+      noteDuration: 100,
+      osc: osc,
+      time: 0)
+    snd = (sndout, stepseq)
 
-  wt_osc.waveTable = wt.makeTable(wt_osc, wt.sin)
+  osc.waveTable = wt.makeTable(osc, wt.tri)
 
   discard PA.OpenDefaultStream(
     cast[PStream](stream.addr),
