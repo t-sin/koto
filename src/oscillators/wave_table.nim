@@ -20,10 +20,10 @@ proc makeTable*(wt: WaveTableOcillator,
 
 proc fillBuffer*(wt: WaveTableOcillator,
                  freq: int,
-                 sampleRate: int,
+                 sampleRate: float,
                  buf: ptr array[int, (float32, float32)],
                  bufSize: int) =
-  let tableDelta = (float32(wt.tableSize) * float32(freq)) / float32(sampleRate)
+  let tableDelta = (float32(wt.tableSize) * float32(freq)) / sampleRate
 
   proc crop(pos: float32): float32 =
     if pos >= float32(wt.tableSize):
