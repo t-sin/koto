@@ -5,7 +5,7 @@ import vorbis/vorbisfile as VF
 import portaudio as PA
 
 import oscillators.wave_table as wt
-
+import utils
 
 type
   SoundOut* = ref object

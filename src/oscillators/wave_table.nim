@@ -26,13 +26,6 @@ proc fillBuffer*(wt: WaveTableOcillator,
                  bufSize: int) =
   let tableDelta = (float32(wt.tableSize) * float32(freq)) / sampleRate
 
-  proc crop(pos: float32): float32 =
-    if pos >= float32(wt.tableSize):
-      result = pos - float32(wt.tableSize)
-    else:
-      result = pos
-
-  for i in 0..<int(bufSize):
     let val = 0.3'f32 * wt.interpolFn(crop(wt.tablePos), wt)
     buf[i] = (val, val)
     wt.tablePos = wt.tablePos + tableDelta
