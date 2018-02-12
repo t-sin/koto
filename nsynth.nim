@@ -17,6 +17,19 @@ proc sin(n: int, max: int): float32 =
 proc saw(n: int, max: int): float32 =
   result = float32(n) / float32(max)
 
+proc tri(n: int, max: int): float32 =
+  let
+    hperiod = int(max / 2)
+    qperiod = int(max / 4)
+    croppedN = n mod max
+
+  if n < qperiod:
+    result = (float32(n) / float32(qperiod))
+  elif n < (hperiod + qperiod):
+    result = -(float32(n) / float32(qperiod)) + 2'f32
+  else:
+    result = float32(n) / float32(qperiod) - 4'f32
+
 
 let args = commandLineParams()
 
