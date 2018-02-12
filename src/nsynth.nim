@@ -40,7 +40,15 @@ proc playWithPA(s: string) =
       outBuf = cast[ptr array[int, TStereo]](outBuf)
       snd = cast[ptr TSound](userData)
       osc = snd.seq.osc
-    wt.fillBuffer(osc, 880, snd.sndout.sampleRate, outBuf, int(snd.sndout.bufferSize))
+      freq = 440
+      tableDelta = (float32(osc.tableSize) * float32(freq)) / snd.sndout.sampleRate
+
+    for i in 0..<int(snd.sndout.bufferSize):
+      let val = osc.volume * osc.interpolFn(
+        crop(osc.tablePos, float32(osc.tableSize)), osc)
+      outBuf[i] = (val, val)
+      osc.tablePos = osc.tablePos + tableDelta
+
 
   var
     stream: PStream

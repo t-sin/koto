@@ -19,17 +19,6 @@ proc makeTable*(wt: WaveTableOcillator,
   for i in 0..<wt.tableSize:
     result[i] = fn(i, wt.tableSize)
 
-proc fillBuffer*(wt: WaveTableOcillator,
-                 freq: int,
-                 sampleRate: float,
-                 buf: ptr array[int, (float32, float32)],
-                 bufSize: int) =
-  let tableDelta = (float32(wt.tableSize) * float32(freq)) / sampleRate
-
-    let val = 0.3'f32 * wt.interpolFn(crop(wt.tablePos), wt)
-    buf[i] = (val, val)
-    wt.tablePos = wt.tablePos + tableDelta
-
 
 # wave form generator
 # these can be more gereral...?
