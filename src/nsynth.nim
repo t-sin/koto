@@ -7,21 +7,20 @@ import portaudio as PA
 import oscillators.wave_table as wt
 
 
+type
+  SoundOut* = ref object
+    channelNum*: int
+    sampleFormat*: PA.TSampleFormat
+    sampleRate*: float64
+    bufferSize*: uint64
+
+  TSound* = tuple[sndout: SoundOut, wtosc: wt.WaveTableOcillator]
+  TStereo* = tuple[left, right: float32]
+
 proc playWithPA() =
   echo "============== initialize pa  ==============="
   echo repr(PA.Initialize())
 
-  var wt_osc = wt.WaveTableOcillator(
-    tableSize: 1024, interpolFn: wt.linear_interpolate, tablePos: 0)
-  wt_osc.waveTable = wt.makeTable(wt_osc, wt.square)
-
-  const
-    framesPerBuffer = 1024
-    samplingRate = 44_100
-    freqency = 880
-
-  type
-    TStereo = tuple[left, right: float32]
 
   proc fillingWithTable(inBuf, outBuf: pointer,
                         framesPerBuf: culong,
@@ -29,20 +28,31 @@ proc playWithPA() =
                         stateusFlags: TStreamCallbackFlags,
                         userData: pointer): cint {.cdecl.} =
     var outBuf = cast[ptr array[int, TStereo]](outBuf)
-    var wtdata = cast[ptr wt.WaveTableOcillator](userData)
-    wt.fillBuffer(wtdata[], freqency, samplingRate, outBuf, int(framesPerBuf))
+    var snd = cast[ptr TSound](userData)
+    wt.fillBuffer(snd.wtosc, 880, snd.sndout.sampleRate, outBuf, int(framesPerBuf))
 
-  var stream: PStream
+  var
+    stream: PStream
+    sndout = SoundOut(
+      channelNum: 2,
+      sampleFormat: PA.TSampleFormat.sfFloat32,
+      sampleRate: 44100,
+      bufferSize: 1024)
+    wt_osc = wt.WaveTableOcillator(
+      tableSize: 1024, interpolFn: wt.linear_interpolate, tablePos: 0)
+    snd = (sndout, wt_osc)
+
+  wt_osc.waveTable = wt.makeTable(wt_osc, wt.sin)
 
   discard PA.OpenDefaultStream(
     cast[PStream](stream.addr),
     numInputChannels = 0,
-    numOutputChannels = 2,
-    sampleFormat = sfFloat32,
-    sampleRate = samplingRate,
-    framesPerBuffer = framesPerBuffer,
+    numOutputChannels = cint(sndout.channelNum),
+    sampleFormat = sndout.sampleFormat,
+    sampleRate = cdouble(sndout.sampleRate),
+    framesPerBuffer = culong(sndout.bufferSize),
     streamCallback = fillingWithTable,
-    userData = cast[pointer](wt_osc.addr))
+    userData = cast[pointer](snd.addr))
 
   discard PA.StartStream(stream)
   PA.Sleep(2000)
