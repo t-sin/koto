@@ -32,11 +32,9 @@ proc fillBuffer*(wt: WaveTableOcillator,
       result = pos
 
   for i in 0..<int(bufSize):
-    let
-      pos = crop(wt.tablePos + float32(i) * tableDelta)
-      val = 0.3'f32 * wt.interpolFn(pos, wt)
+    let val = 0.3'f32 * wt.interpolFn(crop(wt.tablePos), wt)
     buf[i] = (val, val)
-  wt.tablePos = wt.tablePos + float32(bufSize) * tableDelta
+    wt.tablePos = wt.tablePos + tableDelta
 
 
 # wave form generator
