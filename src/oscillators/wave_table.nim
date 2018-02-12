@@ -8,7 +8,8 @@ type
   WaveTableOcillator* = ref object
     tableSize*: int
     waveTable*: seq[float32]
-    interpolType*: proc (x: float32, wt: WaveTableOcillator): float32
+    interpolFn*: proc (x: float32, wt: WaveTableOcillator): float32
+    tablePos*: float32
 
 
 proc makeTable*(wt: WaveTableOcillator,
