@@ -18,6 +18,27 @@ proc makeTable*(wt: WaveTableOcillator,
   for i in 0..<wt.tableSize:
     result[i] = fn(i, wt.tableSize)
 
+proc fillBuffer*(wt: WaveTableOcillator,
+                 freq: int,
+                 sampleRate: int,
+                 buf: ptr array[int, (float32, float32)],
+                 bufSize: int) =
+  let tableDelta = (float32(wt.tableSize) * float32(freq)) / float32(sampleRate)
+
+  proc crop(pos: float32): float32 =
+    if pos >= float32(wt.tableSize):
+      result = pos - float32(wt.tableSize)
+    else:
+      result = pos
+
+  for i in 0..<int(bufSize):
+    let
+      pos = crop(wt.tablePos + float32(i) * tableDelta)
+      val = 0.3'f32 * wt.interpolFn(pos, wt)
+    buf[i] = (val, val)
+  wt.tablePos = crop(wt.tablePos + float32(bufSize) * tableDelta)
+
+
 # wave form generator
 # these can be more gereral...?
 proc sin*(n: int, len: int): float32 =
