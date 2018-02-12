@@ -30,6 +30,18 @@ proc tri(n: int, max: int): float32 =
   else:
     result = float32(n) / float32(qperiod) - 4'f32
 
+proc square(n: int, max: int): float32 =
+  let
+    hperiod = int(max / 2)
+    qperiod = int(max / 4)
+
+  if n < qperiod:
+    result = 1'f32
+  elif n < (hperiod + qperiod):
+    result = 0'f32
+  else:
+    result = 1'f32
+
 
 let args = commandLineParams()
 
