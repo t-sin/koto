@@ -32,12 +32,27 @@ if args.len == 1:
   echo repr(PA.Initialize())
 
   const framesPerBuffer = 512
-  const freqency = 3
+  const samplingRate = 44_100
+  const freqency = 440
+  const tableDelta = ((float32(framesPerBuffer) * freqency) / float32(samplingRate))
   let table = makeTable(framesPerBuffer, sin)
 
   type
     TState = tuple[n: float32]
     TStereo = tuple[left, right: float32]
+
+  proc mean_interpolate(x: float32): float32 =
+    let
+      xprev = int(m.floor(x)) mod table.len
+      xnext = int(m.ceil(x)) mod table.len
+    return table[xprev] + table[xnext] / 2
+
+  proc linear_interpolate(x: float32): float32 =
+    let
+      ratio = x - m.floor(x)
+      xprev = table[int(m.floor(x)) mod table.len]
+      xnext = table[int(m.ceil(x)) mod table.len]
+    return xprev * ratio + xnext * (1 - ratio)
 
   proc fillingWithTable(inBuf, outBuf: pointer,
                         framesPerBuf: culong,
@@ -48,19 +63,17 @@ if args.len == 1:
       outBuf = cast[ptr array[framesPerBuffer, TStereo]](outBuf)
       state = cast[ptr TState](userData)
 
-    proc linear_interpolate(x: float32): float32 =
-      let
-        xprev = int(m.floor(x)) mod table.len
-        xnext = int(m.ceil(x)) mod table.len
-      return table[xprev] + table[xnext] / 2
+    proc cropPos(x: float32): float32 =
+      if x > float32(table.len):
+        result = x - float32(table.len)
+      else:
+        result = x
 
     for i in 0..<int(framesPerBuf):
-      let
-        x = float32(i) * freqency + state.n
-        val = linear_interpolate(x)
+      let tablePos = state.n + float32(i) * tableDelta
+      let val = linear_interpolate(cropPos(tablePos))
       outBuf[i] = (val, val)
-
-    state.n = float32(framesPerBuf) * freqency + state.n
+    state.n = cropPos(state.n + float32(framesPerBuf) * tableDelta)
 
   var
     stream: PStream
@@ -71,8 +84,8 @@ if args.len == 1:
     numInputChannels = 0,
     numOutputChannels = 2,
     sampleFormat = sfFloat32,
-    sampleRate = 44_100,
-    framesPerBuffer = 256,
+    sampleRate = samplingRate,
+    framesPerBuffer = framesPerBuffer,
     streamCallback = fillingWithTable,
     userData = cast[pointer](state.addr))
 
