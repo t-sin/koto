@@ -63,7 +63,7 @@ if args.len == 1:
   const samplingRate = 44_100
   const freqency = 440
   const tableDelta = ((float32(framesPerBuffer) * freqency) / float32(samplingRate))
-  let table = makeTable(framesPerBuffer, saw)
+  let table = makeTable(framesPerBuffer, square)
 
   type
     TState = tuple[n: float32]
