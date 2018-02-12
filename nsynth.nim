@@ -74,7 +74,7 @@ if args.len == 1:
 
     for i in 0..<int(framesPerBuf):
       let tablePos = state.n + float32(i) * tableDelta
-      let val = linear_interpolate(cropPos(tablePos))
+      let val = 0.3'f32 * linear_interpolate(cropPos(tablePos))
       outBuf[i] = (val, val)
     state.n = cropPos(state.n + float32(framesPerBuf) * tableDelta)
 
