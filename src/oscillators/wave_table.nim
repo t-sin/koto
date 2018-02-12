@@ -50,6 +50,7 @@ proc square*(n: int, len: int): float32 =
   else:
     result = 1'f32
 
+# table interploation
 proc mean_interpolate*(x: float32, wt: WaveTableOcillator): float32 =
   let
     xprev = int(m.floor(x)) mod wt.tableSize
