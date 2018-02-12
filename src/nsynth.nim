@@ -27,7 +27,7 @@ type
   TSound* = tuple[sndout: SoundOut, seq: StepSequencer]
   TStereo* = tuple[left, right: float32]
 
-proc playWithPA() =
+proc playWithPA(s: string) =
   echo "============== initialize pa  ==============="
   echo repr(PA.Initialize())
 
@@ -53,21 +53,22 @@ proc playWithPA() =
       tableSize: 512, interpolFn: wt.linear_interpolate, tablePos: 0)
     stepseq = StepSequencer(
       tempo: 120,
-      sequence: "0000000000000000",
+      sequence: s,
       noteDuration: 100,
       osc: osc,
       time: 0)
-    snd = (sndout, stepseq)
+    snd: TSound = (sndout, stepseq)
 
   osc.waveTable = wt.makeTable(osc, wt.tri)
+
 
   discard PA.OpenDefaultStream(
     cast[PStream](stream.addr),
     numInputChannels = 0,
-    numOutputChannels = cint(sndout.channelNum),
-    sampleFormat = sndout.sampleFormat,
-    sampleRate = cdouble(sndout.sampleRate),
-    framesPerBuffer = culong(sndout.bufferSize),
+    numOutputChannels = cint(snd.sndout.channelNum),
+    sampleFormat = snd.sndout.sampleFormat,
+    sampleRate = cdouble(snd.sndout.sampleRate),
+    framesPerBuffer = culong(snd.sndout.bufferSize),
     streamCallback = fillingWithTable,
     userData = cast[pointer](snd.addr))
 
@@ -80,10 +81,12 @@ proc playWithPA() =
   echo repr(PA.Terminate())
 
 
-let args = commandLineParams()
+when isMainModule:
+  let
+    args = commandLineParams()
 
-if args.len == 0:
-  playWithPA()
+  if args.len == 0:
+    playWithPA("0000000000000000")
 
 elif args.len == 1:
   var vf: VF.TOggVorbis_File
