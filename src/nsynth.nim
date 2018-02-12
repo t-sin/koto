@@ -50,7 +50,7 @@ proc playWithPA(s: string) =
       sampleRate: 44100,
       bufferSize: 1024)
     osc = wt.WaveTableOcillator(
-      tableSize: 512, interpolFn: wt.linear_interpolate, tablePos: 0)
+      tableSize: 512, interpolFn: wt.linear_interpolate, tablePos: 0, volume: 0.5)
     stepseq = StepSequencer(
       tempo: 120,
       sequence: s,
@@ -91,10 +91,12 @@ when isMainModule:
 elif args.len == 1:
   var vf: VF.TOggVorbis_File
 
-  if VF.fopen(args[0], vf.addr) == 0:
-    echo "cannot open '" & args[0] & "'"
-    quit(1)
+  # var vf: VF.TOggVorbis_File
 
-  echo "============== show .ogg info ==============="
-  echo "filename: '" & args[0] & "'"
-  echo repr(VF.info(vf.addr, -1))
+  # if VF.fopen(args[0], vf.addr) == 0:
+  #   echo "cannot open '" & args[0] & "'"
+  #   quit(1)
+
+  # echo "============== show .ogg info ==============="
+  # echo "filename: '" & args[0] & "'"
+  # echo repr(VF.info(vf.addr, -1))

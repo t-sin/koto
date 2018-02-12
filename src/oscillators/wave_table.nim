@@ -10,6 +10,7 @@ type
     waveTable*: seq[float32]
     interpolFn*: proc (x: float32, wt: WaveTableOcillator): float32
     tablePos*: float32
+    volume*: float32
 
 
 proc makeTable*(wt: WaveTableOcillator,
