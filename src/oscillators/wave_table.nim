@@ -5,7 +5,7 @@ type
   InterpolationType* = enum
     MEAN, LINEAR
 
-  WaveTableOcillator* = object
+  WaveTableOcillator* = ref object
     tableSize*: int
     waveTable*: seq[float32]
     interpolType*: proc (x: float32, wt: WaveTableOcillator): float32
