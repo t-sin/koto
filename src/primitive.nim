@@ -50,7 +50,7 @@ proc playWithPA(s: string) =
       osc.tablePos = osc.tablePos + tableDelta
 
       snd.seq.time = snd.seq.time + 1 / snd.sndout.sampleRate
-      osc.volume = m.sin(snd.seq.time / (2 * m.PI) * 100)
+      osc.volume = m.sin(snd.seq.time * 10 * (2 * m.PI))
 
   var
     stream: PStream
