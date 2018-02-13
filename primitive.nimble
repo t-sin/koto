@@ -2,10 +2,10 @@
 
 version       = "0.1.0"
 author        = "TANAKA Shinichi"
-description   = "Tiny sound synthesizer library"
+description   = "A synthesizer and sequencer library written with Nim."
 license       = "GPL-3.0"
 srcDir        = "src"
-bin           = @["nsynth"]
+bin           = @["primitive"]
 
 # Dependencies
 
