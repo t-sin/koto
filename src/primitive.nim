@@ -4,8 +4,8 @@ import math as m
 import vorbis/vorbisfile as VF
 import portaudio as PA
 
-import oscillators.wave_table as wt
-import utils
+import primitivepkg.oscillators.wave_table as wt
+import primitivepkg.utils
 
 type
   SoundOut* = ref object
