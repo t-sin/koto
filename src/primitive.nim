@@ -21,6 +21,7 @@ type
     sequence*: string
     noteDuration*: int
     osc*: wt.WaveTableOcillator
+    bar*: float64
     time*: float64
 
 type
@@ -42,6 +43,7 @@ proc playWithPA(s: string) =
       osc = snd.seq.osc
       freq = 440
       tableDelta = (float32(osc.tableSize) * float32(freq)) / snd.sndout.sampleRate
+      timeDelta = 1 / snd.sndout.sampleRate
 
     for i in 0..<int(snd.sndout.bufferSize):
       let val = osc.volume * osc.interpolFn(
@@ -49,8 +51,10 @@ proc playWithPA(s: string) =
       outBuf[i] = (val, val)
       osc.tablePos = osc.tablePos + tableDelta
 
-      snd.seq.time = snd.seq.time + 1 / snd.sndout.sampleRate
+      snd.seq.time = snd.seq.time + timeDelta
+      snd.seq.bar = snd.seq.bar + timeDelta * snd.seq.tempo / 60
       osc.volume = m.sin(snd.seq.time * 10 * (2 * m.PI))
+    echo $(snd.seq.time) & ", " & $(snd.seq.bar)
 
   var
     stream: PStream
