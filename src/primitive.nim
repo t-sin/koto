@@ -19,10 +19,33 @@ type
   ASDR* = enum
     None, Attack, Decay, Sustin, Release
   Envelope* = ref object
+    a*: float32
+    d*: float32
+    s*: float32
+    r*: float32
+
     state*: ASDR
-    envelope*: float32
     startTime*: float32
 
+proc generateEnvelope(env: Envelope, time: float32): float32 =
+  let noteTime = time - env.startTime
+  if env.state in [ASDR.None, ASDR.Attack] and noteTime < env.a:
+    env.state = ASDR.Attack
+    return noteTime / env.a
+  elif env.state in [ASDR.Attack, ASDR.Decay] and noteTime < env.a + env.d:
+    env.state = ASDR.Decay
+    return 1 - (noteTime - env.a) / env.d + env.s
+  elif env.state in [ASDR.Decay, ASDR.Sustin] and noteTime < env.a + env.d + env.s:
+    env.state = ASDR.Sustin
+    return env.s
+  elif env.state in [ASDR.Sustin, ASDR.Release] and noteTime < env.a + env.d + 0.1 + env.r:
+    env.state = ASDR.Release
+    return (noteTime - env.a- env.d - env.s) / env.r * env.s
+  elif noteTime > env.a + env.d + env.s + env.r:
+    env.state = ASDR.None
+    return 0
+
+type
   StepSequencer* = ref object
     tempo*: float64
     sequence*: string
@@ -56,7 +79,7 @@ proc playWithPA(s: string) =
 
     echo $(snd.seq.env.state) & ". " & $(snd.seq.time) & ", " & $(snd.seq.beat)
     for i in 0..<int(snd.sndout.bufferSize):
-      let val = snd.seq.env.envelope * osc.interpolFn(
+      let val = generateEnvelope(snd.seq.env, snd.seq.time) * osc.interpolFn(
         crop(osc.tablePos, float32(osc.tableSize)), osc)
       outBuf[i] = (val, val)
       osc.tablePos = osc.tablePos + tableDelta
@@ -72,31 +95,6 @@ proc playWithPA(s: string) =
         snd.seq.env.startTime = snd.seq.time
         snd.seq.env.state = ASDR.Attack
 
-      const
-        attack = 0.1
-        decay = 0.1
-        sustin = 0.5
-        release = 0.3
-      let
-        noteTime = snd.seq.time - snd.seq.env.startTime
-        state = snd.seq.env.state
-
-      if state in [ASDR.None, ASDR.Attack] and noteTime < attack:
-        snd.seq.env.state = ASDR.Attack
-        snd.seq.env.envelope = noteTime / attack
-      elif state in [ASDR.Attack, ASDR.Decay] and noteTime < attack + decay:
-        snd.seq.env.state = ASDR.Decay
-        snd.seq.env.envelope = 1 - (noteTime - attack) / decay  + sustin
-      elif state in [ASDR.Decay, ASDR.Sustin] and noteTime < attack + decay + sustin:
-        snd.seq.env.state = ASDR.Sustin
-        snd.seq.env.envelope = sustin
-      elif state in [ASDR.Sustin, ASDR.Release] and noteTime < attack + decay + 0.1 + release:
-        snd.seq.env.state = ASDR.Release
-        snd.seq.env.envelope = (noteTime - attack - decay - sustin) / release * sustin
-      elif noteTime > attack + decay + sustin + release:
-        snd.seq.env.state = ASDR.None
-        snd.seq.env.envelope = 0
-
   var
     stream: PStream
     sndout = SoundOut(
@@ -106,7 +104,12 @@ proc playWithPA(s: string) =
       bufferSize: 1024)
     osc = wt.WaveTableOcillator(
       tableSize: 512, interpolFn: wt.linear_interpolate, tablePos: 0, volume: 0.5)
-    env = Envelope(state: ASDR.None, envelope: 0)
+    env = Envelope(
+      a: 0.1,
+      d: 0.1,
+      s: 0.5,
+      r: 0.3,
+      state: ASDR.None)
     stepseq = StepSequencer(
       tempo: 120,
       sequence: s,
