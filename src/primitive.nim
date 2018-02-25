@@ -61,6 +61,8 @@ proc playWithPA(s: string) =
       snd.seq.time = snd.seq.time + timeDelta
       snd.seq.beat = snd.seq.beat + timeDelta * snd.seq.tempo / 60
 
+      # TODO: factor out
+
       const
         attack = 0.01
         decay = 0.1
