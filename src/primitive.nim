@@ -18,6 +18,11 @@ const seq_step = 16
 type
   ASDR* = enum
     None, Attack, Decay, Sustin, Release
+  Envelope* = ref object
+    state*: ASDR
+    envelope*: float32
+    startTime*: float32
+
   StepSequencer* = ref object
     tempo*: float64
     sequence*: string
@@ -26,8 +31,7 @@ type
 
     beat*: float64
     time*: float64
-    state*: ASDR
-    envelope*: float32
+    env*: Envelope
 
 type
   TSound* = tuple[sndout: SoundOut, seq: StepSequencer]
@@ -50,9 +54,9 @@ proc playWithPA(s: string) =
       tableDelta = (float32(osc.tableSize) * float32(freq)) / snd.sndout.sampleRate
       timeDelta = 1 / snd.sndout.sampleRate
 
-    echo $(snd.seq.state) & ". " & $(snd.seq.time) & ", " & $(snd.seq.beat)
+    echo $(snd.seq.env.state) & ". " & $(snd.seq.time) & ", " & $(snd.seq.beat)
     for i in 0..<int(snd.sndout.bufferSize):
-      let val = snd.seq.envelope * osc.interpolFn(
+      let val = snd.seq.env.envelope * osc.interpolFn(
         crop(osc.tablePos, float32(osc.tableSize)), osc)
       outBuf[i] = (val, val)
       osc.tablePos = osc.tablePos + tableDelta
@@ -63,29 +67,35 @@ proc playWithPA(s: string) =
 
       # TODO: factor out
 
-      const
-        attack = 0.01
-        decay = 0.1
-        sustin = 0.2
-        release = 0.4
+      # note on
       if m.floor(snd.seq.beat) - m.floor(before_beat) == 1:
-        snd.seq.state = ASDR.Attack
-        snd.seq.envelope = (snd.seq.beat - m.floor(snd.seq.beat)) / attack
-      elif snd.seq.beat - m.floor(snd.seq.beat) < attack:
-        snd.seq.state = ASDR.Attack
-        snd.seq.envelope = (snd.seq.beat - m.floor(snd.seq.beat)) / attack
-      elif snd.seq.beat - m.floor(snd.seq.beat) < attack + decay:
-        snd.seq.state = ASDR.Decay
-        snd.seq.envelope = 1 - (snd.seq.beat - m.floor(snd.seq.beat) - attack) / decay  + sustin
-      elif snd.seq.beat - m.floor(snd.seq.beat) < attack + decay + sustin:
-        snd.seq.state = ASDR.Sustin
-        snd.seq.envelope = sustin
-      elif snd.seq.beat - m.floor(snd.seq.beat) < attack + decay + sustin + release:
-        snd.seq.state = ASDR.Release
-        snd.seq.envelope = 0
-      elif snd.seq.beat - m.floor(snd.seq.beat) > attack + decay + sustin + release:
-        snd.seq.state = ASDR.None
-        snd.seq.envelope = 0
+        snd.seq.env.startTime = snd.seq.time
+        snd.seq.env.state = ASDR.Attack
+
+      const
+        attack = 0.1
+        decay = 0.1
+        sustin = 0.5
+        release = 0.3
+      let
+        noteTime = snd.seq.time - snd.seq.env.startTime
+        state = snd.seq.env.state
+
+      if state in [ASDR.None, ASDR.Attack] and noteTime < attack:
+        snd.seq.env.state = ASDR.Attack
+        snd.seq.env.envelope = noteTime / attack
+      elif state in [ASDR.Attack, ASDR.Decay] and noteTime < attack + decay:
+        snd.seq.env.state = ASDR.Decay
+        snd.seq.env.envelope = 1 - (noteTime - attack) / decay  + sustin
+      elif state in [ASDR.Decay, ASDR.Sustin] and noteTime < attack + decay + sustin:
+        snd.seq.env.state = ASDR.Sustin
+        snd.seq.env.envelope = sustin
+      elif state in [ASDR.Sustin, ASDR.Release] and noteTime < attack + decay + 0.1 + release:
+        snd.seq.env.state = ASDR.Release
+        snd.seq.env.envelope = (noteTime - attack - decay - sustin) / release * sustin
+      elif noteTime > attack + decay + sustin + release:
+        snd.seq.env.state = ASDR.None
+        snd.seq.env.envelope = 0
 
   var
     stream: PStream
@@ -96,6 +106,7 @@ proc playWithPA(s: string) =
       bufferSize: 1024)
     osc = wt.WaveTableOcillator(
       tableSize: 512, interpolFn: wt.linear_interpolate, tablePos: 0, volume: 0.5)
+    env = Envelope(state: ASDR.None, envelope: 0)
     stepseq = StepSequencer(
       tempo: 120,
       sequence: s,
@@ -103,11 +114,10 @@ proc playWithPA(s: string) =
       osc: osc,
       time: 0,
       beat: 0,
-      state: ASDR.None,
-      envelope: 0)
+      env: env)
     snd: TSound = (sndout, stepseq)
 
-  osc.waveTable = wt.makeTable(osc, wt.tri)
+  osc.waveTable = wt.makeTable(osc, wt.saw)
 
 
   discard PA.OpenDefaultStream(
