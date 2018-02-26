@@ -54,15 +54,15 @@ proc square*(n: int, len: int): float32 =
     result = 1'f32
 
 # table interploation
-proc mean_interpolate*(x: float32, wt: WaveTableOcillator): float32 =
+proc mean_interpolate*(x: float32, table: seq[float32]): float32 =
   let
-    xprev = int(m.floor(x)) mod wt.tableSize
-    xnext = int(m.ceil(x)) mod wt.tableSize
-  return wt.waveTable[xprev] + wt.waveTable[xnext] / 2
+    xprev = int(m.floor(x)) mod table.len
+    xnext = int(m.ceil(x)) mod table.len
+  return table[xprev] + table[xnext] / 2
 
-proc linear_interpolate*(x: float32, wt: WaveTableOcillator): float32 =
+proc linear_interpolate*(x: float32, table: seq[float32]): float32 =
   let
     ratio = x - m.floor(x)
-    xprev = wt.waveTable[int(m.floor(x)) mod wt.tableSize]
-    xnext = wt.waveTable[int(m.ceil(x)) mod wt.tableSize]
+    xprev = table[int(m.floor(x)) mod table.len]
+    xnext = table[int(m.ceil(x)) mod table.len]
   return xprev * ratio + xnext * (1 - ratio)
