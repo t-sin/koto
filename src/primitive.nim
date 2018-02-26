@@ -133,13 +133,24 @@ proc playWithPA(s: string) =
     streamCallback = fillingWithTable,
     userData = cast[pointer](snd.addr))
 
-  discard PA.StartStream(stream)
-  PA.Sleep(4000)
-  discard PA.StopStream(stream)
-  discard PA.CloseStream(stream)
+  type KeyboardInterruptError = object of Exception
+  proc handleError() {.noconv.} =
+    echo "Keyboard Interrupt"
+    raise newException(KeyboardInterruptError, "Keyboard Interrupt")
 
-  echo "============== terminate pa   ==============="
-  echo repr(PA.Terminate())
+  setControlCHook(handleError)
+
+  discard PA.StartStream(stream)
+  try:
+    while true:
+      PA.Sleep(1)
+
+  except KeyboardInterruptError:
+    discard PA.StopStream(stream)
+    discard PA.CloseStream(stream)
+    echo repr(PA.Terminate())
+    echo "============== terminate pa   ==============="
+    quit 0
 
 
 when isMainModule:
