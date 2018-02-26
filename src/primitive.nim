@@ -73,16 +73,16 @@ proc playWithPA(s: string) =
       outBuf = cast[ptr array[int, TStereo]](outBuf)
       snd = cast[ptr TSound](userData)
       osc = snd.seq.osc
-      freq = 440
-      tableDelta = (float32(osc.tableSize) * float32(freq)) / snd.sndout.sampleRate
+      freq = 440'f
       timeDelta = 1 / snd.sndout.sampleRate
 
     echo $(snd.seq.env.state) & ". " & $(snd.seq.time) & ", " & $(snd.seq.beat)
     for i in 0..<int(snd.sndout.bufferSize):
-      let val = generateEnvelope(snd.seq.env, snd.seq.time) * osc.interpolFn(
-        crop(osc.tablePos, float32(osc.tableSize)), osc)
+      let
+        oscVal = oscillate(osc, freq, snd.sndout.sampleRate)
+        envelope = generateEnvelope(snd.seq.env, snd.seq.time)
+        val = oscVal * envelope
       outBuf[i] = (val, val)
-      osc.tablePos = osc.tablePos + tableDelta
 
       let before_beat = snd.seq.beat
       snd.seq.time = snd.seq.time + timeDelta
@@ -121,8 +121,6 @@ proc playWithPA(s: string) =
     snd: TSound = (sndout, stepseq)
 
   osc.waveTable = wt.makeTable(osc, 256, wt.saw)
-  echo osc.waveTable
-
 
   discard PA.OpenDefaultStream(
     cast[PStream](stream.addr),

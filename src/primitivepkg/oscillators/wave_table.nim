@@ -20,6 +20,15 @@ proc makeTable*(wt: WaveTableOcillator,
   for i in 0..<size:
     result[i] = fn(i, size)
 
+proc oscillate*(osc: WaveTableOcillator,
+              freq: float32,
+              sampleRate: float32): float32 =
+  let
+    val = osc.interpolFn(osc.tablePos, osc.waveTable)
+    tableDelta = (float32(osc.waveTable.len) * freq) / sampleRate
+  osc.tablePos = crop(osc.tablePos + tableDelta, float32(osc.waveTable.len))
+
+  return val
 
 # wave form generator
 # these can be more gereral...?
