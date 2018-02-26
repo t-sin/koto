@@ -103,7 +103,7 @@ proc playWithPA(s: string) =
       sampleRate: 44100,
       bufferSize: 1024)
     osc = wt.WaveTableOcillator(
-      tableSize: 512, interpolFn: wt.linear_interpolate, tablePos: 0, volume: 0.5)
+      interpolFn: wt.linear_interpolate, tablePos: 0, volume: 0.5)
     env = Envelope(
       a: 0.1,
       d: 0.1,
@@ -120,7 +120,8 @@ proc playWithPA(s: string) =
       env: env)
     snd: TSound = (sndout, stepseq)
 
-  osc.waveTable = wt.makeTable(osc, wt.saw)
+  osc.waveTable = wt.makeTable(osc, 256, wt.saw)
+  echo osc.waveTable
 
 
   discard PA.OpenDefaultStream(

@@ -1,23 +1,24 @@
 import math as m
 
+import ../utils
 
 type
   InterpolationType* = enum
     MEAN, LINEAR
 
   WaveTableOcillator* = ref object
-    tableSize*: int
     waveTable*: seq[float32]
-    interpolFn*: proc (x: float32, wt: WaveTableOcillator): float32
+    interpolFn*: proc (x: float32, t: seq[float32]): float32
     tablePos*: float32
     volume*: float32
 
 
 proc makeTable*(wt: WaveTableOcillator,
+                size: int,
                 fn: proc (n: int, max: int): float32): seq[float32] =
-  result = newSeq[float32](wt.tableSize)
-  for i in 0..<wt.tableSize:
-    result[i] = fn(i, wt.tableSize)
+  result = newSeq[float32](size)
+  for i in 0..<size:
+    result[i] = fn(i, size)
 
 
 # wave form generator
