@@ -35,7 +35,27 @@ type
     sndout: SoundOut
     seq: StepSequencer
 
+proc oscillateStepSeq(snd: TSoundRef): float32 =
+  let
+    freq = 440'f
+    osc = snd.seq.osc
 
+  #echo $(snd.seq.env.state) & ". " & $(snd.seq.time) & ", " & $(snd.seq.beat)
+  let
+    oscVal = oscillate(osc, freq, snd.sndout.sampleRate)
+    envelope = generateEnvelope(snd.seq.env, snd.seq.time)
+
+  return oscVal * envelope
+
+proc processTime(snd: TSoundRef): float64 =
+  let
+    timeDelta = 1 / snd.sndout.sampleRate
+    before_beat = snd.seq.beat
+
+  snd.seq.time = snd.seq.time + timeDelta
+  snd.seq.beat = snd.seq.beat + timeDelta * snd.seq.tempo / 60
+
+  return snd.seq.beat
 
 proc processPaBuffer(inBuf, outBuf: pointer,
                      framesPerBuf: culong,
@@ -44,24 +64,18 @@ proc processPaBuffer(inBuf, outBuf: pointer,
                      userData: pointer): cint {.cdecl.} =
   let
     outBuf = cast[ptr array[int, TStereo]](outBuf)
-    snd = cast[TSoundRef](userData)[]
-    osc = snd.seq.osc
-    freq = 440'f
-    timeDelta = 1 / snd.sndout.sampleRate
+    snd = cast[TSoundRef](userData)
 
-  echo $(snd.seq.env.state) & ". " & $(snd.seq.time) & ", " & $(snd.seq.beat)
   for i in 0..<int(snd.sndout.bufferSize):
-    let
-      oscVal = oscillate(osc, freq, snd.sndout.sampleRate)
-      envelope = generateEnvelope(snd.seq.env, snd.seq.time)
-      val = oscVal * envelope
+    let val = oscillateStepSeq(snd)
     outBuf[i] = (val, val)
 
-    let before_beat = snd.seq.beat
-    snd.seq.time = snd.seq.time + timeDelta
-    snd.seq.beat = snd.seq.beat + timeDelta * snd.seq.tempo / 60
+    let
+      before_beat = snd.seq.beat
+      beat = processTime(snd)
 
     # note on
+    # TODO: trigger from another thread
     if m.floor(snd.seq.beat) - m.floor(before_beat) == 1:
       eg.noteOn(snd.seq.env, snd.seq.time)
     elif snd.seq.beat - m.floor(snd.seq.beat) > 0.7:
