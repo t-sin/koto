@@ -64,6 +64,8 @@ proc playWithPA(s: string) =
       # note on
       if m.floor(snd.seq.beat) - m.floor(before_beat) == 1:
         eg.noteOn(snd.seq.env, snd.seq.time)
+      elif snd.seq.beat - m.floor(snd.seq.beat) > 0.3:
+        eg.noteOff(snd.seq.env, snd.seq.time)
 
   var
     stream: PStream
@@ -78,7 +80,7 @@ proc playWithPA(s: string) =
       a: 0.1,
       d: 0.1,
       s: 0.5,
-      r: 0.3,
+      r: 0.1,
       state: ASDR.None)
     stepseq = StepSequencer(
       tempo: 120,
