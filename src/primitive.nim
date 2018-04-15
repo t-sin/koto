@@ -31,41 +31,41 @@ type
   TSound* = tuple[sndout: SoundOut, seq: StepSequencer]
   TStereo* = tuple[left, right: float32]
 
+proc processPaBuffer(inBuf, outBuf: pointer,
+                     framesPerBuf: culong,
+                     timeInfo: ptr TStreamCallbackTimeInfo,
+                     stateusFlags: TStreamCallbackFlags,
+                     userData: pointer): cint {.cdecl.} =
+  let
+    outBuf = cast[ptr array[int, TStereo]](outBuf)
+    snd = cast[ptr TSound](userData)
+    osc = snd.seq.osc
+    freq = 440'f
+    timeDelta = 1 / snd.sndout.sampleRate
+
+  echo $(snd.seq.env.state) & ". " & $(snd.seq.time) & ", " & $(snd.seq.beat)
+  for i in 0..<int(snd.sndout.bufferSize):
+    let
+      oscVal = oscillate(osc, freq, snd.sndout.sampleRate)
+      envelope = generateEnvelope(snd.seq.env, snd.seq.time)
+      val = oscVal * envelope
+    outBuf[i] = (val, val)
+
+    let before_beat = snd.seq.beat
+    snd.seq.time = snd.seq.time + timeDelta
+    snd.seq.beat = snd.seq.beat + timeDelta * snd.seq.tempo / 60
+
+    # TODO: factor out
+
+    # note on
+    if m.floor(snd.seq.beat) - m.floor(before_beat) == 1:
+      eg.noteOn(snd.seq.env, snd.seq.time)
+    elif snd.seq.beat - m.floor(snd.seq.beat) > 0.7:
+      eg.noteOff(snd.seq.env, snd.seq.time)
+
 proc playWithPA(s: string) =
   echo "============== initialize pa  ==============="
   echo repr(PA.Initialize())
-
-  proc fillingWithTable(inBuf, outBuf: pointer,
-                        framesPerBuf: culong,
-                        timeInfo: ptr TStreamCallbackTimeInfo,
-                        stateusFlags: TStreamCallbackFlags,
-                        userData: pointer): cint {.cdecl.} =
-    let
-      outBuf = cast[ptr array[int, TStereo]](outBuf)
-      snd = cast[ptr TSound](userData)
-      osc = snd.seq.osc
-      freq = 440'f
-      timeDelta = 1 / snd.sndout.sampleRate
-
-    echo $(snd.seq.env.state) & ". " & $(snd.seq.time) & ", " & $(snd.seq.beat)
-    for i in 0..<int(snd.sndout.bufferSize):
-      let
-        oscVal = oscillate(osc, freq, snd.sndout.sampleRate)
-        envelope = generateEnvelope(snd.seq.env, snd.seq.time)
-        val = oscVal * envelope
-      outBuf[i] = (val, val)
-
-      let before_beat = snd.seq.beat
-      snd.seq.time = snd.seq.time + timeDelta
-      snd.seq.beat = snd.seq.beat + timeDelta * snd.seq.tempo / 60
-
-      # TODO: factor out
-
-      # note on
-      if m.floor(snd.seq.beat) - m.floor(before_beat) == 1:
-        eg.noteOn(snd.seq.env, snd.seq.time)
-      elif snd.seq.beat - m.floor(snd.seq.beat) > 0.3:
-        eg.noteOff(snd.seq.env, snd.seq.time)
 
   var
     stream: PStream
@@ -101,7 +101,7 @@ proc playWithPA(s: string) =
     sampleFormat = snd.sndout.sampleFormat,
     sampleRate = cdouble(snd.sndout.sampleRate),
     framesPerBuffer = culong(snd.sndout.bufferSize),
-    streamCallback = fillingWithTable,
+    streamCallback = processPaBuffer,
     userData = cast[pointer](snd.addr))
 
   type KeyboardInterruptError = object of Exception
