@@ -28,8 +28,14 @@ type
     env*: eg.Envelope
 
 type
-  TSound* = tuple[sndout: SoundOut, seq: StepSequencer]
   TStereo* = tuple[left, right: float32]
+
+type
+  TSoundRef = ref object
+    sndout: SoundOut
+    seq: StepSequencer
+
+
 
 proc processPaBuffer(inBuf, outBuf: pointer,
                      framesPerBuf: culong,
@@ -38,7 +44,7 @@ proc processPaBuffer(inBuf, outBuf: pointer,
                      userData: pointer): cint {.cdecl.} =
   let
     outBuf = cast[ptr array[int, TStereo]](outBuf)
-    snd = cast[ptr TSound](userData)
+    snd = cast[TSoundRef](userData)[]
     osc = snd.seq.osc
     freq = 440'f
     timeDelta = 1 / snd.sndout.sampleRate
@@ -55,44 +61,19 @@ proc processPaBuffer(inBuf, outBuf: pointer,
     snd.seq.time = snd.seq.time + timeDelta
     snd.seq.beat = snd.seq.beat + timeDelta * snd.seq.tempo / 60
 
-    # TODO: factor out
-
     # note on
     if m.floor(snd.seq.beat) - m.floor(before_beat) == 1:
       eg.noteOn(snd.seq.env, snd.seq.time)
     elif snd.seq.beat - m.floor(snd.seq.beat) > 0.7:
       eg.noteOff(snd.seq.env, snd.seq.time)
 
-proc playWithPA(s: string) =
+
+proc playWithPA(snd: TSoundRef) =
   echo "============== initialize pa  ==============="
   echo repr(PA.Initialize())
 
   var
     stream: PStream
-    sndout = SoundOut(
-      channelNum: 2,
-      sampleFormat: PA.TSampleFormat.sfFloat32,
-      sampleRate: 44100,
-      bufferSize: 1024)
-    osc = wt.WaveTableOcillator(
-      interpolFn: wt.linear_interpolate, tablePos: 0, volume: 0.5)
-    env = Envelope(
-      a: 0.1,
-      d: 0.1,
-      s: 0.5,
-      r: 0.1,
-      state: ASDR.None)
-    stepseq = StepSequencer(
-      tempo: 120,
-      sequence: s,
-      noteDuration: 100,
-      osc: osc,
-      time: 0,
-      beat: 0,
-      env: env)
-    snd: TSound = (sndout, stepseq)
-
-  osc.waveTable = wt.makeTable(osc, 256, wt.saw)
 
   discard PA.OpenDefaultStream(
     cast[PStream](stream.addr),
@@ -102,7 +83,7 @@ proc playWithPA(s: string) =
     sampleRate = cdouble(snd.sndout.sampleRate),
     framesPerBuffer = culong(snd.sndout.bufferSize),
     streamCallback = processPaBuffer,
-    userData = cast[pointer](snd.addr))
+    userData = cast[pointer](snd))
 
   type KeyboardInterruptError = object of Exception
   proc handleError() {.noconv.} =
@@ -128,11 +109,35 @@ when isMainModule:
   let
     args = commandLineParams()
 
-  if args.len == 0:
-    playWithPA("0000000000000000")
+  var
+    sndout = SoundOut(
+      channelNum: 2,
+      sampleFormat: PA.TSampleFormat.sfFloat32,
+      sampleRate: 44100,
+      bufferSize: 1024)
+    osc = wt.WaveTableOcillator(
+      interpolFn: wt.linear_interpolate, tablePos: 0, volume: 0.5)
+    env = Envelope(
+      a: 0.1,
+      d: 0.1,
+      s: 0.5,
+      r: 0.1,
+      state: ASDR.None)
+    stepseq = StepSequencer(
+      tempo: 120,
+      sequence: "0000000000000000",
+      noteDuration: 100,
+      osc: osc,
+      time: 0,
+      beat: 0,
+      env: env)
+    snd = TSoundRef(
+      sndout: sndout,
+      seq: stepseq)
 
-  elif args.len == 1:
-    playWithPA(args[0])
+  osc.waveTable = wt.makeTable(osc, 256, wt.saw)
+
+  playWithPA(snd)
 
   # var vf: VF.TOggVorbis_File
 
