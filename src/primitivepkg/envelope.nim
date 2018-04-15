@@ -14,6 +14,11 @@ proc noteOn*(env: Envelope, startTime: float32) =
   env.startTime = startTime
   env.state = ASDR.Attack
 
+proc noteOff*(env: Envelope, startTime: float32) =
+  echo "hoge"
+  env.startTime = startTime
+  env.state = ASDR.Release
+
 proc generateEnvelope*(env: Envelope, time: float32): float32 =
   let noteTime = time - env.startTime
 
@@ -25,15 +30,14 @@ proc generateEnvelope*(env: Envelope, time: float32): float32 =
     env.state = ASDR.Decay
     return 1 - (noteTime - env.a) / env.d + env.s
 
-  elif env.state in [ASDR.Decay, ASDR.Sustin] and noteTime < env.a + env.d + env.s:
+  elif env.state in [ASDR.Decay, ASDR.Sustin] and noteTime > env.a + env.d:
     env.state = ASDR.Sustin
     return env.s
 
-  elif env.state in [ASDR.Sustin, ASDR.Release] and noteTime < env.a + env.d + 0.1 + env.r:
+  elif env.state == ASDR.Release and noteTime < env.r:
     env.state = ASDR.Release
     return (noteTime - env.a- env.d - env.s) / env.r * env.s
 
-  elif noteTime > env.a + env.d + env.s + env.r:
+  elif env.state == ASDR.Release and noteTime >= env.r:
     env.state = ASDR.None
     return 0
-
