@@ -43,13 +43,3 @@ when isMainModule:
   osc.waveTable = wt.makeTable(osc, 256, wt.square)
 
   pat.playWithPA(snd)
-
-  # var vf: VF.TOggVorbis_File
-
-  # if VF.fopen(args[0], vf.addr) == 0:
-  #   echo "cannot open '" & args[0] & "'"
-  #   quit(1)
-
-  # echo "============== show .ogg info ==============="
-  # echo "filename: '" & args[0] & "'"
-  # echo repr(VF.info(vf.addr, -1))
