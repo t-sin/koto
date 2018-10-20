@@ -1,12 +1,12 @@
 from os import commandLineParams
 import math as m
 
-import vorbis/vorbisfile as VF
+# import vorbis/vorbisfile as VF
 import portaudio as PA
 
-import primitivepkg.oscillators.wave_table as wt
-import primitivepkg.envelope as eg
-import primitivepkg.utils
+import kotopkg.oscillators.wave_table as wt
+import kotopkg.envelope as eg
+import kotopkg.utils
 
 type
   SoundOut* = ref object
@@ -149,7 +149,7 @@ when isMainModule:
       sndout: sndout,
       seq: stepseq)
 
-  osc.waveTable = wt.makeTable(osc, 256, wt.saw)
+  osc.waveTable = wt.makeTable(osc, 256, wt.square)
 
   playWithPA(snd)
 
