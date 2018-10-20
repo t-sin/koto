@@ -1,4 +1,5 @@
 from os import commandLineParams
+from os import sleep
 
 import portaudio as PA
 
@@ -42,4 +43,11 @@ when isMainModule:
 
   osc.waveTable = wt.makeTable(osc, 256, wt.square)
 
-  pat.playWithPA(snd)
+  var pa_thr: Thread[TSoundRef]
+  createThread(pa_thr, pat.playWithPA, snd)
+
+  for n in 0..10000:
+    echo n
+    sleep(59)
+
+  joinThread(pa_thr)

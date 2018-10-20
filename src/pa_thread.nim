@@ -54,7 +54,7 @@ proc processPaBuffer(inBuf, outBuf: pointer,
       eg.noteOff(snd.seq.env, snd.seq.time)
 
 
-proc playWithPA*(snd: TSoundRef) =
+proc playWithPA*(snd: TSoundRef) {.thread.} =
   echo "============== initialize pa  ==============="
   echo repr(PA.Initialize())
 
