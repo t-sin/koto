@@ -3,8 +3,8 @@ from os import sleep
 
 import portaudio as PA
 
-import snd_types
-import pa_thread as pat
+import kotopkg.snd_types
+import kotopkg.pa_thread as pat
 
 import kotopkg.oscillators.wave_table as wt
 import kotopkg.envelope as eg

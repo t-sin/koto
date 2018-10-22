@@ -1,7 +1,7 @@
 import portaudio as PA
 
-import kotopkg.oscillators.wave_table as wt
-import kotopkg.envelope as eg
+import oscillators.wave_table as wt
+import envelope as eg
 
 
 type
