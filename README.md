@@ -1,5 +1,24 @@
 # Koto - Music performing filesystem
 
+## TODOs
+
+- [ ] Unit graph framework
+    - [ ] frameworks
+    - [ ] mixer
+- [ ] Oscillators
+    - [ ] Sine
+    - [ ] Triangle
+    - [ ] Saw
+    - [ ] Square
+- [ ] Effects
+    - [ ] Filters
+    - [ ] Delay
+- [ ] Sequencers
+    - [ ] Events (notes, fx values)
+    - [ ] MML-like score description
+- [ ] FUSE interfaces
+- [ ] Command line interfaces
+
 ## Installation
 
 Upcomming...
