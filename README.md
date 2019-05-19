@@ -1,4 +1,4 @@
-# Koto - tiny synthesizer program
+# Koto - Music performing filesystem
 
 ## Installation
 
