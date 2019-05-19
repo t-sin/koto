@@ -5,3 +5,4 @@ authors = ["t-sin <shinichi.tanaka45@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+cpal = "0.8.2"
