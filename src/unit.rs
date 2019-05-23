@@ -1,7 +1,7 @@
 use super::clock;
 
 pub trait Unit {
-    fn calc(self, clock: &clock::Clock) -> f64;
+    fn calc(&self, clock: &clock::Clock) -> f64;
     fn update(&mut self, clock: &clock::Clock);
 }
 
@@ -12,7 +12,7 @@ pub struct Osc {
 }
 
 impl Unit for Osc {
-    fn calc(self, _clock: &clock::Clock) -> f64 {
+    fn calc(&self, _clock: &clock::Clock) -> f64 {
         self.ph.sin()
     }
 
