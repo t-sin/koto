@@ -6,9 +6,9 @@ pub trait Unit {
 }
 
 pub struct Osc {
-    init_ph: f64,
-    ph: f64,
-    freq: f64,
+    pub init_ph: f64,
+    pub ph: f64,
+    pub freq: f64,
 }
 
 impl Unit for Osc {
