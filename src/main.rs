@@ -4,10 +4,12 @@ use cpal::SampleFormat;
 use cpal::SampleRate;
 
 mod time;
-mod unit;
+mod units;
 
+use time::Time;
 use time::Clock;
-use unit::Unit;
+use units::unit::Unit;
+use units::oscillator::Sine;
 
 fn main() {
     let sample_rate = 44100.0;
@@ -23,8 +25,8 @@ fn main() {
 
     event_loop.play_stream(stream_id);
 
-    let mut time = time::Time { tick: 0, sample_rate: sample_rate };
-    let mut sine = unit::Osc { init_ph: 0.0, ph: 0.0, freq: 880.0 };
+    let mut time = Time { tick: 0, sample_rate: sample_rate };
+    let mut sine = Sine { init_ph: 0.0, ph: 0.0, freq: 880.0 };
 
     event_loop.run(|_stream_id, stream_data| {
         match stream_data {
