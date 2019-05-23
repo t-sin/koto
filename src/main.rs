@@ -1,11 +1,8 @@
-
-use cpal::EventLoop;
-use cpal::SampleFormat;
-use cpal::SampleRate;
-
+mod audio_device;
 mod time;
 mod units;
 
+use audio_device::AudioDevice;
 use time::Time;
 use time::Clock;
 use units::unit::Unit;
@@ -13,32 +10,19 @@ use units::unit::UnitGraph;
 use units::oscillator::Sine;
 
 fn main() {
-    let sample_rate = 44100.0;
+    let channels = 1;
+    let sample_rate = 44100u32;
 
-    let device = cpal::default_output_device().unwrap();
-    let format = cpal::Format {
-        channels: 1,
-        sample_rate: SampleRate(sample_rate as u32),
-        data_type: SampleFormat::F32
-    };
-    let event_loop = EventLoop::new();
-    let stream_id = event_loop.build_output_stream(&device, &format).unwrap();
+    let audio_device = AudioDevice::open(channels, sample_rate);
 
-    event_loop.play_stream(stream_id);
-
-    let mut time = Time { tick: 0, sample_rate: sample_rate };
+    let mut time = Time { channels: 1, sample_rate: sample_rate, tick: 0 };
     let mut unit_graph = UnitGraph::Unit(Box::new(Sine { init_ph: 0.0, ph: 0.0, freq: 880.0 }));
 
-    event_loop.run(|_stream_id, stream_data| {
-        match stream_data {
-            cpal::StreamData::Output { buffer: cpal::UnknownTypeOutputBuffer::F32(mut buffer) } => {
-                for elem in buffer.iter_mut() {
-                    *elem = unit_graph.calc(&time) as f32;
-                    unit_graph.update(&time);
-                    time.update();
-                }
-            }
-            _ => ()
+    audio_device.run(|mut buffer| {
+        for elem in buffer.iter_mut() {
+            *elem = unit_graph.calc(&time) as f32;
+            unit_graph.update(&time);
+            time.update();
         }
     });
 }
