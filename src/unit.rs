@@ -1,8 +1,8 @@
-use super::clock;
+use super::time;
 
 pub trait Unit {
-    fn calc(&self, clock: &clock::Clock) -> f64;
-    fn update(&mut self, clock: &clock::Clock);
+    fn calc(&self, time: &time::Time) -> f64;
+    fn update(&mut self, time: &time::Time);
 }
 
 pub struct Osc {
@@ -12,11 +12,11 @@ pub struct Osc {
 }
 
 impl Unit for Osc {
-    fn calc(&self, _clock: &clock::Clock) -> f64 {
+    fn calc(&self, _time: &time::Time) -> f64 {
         self.ph.sin()
     }
 
-    fn update(&mut self, clock: &clock::Clock) {
-        self.ph += self.freq / clock.sample_rate * std::f64::consts::PI;
+    fn update(&mut self, time: &time::Time) {
+        self.ph += self.freq / time.sample_rate * std::f64::consts::PI;
     }
 }
