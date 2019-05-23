@@ -9,6 +9,7 @@ mod units;
 use time::Time;
 use time::Clock;
 use units::unit::Unit;
+use units::unit::UnitGraph;
 use units::oscillator::Sine;
 
 fn main() {
@@ -26,14 +27,15 @@ fn main() {
     event_loop.play_stream(stream_id);
 
     let mut time = Time { tick: 0, sample_rate: sample_rate };
-    let mut sine = Sine { init_ph: 0.0, ph: 0.0, freq: 880.0 };
+    let mut unit_graph = UnitGraph::Unit(Box::new(Sine { init_ph: 0.0, ph: 0.0, freq: 880.0 }));
+//    let mut unit_graph = UnitGraph::Value(0.0);
 
     event_loop.run(|_stream_id, stream_data| {
         match stream_data {
             cpal::StreamData::Output { buffer: cpal::UnknownTypeOutputBuffer::F32(mut buffer) } => {
                 for elem in buffer.iter_mut() {
-                    *elem = sine.calc(&time) as f32;
-                    sine.update(&time);
+                    *elem = unit_graph.calc(&time) as f32;
+                    unit_graph.update(&time);
                     time.update();
                 }
             }
