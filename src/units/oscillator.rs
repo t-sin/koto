@@ -13,6 +13,6 @@ impl Unit for Sine {
     }
 
     fn update(&mut self, time: &Time) {
-        self.ph += self.freq / time.sample_rate * std::f64::consts::PI;
+        self.ph += self.freq / time.sample_rate as f64 * std::f64::consts::PI;
     }
 }
