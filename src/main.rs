@@ -28,7 +28,6 @@ fn main() {
 
     let mut time = Time { tick: 0, sample_rate: sample_rate };
     let mut unit_graph = UnitGraph::Unit(Box::new(Sine { init_ph: 0.0, ph: 0.0, freq: 880.0 }));
-//    let mut unit_graph = UnitGraph::Value(0.0);
 
     event_loop.run(|_stream_id, stream_data| {
         match stream_data {
