@@ -3,13 +3,12 @@
 ## TODOs
 
 - [ ] Unit graph framework
-    - [ ] frameworks
-    - [ ] mixer
+    - [x] frameworks
+    - [ ] zero, offset, multiply, mixer, pan, gain
+    - [ ] stereonize
 - [ ] Oscillators
-    - [ ] Sine
-    - [ ] Triangle
-    - [ ] Saw
-    - [ ] Square
+    - [ ] Sine, Triangle, Saw, Square
+    - [ ] Wavetable
 - [ ] Effects
     - [ ] Filters
     - [ ] Delay
