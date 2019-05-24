@@ -7,6 +7,9 @@ use time::Time;
 use time::Clock;
 use units::unit::Calc;
 use units::unit::Unit;
+
+use units::core::Offset;
+use units::core::Gain;
 use units::oscillator::Sine;
 
 fn main() {
@@ -17,13 +20,19 @@ fn main() {
 
     let mut time = Time { sample_rate: sample_rate, tick: 0 };
     let mut unit_graph = Unit::Unit(Box::new(Sine {
-        init_ph: Unit::Unit(Box::new(Sine {
-            init_ph: Unit::Value(0.0),
-            ph: 0.0,
-            freq: Unit::Value(100.0)
-        })),
+        init_ph: Unit::Value(0.0),
         ph: 0.0,
-        freq: Unit::Value(880.0)
+        freq: Unit::Unit(Box::new(Offset {
+            v: 880.0,
+            src: Unit::Unit(Box::new(Gain {
+                v: 20.0,
+                src: Unit::Unit(Box::new(Sine {
+                    init_ph: Unit::Value(0.0),
+                    ph: 0.0,
+                    freq: Unit::Value(20.0),
+                })),
+            })),
+        })),
     }));
 
     audio_device.run(|mut buffer| {
