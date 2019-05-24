@@ -4,8 +4,8 @@
 
 - [ ] Unit graph framework
     - [x] frameworks
-    - [ ] zero, offset, multiply, mixer, pan, gain
-    - [ ] stereonize
+    - [x] zero, offset, gain
+    - [ ] stereonize (pan)
 - [ ] Oscillators
     - [ ] Sine, Triangle, Saw, Square
     - [ ] Wavetable
@@ -17,6 +17,7 @@
     - [ ] MML-like score description
 - [ ] FUSE interfaces
 - [ ] Command line interfaces
+- [ ] SAVE the graph
 
 ## Installation
 
