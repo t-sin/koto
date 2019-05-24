@@ -1,5 +1,4 @@
 pub struct Time {
-    pub channels: u32,
     pub sample_rate: u32,
     pub tick: u64,
 }
