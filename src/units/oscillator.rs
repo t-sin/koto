@@ -14,6 +14,8 @@ impl Calc for Sine {
     }
 
     fn update(&mut self, time: &Time) {
+        self.init_ph.update(&time);
+        self.freq.update(&time);
         self.ph += self.freq.calc(&time) / time.sample_rate as f64 * std::f64::consts::PI;
     }
 }
