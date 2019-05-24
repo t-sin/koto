@@ -1,5 +1,7 @@
 # Koto - Music performing filesystem
 
+[TODO: Adorable Logo]
+
 ## TODOs
 
 - [ ] Unit graph framework
@@ -23,7 +25,7 @@
 
 Upcomming...
 
-## Usase
+## Usage
 
 Upcomming...
 
