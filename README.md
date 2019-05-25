@@ -1,6 +1,6 @@
 # Koto - Music performing filesystem
 
-[TODO: Adorable Logo]
+![koto logo](koto-logo.gif)
 
 ## TODOs
 
