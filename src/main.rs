@@ -1,6 +1,9 @@
 mod audio_device;
 mod time;
 mod units;
+mod unitstr;
+
+use std::io::{self, Read};
 
 use audio_device::AudioDevice;
 use time::Time;
@@ -17,6 +20,10 @@ fn main() {
     let sample_rate = 44100u32;
 
     let audio_device = AudioDevice::open(channels, sample_rate);
+
+    let mut s = String::new();
+    io::stdin().read_to_string(&mut s);
+    print!("{:?}", unitstr::read(s));
 
     let mut time = Time { sample_rate: sample_rate, tick: 0 };
     let mut unit_graph = Unit::Unit(Box::new(Sine {
@@ -35,11 +42,11 @@ fn main() {
         })),
     }));
 
-    audio_device.run(|mut buffer| {
-        for elem in buffer.iter_mut() {
-            *elem = unit_graph.calc(&time) as f32;
-            unit_graph.update(&time);
-            time.update();
-        }
-    });
+    // audio_device.run(|mut buffer| {
+    //     for elem in buffer.iter_mut() {
+    //         *elem = unit_graph.calc(&time) as f32;
+    //         unit_graph.update(&time);
+    //         time.update();
+    //     }
+    // });
 }
