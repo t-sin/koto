@@ -23,7 +23,7 @@ fn main() {
 
     let mut s = String::new();
     io::stdin().read_to_string(&mut s);
-    print!("{:?}", conflisp::read(s));
+    println!("{:?}", conflisp::print(conflisp::read(s)));
 
     let mut time = Time { sample_rate: sample_rate, tick: 0 };
     let mut unit_graph = Unit::Unit(Box::new(Sine {

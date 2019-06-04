@@ -102,6 +102,32 @@ pub fn read(s: String) -> Cons {
     read_exp(&mut chars)
 }
 
-pub fn print(c: Cons) {
-    print!("nil");
+fn print_list(car: Cons, cdr: Cons) -> String {
+    let mut s = String::new();
+    s.push_str(print(car).as_str());
+    match cdr {
+        Cons::Cons(car2, cdr2) => {
+            s.push(' ');
+            s.push_str(print_list(*car2, *cdr2).as_str())
+        },
+        Cons::Nil => (),
+        exp => panic!("ill formed S-expression: {:?}", exp),
+    }
+    s
+}
+
+pub fn print(exp: Cons) -> String {
+    let mut s = String::new();
+    match exp {
+        Cons::Nil => s.push_str("nil"),
+        Cons::Number(n) => s.push_str(n.to_string().as_str()),
+        Cons::Symbol(n) => s.push_str(n.to_string().as_str()),
+        Cons::Cons(car, cdr) => {
+            s.push('(');
+            s.push_str(print_list(*car, *cdr).as_str());
+            s.push(')');
+        },
+        _ => (),
+    }
+    s
 }
