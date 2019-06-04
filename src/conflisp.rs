@@ -1,11 +1,79 @@
+use std::iter::Peekable;
+use std::option::Option;
+use std::str::Chars;
+
 #[derive(Debug)]
 pub enum Cons {
-    Cons(String, Box<Cons>),
+    Cons(Box<Cons>, Box<Cons>),
+    Atom(String),
     Nil,
 }
 
+fn skip_whitespaces(chars: &mut Peekable<Chars>) {
+    while let ch = chars.peek() {
+        match ch {
+            Some(c) => {
+                if c.is_whitespace() {
+                    chars.next();
+                } else {
+                    break;
+                }
+            },
+            _ => break,
+        }
+    }
+}
+
+fn read_symbol(chars: &mut Peekable<Chars>) -> Cons {
+    let mut name = String::new();
+    while let ch = chars.peek() {
+        match ch {
+            Some(c) => {
+                if *c == ')' || c.is_whitespace() {
+                    break;
+                } else {
+                    name.push(chars.next().unwrap());
+                }
+            },
+            _ => break,
+        }
+    }
+    Cons::Atom(name)
+}
+
+fn read_list_elem(chars: &mut Peekable<Chars>) -> Cons {
+    skip_whitespaces(chars);
+    let ch = chars.peek();
+    match ch {
+        Some(')') => {
+            chars.next();
+            Cons::Nil
+        },
+        _ => {
+            Cons::Cons(Box::new(read_exp(chars)), Box::new(read_list_elem(chars)))
+        },
+    }
+}
+
+fn read_list(chars: &mut Peekable<Chars>) -> Cons {
+    chars.next();
+    read_list_elem(chars)
+}
+
+fn read_exp(chars: &mut Peekable<Chars>) -> Cons {
+    skip_whitespaces(chars);
+    let ch = chars.peek();
+    match ch {
+        None => Cons::Nil,
+        Some(')') => panic!("unexpected ')'"),
+        Some('(') => read_list(chars),
+        _ => read_symbol(chars),
+    }
+}
+
 pub fn read(s: String) -> Cons {
-    Cons::Nil
+    let mut chars = s.chars().peekable();
+    read_exp(&mut chars)
 }
 
 pub fn print(c: Cons) {
