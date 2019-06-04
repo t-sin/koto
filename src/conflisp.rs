@@ -1,11 +1,11 @@
 use std::iter::Peekable;
-use std::option::Option;
 use std::str::Chars;
 
 #[derive(Debug)]
 pub enum Cons {
     Cons(Box<Cons>, Box<Cons>),
-    Atom(String),
+    Symbol(String),
+    Number(f64),
     Nil,
 }
 
@@ -38,7 +38,27 @@ fn read_symbol(chars: &mut Peekable<Chars>) -> Cons {
             _ => break,
         }
     }
-    Cons::Atom(name)
+    Cons::Symbol(name)
+}
+
+fn read_number(chars: &mut Peekable<Chars>) -> Cons {
+    let mut num = String::new();
+    while let ch = chars.peek() {
+        match ch {
+            Some(c) => {
+                if *c == '.' || c.is_digit(10) {
+                    num.push(chars.next().unwrap());
+                } else {
+                    break;
+                }
+            },
+            _ => break,
+        }
+    }
+    match num.parse::<f64>() {
+        Ok(n) => Cons::Number(n),
+        Err(e) => panic!("cannot parse '{:?}' as a number: {:?}", num, e),
+    }
 }
 
 fn read_list_elem(chars: &mut Peekable<Chars>) -> Cons {
@@ -67,7 +87,13 @@ fn read_exp(chars: &mut Peekable<Chars>) -> Cons {
         None => Cons::Nil,
         Some(')') => panic!("unexpected ')'"),
         Some('(') => read_list(chars),
-        _ => read_symbol(chars),
+        Some(c) => {
+            if (c.is_digit(10)) {
+                read_number(chars)
+            } else {
+                read_symbol(chars)
+            }
+        },
     }
 }
 
