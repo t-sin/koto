@@ -38,8 +38,9 @@ fn main() {
     //     })),
     // }));
     let mut s = String::new();
-    s.push_str("()");
-    let mut unit_graph = units::conflisp::construct(units::conflisp::read(s));
+    s.push_str("(sine)(cos)");
+    let sexp = units::conflisp::read(s);
+    let mut unit_graph = units::conflisp::construct(sexp);
 
     audio_device.run(|mut buffer| {
         for elem in buffer.iter_mut() {

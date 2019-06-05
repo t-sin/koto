@@ -11,7 +11,7 @@ use super::core::Gain;
 use super::oscillator::Sine;
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Cons {
     Cons(Box<Cons>, Box<Cons>),
     Symbol(String),
@@ -107,9 +107,18 @@ fn read_exp(chars: &mut Peekable<Chars>) -> Cons {
     }
 }
 
-pub fn read(s: String) -> Cons {
+pub fn read(s: String) -> Vec<Cons> {
     let mut chars = s.chars().peekable();
-    read_exp(&mut chars)
+    let mut sexp_vec = Vec::new();
+    loop {
+        let mut sexp = read_exp(&mut chars);
+        if sexp == Cons::Nil {
+            break;
+        } else {
+            sexp_vec.push(sexp);
+        }
+    }
+    sexp_vec
 }
 
 fn print_list(car: Cons, cdr: Cons) -> String {
@@ -142,6 +151,6 @@ pub fn print(exp: Cons) -> String {
     s
 }
 
-pub fn construct(exp: Cons) -> Unit1 {
+pub fn construct(sexp: Vec<Cons>) -> Unit1 {
     Unit1::Value(0.0)
 }
