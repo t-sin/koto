@@ -1,6 +1,16 @@
 use std::iter::Peekable;
 use std::str::Chars;
 
+use super::unit::Stateful;
+use super::unit::Signal1;
+use super::unit::Unit1;
+
+use super::core::Offset;
+use super::core::Gain;
+
+use super::oscillator::Sine;
+
+
 #[derive(Debug)]
 pub enum Cons {
     Cons(Box<Cons>, Box<Cons>),
@@ -130,4 +140,8 @@ pub fn print(exp: Cons) -> String {
         _ => (),
     }
     s
+}
+
+pub fn construct(exp: Cons) -> Unit1 {
+    Unit1::Value(0.0)
 }

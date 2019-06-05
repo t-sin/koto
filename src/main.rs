@@ -21,32 +21,31 @@ fn main() {
 
     let audio_device = AudioDevice::open(channels, sample_rate);
 
-    let mut s = String::new();
-    io::stdin().read_to_string(&mut s);
-    println!("{:?}", units::conflisp::print(units::conflisp::read(s)));
-
     let mut time = Time { sample_rate: sample_rate, tick: 0 };
-    let mut unit_graph = Unit1::Unit(Box::new(Sine {
-        init_ph: Unit1::Value(0.0),
-        ph: 0.0,
-        freq: Unit1::Unit(Box::new(Offset {
-            v: 880.0,
-            src: Unit1::Unit(Box::new(Gain {
-                v: 20.0,
-                src: Unit1::Unit(Box::new(Sine {
-                    init_ph: Unit1::Value(0.0),
-                    ph: 0.0,
-                    freq: Unit1::Value(20.0),
-                })),
-            })),
-        })),
-    }));
+    // let mut unit_graph = Unit1::Unit(Box::new(Sine {
+    //     init_ph: Unit1::Value(0.0),
+    //     ph: 0.0,
+    //     freq: Unit1::Unit(Box::new(Offset {
+    //         v: 880.0,
+    //         src: Unit1::Unit(Box::new(Gain {
+    //             v: 20.0,
+    //             src: Unit1::Unit(Box::new(Sine {
+    //                 init_ph: Unit1::Value(0.0),
+    //                 ph: 0.0,
+    //                 freq: Unit1::Value(20.0),
+    //             })),
+    //         })),
+    //     })),
+    // }));
+    let mut s = String::new();
+    s.push_str("()");
+    let mut unit_graph = units::conflisp::construct(units::conflisp::read(s));
 
-    // audio_device.run(|mut buffer| {
-    //     for elem in buffer.iter_mut() {
-    //         *elem = unit_graph.calc1(&time) as f32;
-    //         unit_graph.update(&time);
-    //         time.update();
-    //     }
-    // };
+    audio_device.run(|mut buffer| {
+        for elem in buffer.iter_mut() {
+            *elem = unit_graph.calc1(&time) as f32;
+            unit_graph.update(&time);
+            time.update();
+        }
+    });
 }
