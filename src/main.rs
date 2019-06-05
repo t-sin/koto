@@ -18,10 +18,12 @@ use units::oscillator::Sine;
 fn main() {
     let channels = 1;
     let sample_rate = 44100u32;
-
     let audio_device = AudioDevice::open(channels, sample_rate);
 
     let mut time = Time { sample_rate: sample_rate, tick: 0 };
+
+    let mut s = String::new();
+    // I want to construct the unit graph like this:
     // let mut unit_graph = Unit1::Unit(Box::new(Sine {
     //     init_ph: Unit1::Value(0.0),
     //     ph: 0.0,
@@ -37,8 +39,7 @@ fn main() {
     //         })),
     //     })),
     // }));
-    let mut s = String::new();
-    s.push_str("(sine)(cos)");
+    s.push_str("(sine 0.0 (offset 880.0 (gain 20.0 (sine 0.0 20.0))))");
     let sexp = units::conflisp::read(s);
     let mut unit_graph = units::conflisp::construct(sexp);
 
