@@ -19,8 +19,11 @@ pub enum Cons {
     Nil,
 }
 
+//// reader
+
 fn skip_whitespaces(chars: &mut Peekable<Chars>) {
-    while let ch = chars.peek() {
+    loop {
+        let ch = chars.peek();
         match ch {
             Some(c) => {
                 if c.is_whitespace() {
@@ -36,7 +39,8 @@ fn skip_whitespaces(chars: &mut Peekable<Chars>) {
 
 fn read_symbol(chars: &mut Peekable<Chars>) -> Cons {
     let mut name = String::new();
-    while let ch = chars.peek() {
+    loop {
+        let ch = chars.peek();
         match ch {
             Some(c) => {
                 if *c == ')' || c.is_whitespace() {
@@ -53,7 +57,8 @@ fn read_symbol(chars: &mut Peekable<Chars>) -> Cons {
 
 fn read_number(chars: &mut Peekable<Chars>) -> Cons {
     let mut num = String::new();
-    while let ch = chars.peek() {
+    loop {
+        let ch = chars.peek();
         match ch {
             Some(c) => {
                 if *c == '.' || c.is_digit(10) {
@@ -98,7 +103,7 @@ fn read_exp(chars: &mut Peekable<Chars>) -> Cons {
         Some(')') => panic!("unexpected ')'"),
         Some('(') => read_list(chars),
         Some(c) => {
-            if (c.is_digit(10)) {
+            if c.is_digit(10) {
                 read_number(chars)
             } else {
                 read_symbol(chars)
@@ -111,7 +116,7 @@ pub fn read(s: String) -> Vec<Cons> {
     let mut chars = s.chars().peekable();
     let mut sexp_vec = Vec::new();
     loop {
-        let mut sexp = read_exp(&mut chars);
+        let sexp = read_exp(&mut chars);
         if sexp == Cons::Nil {
             break;
         } else {
@@ -121,13 +126,15 @@ pub fn read(s: String) -> Vec<Cons> {
     sexp_vec
 }
 
-fn print_list(car: Cons, cdr: Cons) -> String {
+//// printer
+
+fn print_list(car: &Cons, cdr: &Cons) -> String {
     let mut s = String::new();
     s.push_str(print(car).as_str());
     match cdr {
         Cons::Cons(car2, cdr2) => {
             s.push(' ');
-            s.push_str(print_list(*car2, *cdr2).as_str())
+            s.push_str(print_list(car2, cdr2).as_str())
         },
         Cons::Nil => (),
         exp => panic!("ill formed S-expression: {:?}", exp),
@@ -135,7 +142,7 @@ fn print_list(car: Cons, cdr: Cons) -> String {
     s
 }
 
-pub fn print(exp: Cons) -> String {
+pub fn print(exp: &Cons) -> String {
     let mut s = String::new();
     match exp {
         Cons::Nil => s.push_str("nil"),
@@ -143,14 +150,36 @@ pub fn print(exp: Cons) -> String {
         Cons::Symbol(n) => s.push_str(n.to_string().as_str()),
         Cons::Cons(car, cdr) => {
             s.push('(');
-            s.push_str(print_list(*car, *cdr).as_str());
+            s.push_str(print_list(car, cdr).as_str());
             s.push(')');
         },
-        _ => (),
-    }
+     }
     s
 }
 
-pub fn construct(sexp: Vec<Cons>) -> Unit1 {
+//// unit graph constructor (or eval?)
+fn eval_list(name: &Cons, args: &Cons) -> Unit1 {
+    match name {
+        Cons::Symbol(n) => {
+            // let args = eval(args);
+            match &n[..] {
+                "sine" => println!("sine!!"),
+                _ => println!("{:?} is unknown or not implemented.", n)
+            }
+        },
+        _ => panic!("ill formed form"),
+    }
     Unit1::Value(0.0)
+}
+
+pub fn eval_one(sexp: &Cons) -> Unit1 {
+    match sexp {
+        Cons::Cons(car, cdr) => eval_list(car, cdr),
+        Cons::Symbol(name) => {
+            println!("name: {:?}", name);
+            Unit1::Value(0.0)
+        },
+        Cons::Number(num) => Unit1::Value(*num),
+        Cons::Nil => panic!("what should I do?"),
+    }
 }

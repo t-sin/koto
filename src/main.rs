@@ -2,18 +2,11 @@ mod audio_device;
 mod time;
 mod units;
 
-use std::io::{self, Read};
-
 use audio_device::AudioDevice;
 use time::Time;
 use time::Clock;
 use units::unit::Signal1;
 use units::unit::Stateful;
-use units::unit::Unit1;
-
-use units::core::Offset;
-use units::core::Gain;
-use units::oscillator::Sine;
 
 fn main() {
     let channels = 1;
@@ -41,7 +34,8 @@ fn main() {
     // }));
     s.push_str("(sine 0.0 (offset 880.0 (gain 20.0 (sine 0.0 20.0))))");
     let sexp = units::conflisp::read(s);
-    let mut unit_graph = units::conflisp::construct(sexp);
+    println!("sexp: {:?}", units::conflisp::print(&sexp[0]));
+    let mut unit_graph = units::conflisp::eval_one(&sexp[0]);
 
     audio_device.run(|mut buffer| {
         for elem in buffer.iter_mut() {
