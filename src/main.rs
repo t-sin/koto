@@ -1,15 +1,15 @@
 mod audio_device;
 mod time;
 mod units;
-mod conflisp;
 
 use std::io::{self, Read};
 
 use audio_device::AudioDevice;
 use time::Time;
 use time::Clock;
-use units::unit::Calc;
-use units::unit::Unit;
+use units::unit::Signal1;
+use units::unit::Stateful;
+use units::unit::Unit1;
 
 use units::core::Offset;
 use units::core::Gain;
@@ -23,20 +23,20 @@ fn main() {
 
     let mut s = String::new();
     io::stdin().read_to_string(&mut s);
-    println!("{:?}", conflisp::print(conflisp::read(s)));
+    println!("{:?}", units::conflisp::print(units::conflisp::read(s)));
 
     let mut time = Time { sample_rate: sample_rate, tick: 0 };
-    let mut unit_graph = Unit::Unit(Box::new(Sine {
-        init_ph: Unit::Value(0.0),
+    let mut unit_graph = Unit1::Unit(Box::new(Sine {
+        init_ph: Unit1::Value(0.0),
         ph: 0.0,
-        freq: Unit::Unit(Box::new(Offset {
+        freq: Unit1::Unit(Box::new(Offset {
             v: 880.0,
-            src: Unit::Unit(Box::new(Gain {
+            src: Unit1::Unit(Box::new(Gain {
                 v: 20.0,
-                src: Unit::Unit(Box::new(Sine {
-                    init_ph: Unit::Value(0.0),
+                src: Unit1::Unit(Box::new(Sine {
+                    init_ph: Unit1::Value(0.0),
                     ph: 0.0,
-                    freq: Unit::Value(20.0),
+                    freq: Unit1::Value(20.0),
                 })),
             })),
         })),
@@ -44,9 +44,9 @@ fn main() {
 
     // audio_device.run(|mut buffer| {
     //     for elem in buffer.iter_mut() {
-    //         *elem = unit_graph.calc(&time) as f32;
+    //         *elem = unit_graph.calc1(&time) as f32;
     //         unit_graph.update(&time);
     //         time.update();
     //     }
-    // });
+    // };
 }
