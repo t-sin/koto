@@ -158,18 +158,70 @@ pub fn print(exp: &Cons) -> String {
 }
 
 //// unit graph constructor (or eval?)
-fn eval_list(name: &Cons, args: &Cons) -> Unit1 {
-    match name {
-        Cons::Symbol(n) => {
-            // let args = eval(args);
-            match &n[..] {
-                "sine" => println!("sine!!"),
-                _ => println!("{:?} is unknown or not implemented.", n)
+fn to_vec(list: &Cons) -> Vec<&Cons> {
+    match list {
+        Cons::Nil => Vec::new(),
+        Cons::Cons(elem, rest) => {
+            let mut v: Vec<&Cons> = Vec::new();
+            v.push(elem);
+            v.append(&mut to_vec(rest));
+            v
+        },
+        _ => panic!("it's not proper list: {:?}", list),
+    }
+}
+
+fn construct(name: &str, args: Vec<&Cons>) -> Unit1 {
+    match &name[..] {
+        "sine" => {
+            if args.len() == 2 {
+                Unit1::Unit(Box::new(Sine {
+                    init_ph: eval_one(args[0]),
+                    ph: 0.0,
+                    freq: eval_one(args[1]),
+                }))
+            } else {
+                panic!("wrong params");
             }
         },
+        "offset" => {
+            if args.len() == 2 {
+                Unit1::Unit(Box::new(Offset {
+                    v: match args[0] {
+                        Cons::Number(n) => *n,
+                        exp => panic!("{:?} is not a number", print(exp)),
+                    },
+                    src: eval_one(args[1]),
+                }))
+            } else {
+                panic!("wrong params");
+            }
+        },
+        "gain" => {
+            if args.len() == 2 {
+                Unit1::Unit(Box::new(Gain {
+                    v: match args[0] {
+                        Cons::Number(n) => *n,
+                        exp => panic!("{:?} is not a number", print(exp)),
+                    },
+                    src: eval_one(args[1]),
+                }))
+            } else {
+                panic!("wrong params");
+            }
+        },
+        _ => {
+            println!("{:?} is unknown or not implemented.", name);
+            Unit1::Value(0.0)
+        }
+    }
+}
+
+fn eval_list(name: &Cons, args: &Cons) -> Unit1 {
+    match name {
+        Cons::Symbol(n) => construct(&n[..], to_vec(&args)),
         _ => panic!("ill formed form"),
     }
-    Unit1::Value(0.0)
 }
 
 pub fn eval_one(sexp: &Cons) -> Unit1 {
