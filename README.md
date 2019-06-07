@@ -4,10 +4,10 @@
 
 ## TODOs
 
-- [ ] Unit graph framework
+- [x] Unit graph framework
     - [x] frameworks
     - [x] zero, offset, gain
-    - [ ] stereonize (pan)
+    - [x] stereonize (pan)
 - [ ] Oscillators
     - [ ] Sine, Triangle, Saw, Square
     - [ ] Wavetable

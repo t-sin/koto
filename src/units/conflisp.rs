@@ -5,6 +5,7 @@ use super::unit::Stateful;
 use super::unit::Signal;
 use super::unit::Unit;
 
+use super::core::Pan;
 use super::core::Offset;
 use super::core::Gain;
 
@@ -179,6 +180,19 @@ fn construct(name: &str, args: Vec<&Cons>) -> Unit {
                     init_ph: eval_one(args[0]),
                     ph: 0.0,
                     freq: eval_one(args[1]),
+                }))
+            } else {
+                panic!("wrong params");
+            }
+        },
+        "pan" => {
+            if args.len() == 2 {
+                Unit::Unit(Box::new(Pan {
+                    v: match args[0] {
+                        Cons::Number(n) => Unit::Value(*n),
+                        exp => eval_one(exp),
+                    },
+                    src: eval_one(args[1]),
                 }))
             } else {
                 panic!("wrong params");
