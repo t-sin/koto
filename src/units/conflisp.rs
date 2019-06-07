@@ -10,6 +10,7 @@ use super::core::Offset;
 use super::core::Gain;
 
 use super::oscillator::Sine;
+use super::oscillator::Tri;
 
 
 #[derive(Debug, PartialEq)]
@@ -177,6 +178,17 @@ fn construct(name: &str, args: Vec<&Cons>) -> Unit {
         "sine" => {
             if args.len() == 2 {
                 Unit::Unit(Box::new(Sine {
+                    init_ph: eval_one(args[0]),
+                    ph: 0.0,
+                    freq: eval_one(args[1]),
+                }))
+            } else {
+                panic!("wrong params");
+            }
+        },
+        "tri" => {
+            if args.len() == 2 {
+                Unit::Unit(Box::new(Tri {
                     init_ph: eval_one(args[0]),
                     ph: 0.0,
                     freq: eval_one(args[1]),
