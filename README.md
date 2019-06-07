@@ -9,7 +9,7 @@
     - [x] zero, offset, gain
     - [x] stereonize (pan)
 - [ ] Oscillators
-    - [ ] Sine, Triangle, Saw, Square
+    - [x] Sine, Triangle, Saw, Square
     - [ ] Wavetable
 - [ ] Effects
     - [ ] Filters
