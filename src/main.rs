@@ -15,24 +15,7 @@ fn main() {
 
     let mut time = Time { sample_rate: sample_rate, tick: 0 };
 
-    let mut s = String::new();
-    // I want to construct the unit graph like this:
-    // let mut unit_graph = Unit1::Unit(Box::new(Sine {
-    //     init_ph: Unit1::Value(0.0),
-    //     ph: 0.0,
-    //     freq: Unit1::Unit(Box::new(Offset {
-    //         v: 880.0,
-    //         src: Unit1::Unit(Box::new(Gain {
-    //             v: 20.0,
-    //             src: Unit1::Unit(Box::new(Sine {
-    //                 init_ph: Unit1::Value(0.0),
-    //                 ph: 0.0,
-    //                 freq: Unit1::Value(20.0),
-    //             })),
-    //         })),
-    //     })),
-    // }));
-    s.push_str("(sine 0.0 (offset 880.0 (gain 20.0 (sine 0.0 20.0))))");
+    let mut s = String::from("(sine 0.0 (offset 880.0 (gain 20.0 (sine 0.0 20.0))))");
     let sexp = units::conflisp::read(s);
     println!("sexp: {:?}", units::conflisp::print(&sexp[0]));
     let mut unit_graph = units::conflisp::eval_one(&sexp[0]);
