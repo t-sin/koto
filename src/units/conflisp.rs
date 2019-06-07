@@ -12,6 +12,7 @@ use super::core::Gain;
 use super::oscillator::Sine;
 use super::oscillator::Tri;
 use super::oscillator::Saw;
+use super::oscillator::Pulse;
 
 
 #[derive(Debug, PartialEq)]
@@ -204,6 +205,18 @@ fn construct(name: &str, args: Vec<&Cons>) -> Unit {
                     init_ph: eval_one(args[0]),
                     ph: 0.0,
                     freq: eval_one(args[1]),
+                }))
+            } else {
+                panic!("wrong params");
+            }
+        },
+        "pulse" => {
+            if args.len() == 3 {
+                Unit::Unit(Box::new(Pulse {
+                    init_ph: eval_one(args[0]),
+                    ph: 0.0,
+                    freq: eval_one(args[1]),
+                    duty: eval_one(args[2]),
                 }))
             } else {
                 panic!("wrong params");

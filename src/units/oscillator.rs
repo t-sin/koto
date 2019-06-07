@@ -83,3 +83,34 @@ impl Stateful for Saw {
         self.ph += self.freq.calc(&time).0 / time.sample_rate as f64;
     }
 }
+
+pub struct Pulse {
+    pub init_ph: Unit,
+    pub ph: f64,
+    pub freq: Unit,
+    pub duty: Unit,
+}
+
+impl Signal for Pulse {
+    fn calc(&self, time: &Time) -> Value {
+        let ph = self.init_ph.calc(&time).0 + self.ph;
+        let duty = self.duty.calc(&time).0;
+        let x = ph % 1.0;
+        let mut v;
+        if x < duty {
+            v = 1.0;
+        } else {
+            v = -1.0;
+        }
+        (v, v)
+    }
+}
+
+impl Stateful for Pulse {
+    fn update(&mut self, time: &Time) {
+        self.init_ph.update(&time);
+        self.freq.update(&time);
+        self.duty.update(&time);
+        self.ph += self.freq.calc(&time).0 / time.sample_rate as f64;
+    }
+}

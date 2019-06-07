@@ -15,7 +15,7 @@ fn main() {
 
     let mut time = Time { sample_rate: sample_rate, tick: 0 };
 
-    let mut s = String::from("(saw 0.0 (offset 440.0 (gain 20.0 (sine 0.0 20.0))))");
+    let mut s = String::from("(pulse 0.0 (offset 440.0 (gain 20.0 (sine 0.0 20.0))) (sine 0.0 1.0))");
     let sexp = units::conflisp::read(s);
     println!("sexp: {:?}", units::conflisp::print(&sexp[0]));
     let mut unit_graph = units::conflisp::eval_one(&sexp[0]);
