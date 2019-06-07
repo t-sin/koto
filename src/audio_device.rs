@@ -31,6 +31,7 @@ impl AudioDevice {
         audio_device
     }
 
+    // TODO: multi channels
     pub fn run<F: FnMut(OutputBuffer<f32>) + Send>(&self, mut callback: F) {
         self.event_loop.run(move |_stream_id, stream_data| {
             match stream_data {
