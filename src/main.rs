@@ -5,7 +5,7 @@ mod units;
 use audio_device::AudioDevice;
 use time::Time;
 use time::Clock;
-use units::unit::Signal1;
+use units::unit::Signal;
 use units::unit::Stateful;
 
 fn main() {
@@ -39,7 +39,7 @@ fn main() {
 
     audio_device.run(|mut buffer| {
         for elem in buffer.iter_mut() {
-            *elem = unit_graph.calc1(&time) as f32;
+            *elem = unit_graph.calc(&time).0 as f32;
             unit_graph.update(&time);
             time.update();
         }

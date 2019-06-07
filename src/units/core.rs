@@ -1,16 +1,18 @@
 use super::super::time::Time;
+use super::unit::Value;
 use super::unit::Stateful;
-use super::unit::Signal1;
-use super::unit::Unit1;
+use super::unit::Signal;
+use super::unit::Unit;
 
 pub struct Offset {
     pub v: f64,
-    pub src: Unit1,
+    pub src: Unit,
 }
 
-impl Signal1 for Offset {
-    fn calc1(&self, time: &Time) -> f64 {
-        self.src.calc1(&time) + self.v
+impl Signal for Offset {
+    fn calc(&self, time: &Time) -> Value {
+        let (l, r) = self.src.calc(&time);
+        (l + self.v, r + self.v)
     }
 }
 
@@ -22,12 +24,13 @@ impl Stateful for Offset {
 
 pub struct Gain {
     pub v: f64,
-    pub src: Unit1,
+    pub src: Unit,
 }
 
-impl Signal1 for Gain {
-    fn calc1(&self, time: &Time) -> f64 {
-        self.src.calc1(&time) * self.v
+impl Signal for Gain {
+    fn calc(&self, time: &Time) -> Value {
+        let (l, r) = self.src.calc(&time);
+        (l * self.v, r * self.v)
     }
 }
 

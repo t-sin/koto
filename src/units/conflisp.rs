@@ -2,8 +2,8 @@ use std::iter::Peekable;
 use std::str::Chars;
 
 use super::unit::Stateful;
-use super::unit::Signal1;
-use super::unit::Unit1;
+use super::unit::Signal;
+use super::unit::Unit;
 
 use super::core::Offset;
 use super::core::Gain;
@@ -171,11 +171,11 @@ fn to_vec(list: &Cons) -> Vec<&Cons> {
     }
 }
 
-fn construct(name: &str, args: Vec<&Cons>) -> Unit1 {
+fn construct(name: &str, args: Vec<&Cons>) -> Unit {
     match &name[..] {
         "sine" => {
             if args.len() == 2 {
-                Unit1::Unit(Box::new(Sine {
+                Unit::Unit(Box::new(Sine {
                     init_ph: eval_one(args[0]),
                     ph: 0.0,
                     freq: eval_one(args[1]),
@@ -186,7 +186,7 @@ fn construct(name: &str, args: Vec<&Cons>) -> Unit1 {
         },
         "offset" => {
             if args.len() == 2 {
-                Unit1::Unit(Box::new(Offset {
+                Unit::Unit(Box::new(Offset {
                     v: match args[0] {
                         Cons::Number(n) => *n,
                         exp => panic!("{:?} is not a number", print(exp)),
@@ -199,7 +199,7 @@ fn construct(name: &str, args: Vec<&Cons>) -> Unit1 {
         },
         "gain" => {
             if args.len() == 2 {
-                Unit1::Unit(Box::new(Gain {
+                Unit::Unit(Box::new(Gain {
                     v: match args[0] {
                         Cons::Number(n) => *n,
                         exp => panic!("{:?} is not a number", print(exp)),
@@ -212,26 +212,26 @@ fn construct(name: &str, args: Vec<&Cons>) -> Unit1 {
         },
         _ => {
             println!("{:?} is unknown or not implemented.", name);
-            Unit1::Value(0.0)
+            Unit::Value(0.0)
         }
     }
 }
 
-fn eval_list(name: &Cons, args: &Cons) -> Unit1 {
+fn eval_list(name: &Cons, args: &Cons) -> Unit {
     match name {
         Cons::Symbol(n) => construct(&n[..], to_vec(&args)),
         _ => panic!("ill formed form"),
     }
 }
 
-pub fn eval_one(sexp: &Cons) -> Unit1 {
+pub fn eval_one(sexp: &Cons) -> Unit {
     match sexp {
         Cons::Cons(car, cdr) => eval_list(car, cdr),
         Cons::Symbol(name) => {
             println!("name: {:?}", name);
-            Unit1::Value(0.0)
+            Unit::Value(0.0)
         },
-        Cons::Number(num) => Unit1::Value(*num),
+        Cons::Number(num) => Unit::Value(*num),
         Cons::Nil => panic!("what should I do?"),
     }
 }
