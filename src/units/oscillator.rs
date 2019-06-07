@@ -52,6 +52,34 @@ impl Stateful for Tri {
     fn update(&mut self, time: &Time) {
         self.init_ph.update(&time);
         self.freq.update(&time);
-        self.ph += self.freq.calc(&time).0 / time.sample_rate as f64 * 2.0;
+        self.ph += self.freq.calc(&time).0 / time.sample_rate as f64;
+    }
+}
+
+pub struct Saw {
+    pub init_ph: Unit,
+    pub ph: f64,
+    pub freq: Unit,
+}
+
+impl Signal for Saw {
+    fn calc(&self, time: &Time) -> Value {
+        let ph = self.init_ph.calc(&time).0 + self.ph;
+        let x = ph % 1.0;
+        let mut v;
+        if x >= 1.0 / 2.0 {
+            v = 2.0 * x - 2.0;
+        } else {
+            v = 2.0 * x;
+        }
+        (v, v)
+    }
+}
+
+impl Stateful for Saw {
+    fn update(&mut self, time: &Time) {
+        self.init_ph.update(&time);
+        self.freq.update(&time);
+        self.ph += self.freq.calc(&time).0 / time.sample_rate as f64;
     }
 }
