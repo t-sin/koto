@@ -8,9 +8,9 @@
     - [x] frameworks
     - [x] zero, offset, gain
     - [x] stereonize (pan)
-- [ ] Oscillators
+- [x] Oscillators
     - [x] Sine, Triangle, Saw, Square
-    - [ ] Wavetable
+    - [x] Wavetable
 - [ ] Effects
     - [ ] Filters
     - [ ] Delay
