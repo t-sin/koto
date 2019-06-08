@@ -18,8 +18,8 @@ fn main() {
 
     let mut time = Time { sample_rate: sample_rate, tick: 0 };
 
-    let mut s = String::from("(gain 0.5 (offset 1.0 (saw 0.0 440)))");
-    let mut unit_graph1 = units::conflisp::eval_one(&units::conflisp::read(s)[0]);
+    let s = String::from("(gain 0.5 (offset 1.0 (saw 0.0 440)))");
+    let unit_graph1 = units::conflisp::eval_one(&units::conflisp::read(s)[0]);
 
     let mut table = Vec::new();
     let mut unit_graph;

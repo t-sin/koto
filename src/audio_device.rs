@@ -2,7 +2,6 @@ use cpal::Device;
 use cpal::EventLoop;
 use cpal::SampleFormat;
 use cpal::SampleRate;
-use cpal::StreamId;
 use cpal::OutputBuffer;
 use cpal::UnknownTypeOutputBuffer;
 

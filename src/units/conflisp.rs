@@ -1,8 +1,6 @@
 use std::iter::Peekable;
 use std::str::Chars;
 
-use super::unit::Stateful;
-use super::unit::Signal;
 use super::unit::Unit;
 
 use super::core::Pan;
