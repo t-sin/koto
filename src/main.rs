@@ -21,19 +21,16 @@ fn main() {
     let mut s = String::from("(gain 0.5 (offset 1.0 (saw 0.0 440)))");
     let mut unit_graph1 = units::conflisp::eval_one(&units::conflisp::read(s)[0]);
 
-    static mut table: [f64; 256] = [0.0f64; 256];
+    let mut table = Vec::new();
     let mut unit_graph;
-    unsafe {
-        for (i, e) in table.iter_mut().enumerate() {
-            let th = (i as f64) / 256.0 * 3.141592 * 2.0;
-            *e = th.sin();
-        }
-        unit_graph = Unit::Unit(Box::new(WaveTable {
-            table: &table,
-            len: 256,
-            ph: unit_graph1,
-        }));
+    for i in 0..256 {
+        let th = (i as f64) / (256.0) * std::f64::consts::PI * 2.0;
+        table.push(th.sin());
     }
+    unit_graph = Unit::Unit(Box::new(WaveTable {
+        table: table,
+        ph: unit_graph1,
+    }));
 
     audio_device.run(|mut buffer| {
         for elem in buffer.iter_mut() {
