@@ -112,3 +112,15 @@ impl Stateful for ADSREnvelope {
 fn to_freq(note: u32) -> f64 {
     440.0 * ((note - 69) as f64 / 12.0).exp2()
 }
+
+pub enum NoteEvent {
+    On(f64),
+    Off,
+}
+
+pub struct Seq {
+    pattern: Vec<Box<NoteEvent>>,
+    queue: Vec<Box<NoteEvent>>,  // なんかNoteEventのキュー的なやつカムヒア
+    osc: Unit,
+    eg: Unit,
+}
