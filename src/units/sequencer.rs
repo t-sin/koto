@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use super::super::time::Time;
 use super::unit::Value;
 use super::unit::Stateful;
@@ -111,8 +113,8 @@ pub enum NoteEvent {
 }
 
 pub struct Seq {
-    pattern: Vec<Box<NoteEvent>>,
-    queue: Vec<Box<NoteEvent>>,  // なんかNoteEventのキュー的なやつカムヒア
+    pattern: Vec<NoteEvent>,
+    queue: VecDeque<NoteEvent>,  // なんかNoteEventのキュー的なやつカムヒア
     osc: Unit,
     eg: Unit,
 }
