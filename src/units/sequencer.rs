@@ -108,3 +108,7 @@ impl Stateful for ADSREnvelope {
         self.eplaced += 1;
     }
 }
+
+fn to_freq(note: u32) -> f64 {
+    440.0 * ((note - 69) as f64 / 12.0).exp2()
+}
