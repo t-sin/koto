@@ -2,6 +2,8 @@
 name = "koto"
 version = "0.1.0"
 authors = ["t-sin <shinichi.tanaka45@gmail.com>"]
+license = "GPL-3.0"
+license-file = "LICENSE"
 edition = "2018"
 
 [dependencies]
