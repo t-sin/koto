@@ -15,6 +15,7 @@
     - [ ] Filters
     - [ ] Delay
 - [ ] Sequencers
+    - [x] Envelope
     - [ ] Events (notes, fx values)
     - [ ] MML-like score description
 - [ ] FUSE interfaces
