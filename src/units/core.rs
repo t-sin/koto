@@ -65,3 +65,53 @@ impl Stateful for Gain {
         self.src.update(&time);
     }
 }
+
+pub struct AMix {
+    pub sources: Vec<Box<Signal>>,
+}
+
+impl Signal for AMix {
+    fn calc(&self, time: &Time) -> Value {
+        let mut l = 0.0;
+        let mut r = 0.0;
+        for u in self.sources.iter() {
+            let (l2, r2) = u.calc(&time);
+            l += l2;
+            r += r2;
+        }
+        (l, r)
+    }
+}
+
+impl Stateful for AMix {
+    fn update(&mut self, time: &Time) {
+        for u in self.sources.iter_mut() {
+            u.update(&time);
+        }
+    }
+}
+
+pub struct MMix {
+    pub sources: Vec<Box<Signal>>,
+}
+
+impl Signal for MMix {
+    fn calc(&self, time: &Time) -> Value {
+        let mut l = 0.0;
+        let mut r = 0.0;
+        for u in self.sources.iter() {
+            let (l2, r2) = u.calc(&time);
+            l *= l2;
+            r *= r2;
+        }
+        (l, r)
+    }
+}
+
+impl Stateful for MMix {
+    fn update(&mut self, time: &Time) {
+        for u in self.sources.iter_mut() {
+            u.update(&time);
+        }
+    }
+}
