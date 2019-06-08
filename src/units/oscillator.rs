@@ -114,3 +114,34 @@ impl Stateful for Pulse {
         self.ph += self.freq.calc(&time).0 / time.sample_rate as f64;
     }
 }
+
+pub struct WaveTable<'a> {
+    pub table: &'a [f64],  // table size are fixed, for now
+    pub len: u32,
+    pub ph: Unit,
+    pub freq: Unit,
+}
+
+fn linear_interpol(v1: f64, v2: f64, r: f64) -> f64 {
+    let r = r % 1.0;
+    v1 * r + v2 * (1.0 - r)
+}
+
+impl<'a> Signal for WaveTable<'a> {
+    fn calc(&self, time: &Time) -> Value {
+        let ph = self.ph.calc(&time).0;
+        let freq = self.freq.calc(&time).0;
+        let len = self.len as f64;
+        let pos1 = (ph.floor() % len) as usize;
+        let pos2 = (ph.ceil() % len) as usize;
+        let v = linear_interpol(self.table[pos1], self.table[pos2], ph.fract());
+        (v, v)
+    }
+}
+
+impl<'a> Stateful for WaveTable<'a> {
+    fn update(&mut self, time: &Time) {
+        self.ph.update(&time);
+        self.freq.update(&time);
+    }
+}
