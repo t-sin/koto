@@ -36,7 +36,7 @@ impl Signal for Tri {
     fn calc(&self, time: &Time) -> Value {
         let ph = self.init_ph.calc(&time).0 + self.ph;
         let x = ph % 1.0;
-        let mut v;
+        let v;
         if x >= 3.0 / 4.0 {
             v = 4.0 * x - 4.0;
         } else if x >= 1.0 / 4.0 && x < 3.0 / 4.0 {
@@ -66,7 +66,7 @@ impl Signal for Saw {
     fn calc(&self, time: &Time) -> Value {
         let ph = self.init_ph.calc(&time).0 + self.ph;
         let x = ph % 1.0;
-        let mut v;
+        let v;
         if x >= 1.0 / 2.0 {
             v = 2.0 * x - 2.0;
         } else {
@@ -96,7 +96,7 @@ impl Signal for Pulse {
         let ph = self.init_ph.calc(&time).0 + self.ph;
         let duty = self.duty.calc(&time).0;
         let x = ph % 1.0;
-        let mut v;
+        let v;
         if x < duty {
             v = 1.0;
         } else {
