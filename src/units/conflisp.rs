@@ -174,14 +174,14 @@ fn to_vec(list: &Cons) -> Vec<&Cons> {
     }
 }
 
-fn construct<'a>(name: &str, args: Vec<&Cons>) -> Unit<'a> {
+fn construct<'a>(name: &str, args: Vec<&Cons>) -> &'a Unit<'a> {
     match &name[..] {
         "sine" => {
             if args.len() == 2 {
-                Unit::Unit(Arc::new(Mutex::new(Sine {
-                    init_ph: &'a eval_one(args[0]),
+                &Unit::Unit(Arc::new(Mutex::new(Sine {
+                    init_ph: eval_one(args[0]),
                     ph: 0.0,
-                    freq: &eval_one(args[1]),
+                    freq: eval_one(args[1]),
                 })))
             } else {
                 panic!("wrong params");
@@ -189,10 +189,10 @@ fn construct<'a>(name: &str, args: Vec<&Cons>) -> Unit<'a> {
         },
         "tri" => {
             if args.len() == 2 {
-                Unit::Unit(Arc::new(Mutex::new(Tri {
-                    init_ph: &'a eval_one(args[0]),
+                &Unit::Unit(Arc::new(Mutex::new(Tri {
+                    init_ph: eval_one(args[0]),
                     ph: 0.0,
-                    freq: &'a eval_one(args[1]),
+                    freq: eval_one(args[1]),
                 })))
             } else {
                 panic!("wrong params");
@@ -200,10 +200,10 @@ fn construct<'a>(name: &str, args: Vec<&Cons>) -> Unit<'a> {
         },
         "saw" => {
             if args.len() == 2 {
-                Unit::Unit(Arc::new(Mutex::new(Saw {
-                    init_ph: &'a eval_one(args[0]),
+                &Unit::Unit(Arc::new(Mutex::new(Saw {
+                    init_ph: eval_one(args[0]),
                     ph: 0.0,
-                    freq: &'a eval_one(args[1]),
+                    freq: eval_one(args[1]),
                 })))
             } else {
                 panic!("wrong params");
@@ -211,11 +211,11 @@ fn construct<'a>(name: &str, args: Vec<&Cons>) -> Unit<'a> {
         },
         "pulse" => {
             if args.len() == 3 {
-                Unit::Unit(Arc::new(Mutex::new(Pulse {
-                    init_ph: &'a eval_one(args[0]),
+                &Unit::Unit(Arc::new(Mutex::new(Pulse {
+                    init_ph: eval_one(args[0]),
                     ph: 0.0,
-                    freq: &'a eval_one(args[1]),
-                    duty: &'a eval_one(args[2]),
+                    freq: eval_one(args[1]),
+                    duty: eval_one(args[2]),
                 })))
             } else {
                 panic!("wrong params");
@@ -223,12 +223,12 @@ fn construct<'a>(name: &str, args: Vec<&Cons>) -> Unit<'a> {
         },
         "pan" => {
             if args.len() == 2 {
-                Unit::Unit(Arc::new(Mutex::new(Pan {
+                &Unit::Unit(Arc::new(Mutex::new(Pan {
                     v: match args[0] {
                         Cons::Number(n) => &Unit::Value(*n),
-                        exp => &'a eval_one(exp),
+                        exp => eval_one(exp),
                     },
-                    src: &'a eval_one(args[1]),
+                    src: eval_one(args[1]),
                 })))
             } else {
                 panic!("wrong params");
@@ -236,12 +236,12 @@ fn construct<'a>(name: &str, args: Vec<&Cons>) -> Unit<'a> {
         },
         "offset" => {
             if args.len() == 2 {
-                Unit::Unit(Arc::new(Mutex::new(Offset {
+                &Unit::Unit(Arc::new(Mutex::new(Offset {
                     v: match args[0] {
                         Cons::Number(n) => *n,
                         exp => panic!("{:?} is not a number", print(exp)),
                     },
-                    src: &'a eval_one(args[1]),
+                    src: eval_one(args[1]),
                 })))
             } else {
                 panic!("wrong params");
@@ -249,12 +249,12 @@ fn construct<'a>(name: &str, args: Vec<&Cons>) -> Unit<'a> {
         },
         "gain" => {
             if args.len() == 2 {
-                Unit::Unit(Arc::new(Mutex::new(Gain {
+                &Unit::Unit(Arc::new(Mutex::new(Gain {
                     v: match args[0] {
                         Cons::Number(n) => *n,
                         exp => panic!("{:?} is not a number", print(exp)),
                     },
-                    src: &'a eval_one(args[1]),
+                    src: eval_one(args[1]),
                 })))
             } else {
                 panic!("wrong params");
@@ -262,26 +262,26 @@ fn construct<'a>(name: &str, args: Vec<&Cons>) -> Unit<'a> {
         },
         _ => {
             println!("{:?} is unknown or not implemented.", name);
-            Unit::Value(0.0)
+            &Unit::Value(0.0)
         }
     }
 }
 
-fn eval_list<'a>(name: &Cons, args: &Cons) -> Unit<'a> {
+fn eval_list<'a>(name: &Cons, args: &Cons) -> &'a Unit<'a> {
     match name {
         Cons::Symbol(n) => construct(&n[..], to_vec(&args)),
         _ => panic!("ill formed form"),
     }
 }
 
-pub fn eval_one<'a>(sexp: &Cons) -> Unit<'a> {
+pub fn eval_one<'a>(sexp: &Cons) -> &'a Unit<'a> {
     match sexp {
         Cons::Cons(car, cdr) => eval_list(car, cdr),
         Cons::Symbol(name) => {
             println!("name: {:?}", name);
-            Unit::Value(0.0)
+            &Unit::Value(0.0)
         },
-        Cons::Number(num) => Unit::Value(*num),
+        Cons::Number(num) => &Unit::Value(*num),
         Cons::Nil => panic!("what should I do?"),
     }
 }
