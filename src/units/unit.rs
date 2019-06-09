@@ -14,7 +14,6 @@ pub trait Signal: Stateful {
 pub enum Unit {
     Value(f64),
     Unit(Box<Signal + Send>),
-    Units(Vec<Box<Signal + Send>>),
 }
 
 impl Signal for Unit {
@@ -22,11 +21,6 @@ impl Signal for Unit {
         match self {
             Unit::Value(v) => (*v, *v),
             Unit::Unit(u) => u.calc(&time),
-            Unit::Units(us) => us.iter().fold((0.0, 0.0), |acc, s| {
-                let (l1, r1) = acc;
-                let (l2, r2) = s.calc(&time);
-                (l1 + l2, r1 + r2)
-            }),
         }
     }
 }
@@ -36,7 +30,6 @@ impl Stateful for Unit {
         match self {
             Unit::Value(_v) => (),
             Unit::Unit(u) => u.update(&time),
-            Unit::Units(us) => us.iter_mut().for_each(move |s| s.update(&time)),
         }
     }
 }
