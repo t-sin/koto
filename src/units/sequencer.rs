@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 
 use super::super::time::Time;
+use super::super::time::Pos;
 use super::unit::Value;
 use super::unit::Stateful;
 use super::unit::Signal;
@@ -103,18 +104,60 @@ impl Stateful for ADSREnvelope {
     }
 }
 
-fn to_freq(note: u32) -> f64 {
+type Freq = f64;
+
+fn to_freq(note: u32) -> Freq {
     440.0 * ((note - 69) as f64 / 12.0).exp2()
 }
 
-pub enum NoteEvent {
-    On(f64),
-    Off,
+pub enum Event {
+    On(Pos, Freq),
+    Off(Pos),
+    Loop(Pos),
 }
 
 pub struct Seq {
-    pattern: Vec<NoteEvent>,
-    queue: VecDeque<NoteEvent>,  // なんかNoteEventのキュー的なやつカムヒア
+    pattern: Vec<Box<Event>>,
+    queue: VecDeque<Box<Event>>,
     osc: Unit,
     eg: Unit,
+}
+
+impl Signal for Seq {
+    fn calc(&self, time: &Time) -> Value {
+        let (ol, or) = self.osc.calc(&time);
+        let (el, er) = self.eg.calc(&time);
+        ((ol * el), (or, er))
+    }
+}
+
+impl Stateful for Seq {
+    fn update(&mut self, time: &Time) {
+        self.osc.update(&time);
+        self.osc.update(&time);
+
+        let q = self.queue.iter().peekable();
+        match q.peek() {
+            Event::On(pos, _freq) => if pos >= time.pos {
+                let Event::On(pos, freq) = self.queue.pop_front();
+                self.osc.setFreq(freq);
+                self.eg.eplaced = 0;
+                self.eg.state = ADSR::Attack;
+            },
+            Event::Off(pos) => if pos >= time.pos {
+                let Event::Off(pos) = self.queue.pop_front();
+                self.eg.state = ADSR::Release;
+            },
+            Event::Loop(pos) => if pos >= time.pos {
+                let Event::Loop(pos) = self.queue.pop_front();
+                self.pattern.for_each(|ev| {
+                    self.queue.push_back(match ev {
+                        Event::On(pos, freq) => Event::On(pos + (time.bar, 0, 0.0), freq),
+                        Event::Off(pos) => Event::Off(pos + (time.bar, 0, 0.0)),
+                        Event::Loop(pos) => Event::Loop(pos + (time.bar, 0, 0.0)),
+                    });
+                });
+            }
+        }
+    }
 }

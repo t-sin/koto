@@ -12,3 +12,9 @@ impl Clock for Time {
         self.tick += 1;
     }
 }
+
+pub struct Pos {
+    bar: u32,
+    beat: u32,
+    pos: f64,
+}
