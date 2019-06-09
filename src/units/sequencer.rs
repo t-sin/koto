@@ -2,8 +2,9 @@ use std::collections::VecDeque;
 
 use super::super::time::Time;
 use super::super::time::Pos;
+use super::super::time::PosOps;
+
 use super::unit::Value;
-use super::unit::Stateful;
 use super::unit::Signal;
 use super::unit::Unit;
 
@@ -24,8 +25,8 @@ pub struct ADSREnvelope {
     eplaced: u64,
 }
 
-impl Signal for ADSREnvelope {
-    fn calc(&self, time: &Time) -> Value {
+impl<'a> Signal<'a> for ADSREnvelope {
+    fn calc(&self, _time: &Time) -> Value {
         let state = &self.state;
         let eplaced = self.eplaced;
         let v;
@@ -65,10 +66,8 @@ impl Signal for ADSREnvelope {
         }
         (v, v)
     }
-}
 
-impl Stateful for ADSREnvelope {
-    fn update(&mut self, time: &Time) {
+    fn update(&mut self, _time: &Time) {
         let state = &self.state;
         let eplaced = self.eplaced;
 
@@ -116,48 +115,52 @@ pub enum Event {
     Loop(Pos),
 }
 
-pub struct Seq {
+pub struct Seq<'a> {
     pattern: Vec<Box<Event>>,
     queue: VecDeque<Box<Event>>,
-    osc: Unit,
-    eg: Unit,
+    osc: &'a Unit<'a>,
+    eg: ADSREnvelope,
 }
 
-impl Signal for Seq {
+impl<'a> Signal<'a> for Seq<'a> {
     fn calc(&self, time: &Time) -> Value {
         let (ol, or) = self.osc.calc(&time);
         let (el, er) = self.eg.calc(&time);
-        ((ol * el), (or, er))
+        ((ol * el), (or * er))
     }
-}
 
-impl Stateful for Seq {
     fn update(&mut self, time: &Time) {
         self.osc.update(&time);
         self.osc.update(&time);
 
         let q = self.queue.iter().peekable();
         match q.peek() {
-            Event::On(pos, _freq) => if pos >= time.pos {
-                let Event::On(pos, freq) = self.queue.pop_front();
-                self.osc.setFreq(freq);
-                self.eg.eplaced = 0;
-                self.eg.state = ADSR::Attack;
+            Some(e) => match ***e {
+                Event::On(pos, _freq) => if pos >= time.pos {
+                    if let Event::On(_pos, freq) = *self.queue.pop_front().unwrap() {
+                        self.osc.set_freq(&Unit::Value(freq));
+                        self.eg.eplaced = 0;
+                        self.eg.state = ADSR::Attack;
+                    }
+                },
+                Event::Off(pos) => if pos >= time.pos {
+                    if let Event::Off(_pos) = *self.queue.pop_front().unwrap() {
+                        self.eg.state = ADSR::Release;
+                    }
+                },
+                Event::Loop(pos) => if pos >= time.pos {
+                    if let Event::Loop(_pos) = *self.queue.pop_front().unwrap() {
+                        self.pattern.iter().for_each(|ev| {
+                            self.queue.push_back(match **ev {
+                                Event::On(pos, freq) => Box::new(Event::On(pos.add((time.pos.bar, 0, 0.0), &time), freq)),
+                                Event::Off(pos) => Box::new(Event::Off(pos.add((time.pos.bar, 0, 0.0), &time))),
+                                Event::Loop(pos) => Box::new(Event::Loop(pos.add((time.pos.bar, 0, 0.0), &time))),
+                            });
+                        });
+                    }
+                },
             },
-            Event::Off(pos) => if pos >= time.pos {
-                let Event::Off(pos) = self.queue.pop_front();
-                self.eg.state = ADSR::Release;
-            },
-            Event::Loop(pos) => if pos >= time.pos {
-                let Event::Loop(pos) = self.queue.pop_front();
-                self.pattern.for_each(|ev| {
-                    self.queue.push_back(match ev {
-                        Event::On(pos, freq) => Event::On(pos + (time.bar, 0, 0.0), freq),
-                        Event::Off(pos) => Event::Off(pos + (time.bar, 0, 0.0)),
-                        Event::Loop(pos) => Event::Loop(pos + (time.bar, 0, 0.0)),
-                    });
-                });
-            }
+            None => (),
         }
     }
 }

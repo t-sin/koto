@@ -1,35 +1,34 @@
+use std::sync::{Arc, Mutex};
+
 use super::super::time::Time;
 
 pub type Value = (f64, f64);
 
-pub trait Stateful {
-    fn update(&mut self, time: &Time);
-}
-
-pub trait Signal: Stateful {
+pub trait Signal<'a> {
     fn calc(&self, time: &Time) -> Value;
+    fn update(&mut self, time: &Time);
+    fn set_freq(&mut self, _u: &'a Unit<'a>) {}
 }
 
-
-pub enum Unit {
+pub enum Unit<'a> {
     Value(f64),
-    Unit(Box<Signal + Send>),
+    Unit(Arc<Mutex<Signal<'a> + Send>>),
 }
 
-impl Signal for Unit {
+impl<'a> Signal<'a> for Unit<'a> {
     fn calc(&self, time: &Time) -> Value {
         match self {
             Unit::Value(v) => (*v, *v),
-            Unit::Unit(u) => u.calc(&time),
+            Unit::Unit(u) => {
+                u.lock().unwrap().calc(&time)
+            },
         }
     }
-}
 
-impl Stateful for Unit {
     fn update(&mut self, time: &Time) {
         match self {
             Unit::Value(_v) => (),
-            Unit::Unit(u) => u.update(&time),
+            Unit::Unit(u) => u.lock().unwrap().update(&time),
         }
     }
 }
