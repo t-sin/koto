@@ -4,6 +4,13 @@ use super::unit::Stateful;
 use super::unit::Signal;
 use super::unit::Unit;
 
+use super::core::Gain;
+use super::core::Offset;
+
+pub trait Osc {
+    fn set_freq(&mut self, u: Unit);
+}
+
 pub struct Sine {
     pub init_ph: Unit,
     pub ph: f64,
@@ -23,6 +30,12 @@ impl Stateful for Sine {
         self.init_ph.update(&time);
         self.freq.update(&time);
         self.ph += self.freq.calc(&time).0 / time.sample_rate as f64 * std::f64::consts::PI;
+    }
+}
+
+impl Osc for Sine {
+    fn set_freq(&mut self, u: Unit) {
+        self.freq = u;
     }
 }
 
@@ -56,6 +69,12 @@ impl Stateful for Tri {
     }
 }
 
+impl Osc for Tri {
+    fn set_freq(&mut self, u: Unit) {
+        self.freq = u;
+    }
+}
+
 pub struct Saw {
     pub init_ph: Unit,
     pub ph: f64,
@@ -81,6 +100,12 @@ impl Stateful for Saw {
         self.init_ph.update(&time);
         self.freq.update(&time);
         self.ph += self.freq.calc(&time).0 / time.sample_rate as f64;
+    }
+}
+
+impl Osc for Saw {
+    fn set_freq(&mut self, u: Unit) {
+        self.freq = u;
     }
 }
 
@@ -115,9 +140,51 @@ impl Stateful for Pulse {
     }
 }
 
+impl Osc for Pulse {
+    fn set_freq(&mut self, u: Unit) {
+        self.freq = u;
+    }
+}
+
+pub struct TablePhase {
+    osc: Unit,
+    root: Unit,
+}
+
+pub fn make_table_phase(u: Unit) {
+    TablePhase {
+        root: Unit::Unit(Box::new(Gain {
+            v: 0.5,
+            src: Unit::Unit(Box::new(Offset {
+                v: 1.0,
+                src: u,
+            })),
+        })),
+        osc: u,
+    }
+}
+
+impl Signal for TablePhase {
+    fn calc(&self, time: &Time) -> Value {
+        self.root.calc(&time)
+    }
+}
+
+impl Stateful for TablePhase {
+    fn update(&mut self, time: &Time) {
+        self.root.update(&time);
+    }
+}
+
+impl Osc for TablePhase {
+    fn set_freq(&mut self, u: Unit) {
+        self.osc = u;
+    }
+}
+
 pub struct WaveTable {
     pub table: Vec<f64>,
-    pub ph: Unit,
+    pub ph: TablePhase,
 }
 
 fn linear_interpol(v1: f64, v2: f64, r: f64) -> f64 {
@@ -139,5 +206,11 @@ impl Signal for WaveTable {
 impl Stateful for WaveTable {
     fn update(&mut self, time: &Time) {
         self.ph.update(&time);
+    }
+}
+
+impl Osc for WaveTable {
+    fn set_freq(&mut self, u: Unit) {
+        self.ph.set_freq(u);
     }
 }
