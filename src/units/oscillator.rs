@@ -8,6 +8,10 @@ use super::unit::Unit;
 use super::core::Gain;
 use super::core::Offset;
 
+pub trait Osc {
+    fn set_freq(&mut self, u: Arc<Mutex<Unit>>);
+}
+
 pub struct Sine {
     pub init_ph: Arc<Mutex<Unit>>,
     pub ph: f64,
@@ -25,6 +29,12 @@ impl Signal for Sine {
         self.init_ph.lock().unwrap().update(&time);
         self.freq.lock().unwrap().update(&time);
         self.ph += self.freq.lock().unwrap().calc(&time).0 / time.sample_rate as f64 * std::f64::consts::PI;
+    }
+}
+
+impl Osc for Sine {
+    fn set_freq(&mut self, u: Arc<Mutex<Unit>>) {
+        self.freq = u;
     }
 }
 
