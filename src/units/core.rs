@@ -1,17 +1,19 @@
+use std::sync::{Arc, Mutex};
+
 use super::super::time::Time;
 use super::unit::Value;
 use super::unit::Signal;
 use super::unit::Unit;
 
-pub struct Pan<'a> {
-    pub v: &'a Unit<'a>,
-    pub src: &'a Unit<'a>,
+pub struct Pan {
+    pub v: Arc<Mutex<Unit>>,
+    pub src: Arc<Mutex<Unit>>,
 }
 
-impl<'a> Signal<'a> for Pan<'a> {
+impl Signal for Pan {
     fn calc(&self, time: &Time) -> Value {
-        let (l, r) = self.src.calc(&time);
-        let v = self.v.calc(&time).0;
+        let (l, r) = self.src.lock().unwrap().calc(&time);
+        let v = self.v.lock().unwrap().calc(&time).0;
         if v > 0.0 {
             (l * (1.0 - v), r)
         } else if v < 0.0 {
@@ -22,48 +24,48 @@ impl<'a> Signal<'a> for Pan<'a> {
     }
 
     fn update(&mut self, time: &Time) {
-        self.v.update(&time);
-        self.src.update(&time);
+        self.v.lock().unwrap().update(&time);
+        self.src.lock().unwrap().update(&time);
     }
 }
 
-pub struct Offset<'a> {
+pub struct Offset {
     pub v: f64,
-    pub src: &'a Unit<'a>,
+    pub src: Arc<Mutex<Unit>>,
 }
 
-impl<'a> Signal<'a> for Offset<'a> {
+impl Signal for Offset {
     fn calc(&self, time: &Time) -> Value {
-        let (l, r) = self.src.calc(&time);
+        let (l, r) = self.src.lock().unwrap().calc(&time);
         (l + self.v, r + self.v)
     }
 
     fn update(&mut self, time: &Time) {
-        self.src.update(&time);
+        self.src.lock().unwrap().update(&time);
     }
 }
 
-pub struct Gain<'a> {
+pub struct Gain {
     pub v: f64,
-    pub src: &'a Unit<'a>,
+    pub src: Arc<Mutex<Unit>>,
 }
 
-impl<'a> Signal<'a> for Gain<'a> {
+impl Signal for Gain {
     fn calc(&self, time: &Time) -> Value {
-        let (l, r) = self.src.calc(&time);
+        let (l, r) = self.src.lock().unwrap().calc(&time);
         (l * self.v, r * self.v)
     }
 
     fn update(&mut self, time: &Time) {
-        self.src.update(&time);
+        self.src.lock().unwrap().update(&time);
     }
 }
 
-pub struct AMix<'a> {
-    pub sources: Vec<Box<Signal<'a>>>,
+pub struct AMix {
+    pub sources: Vec<Box<Signal>>,
 }
 
-impl<'a> Signal<'a> for AMix<'a> {
+impl Signal for AMix {
     fn calc(&self, time: &Time) -> Value {
         let mut l = 0.0;
         let mut r = 0.0;
@@ -82,11 +84,11 @@ impl<'a> Signal<'a> for AMix<'a> {
     }
 }
 
-pub struct MMix<'a> {
-    pub sources: Vec<Box<Signal<'a>>>,
+pub struct MMix {
+    pub sources: Vec<Box<Signal>>,
 }
 
-impl<'a> Signal<'a> for MMix<'a> {
+impl Signal for MMix {
     fn calc(&self, time: &Time) -> Value {
         let mut l = 0.0;
         let mut r = 0.0;
