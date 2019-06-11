@@ -25,7 +25,7 @@ pub struct ADSREnvelope {
     eplaced: u64,
 }
 
-impl<'a> Signal<'a> for ADSREnvelope {
+impl Signal for ADSREnvelope {
     fn calc(&self, _time: &Time) -> Value {
         let state = &self.state;
         let eplaced = self.eplaced;
@@ -118,20 +118,19 @@ pub enum Event {
 pub struct Seq<'a> {
     pattern: Vec<Box<Event>>,
     queue: VecDeque<Box<Event>>,
-    osc: &'a Unit<'a>,
+    osc: Arc<Mutex<Unit>>,
     eg: ADSREnvelope,
 }
 
-impl<'a> Signal<'a> for Seq<'a> {
+impl Signal for Seq {
     fn calc(&self, time: &Time) -> Value {
-        let (ol, or) = self.osc.calc(&time);
+        let (ol, or) = self.osc.lock().unwrap().calc(&time);
         let (el, er) = self.eg.calc(&time);
         ((ol * el), (or * er))
     }
 
     fn update(&mut self, time: &Time) {
-        self.osc.update(&time);
-        self.osc.update(&time);
+        self.osc.lock().unwrap().update(&time);
 
         let q = self.queue.iter().peekable();
         match q.peek() {
