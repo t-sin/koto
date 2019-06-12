@@ -9,6 +9,10 @@ pub trait Signal {
     fn update(&mut self, time: &Time);
 }
 
+pub trait Osc {
+    fn set_freq(&mut self, freq: Arc<Mutex<Unit>>);
+}
+
 pub enum Unit {
     Value(f64),
     Unit(Arc<Mutex<Signal + Send>>),
@@ -28,4 +32,8 @@ impl Signal for Unit {
             Unit::Unit(u) => u.lock().unwrap().update(&time),
         }
     }
+}
+
+impl Osc for Unit {
+    fn set_freq(&mut self, freq: Arc<Mutex<Unit>>) {}
 }

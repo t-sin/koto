@@ -3,14 +3,11 @@ use std::sync::{Arc, Mutex};
 use super::super::time::Time;
 use super::unit::Value;
 use super::unit::Signal;
+use super::unit::Osc;
 use super::unit::Unit;
 
 use super::core::Gain;
 use super::core::Offset;
-
-pub trait Osc {
-    fn set_freq(&mut self, u: Arc<Mutex<Unit>>);
-}
 
 pub struct Sine {
     pub init_ph: Arc<Mutex<Unit>>,
