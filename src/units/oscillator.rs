@@ -5,14 +5,15 @@ use super::unit::Value;
 use super::unit::Signal;
 use super::unit::Osc;
 use super::unit::Unit;
+use super::unit::UnitGraph;
 
 use super::core::Gain;
 use super::core::Offset;
 
 pub struct Sine {
-    pub init_ph: Arc<Mutex<Unit>>,
+    pub init_ph: Arc<Mutex<UnitGraph>>,
     pub ph: f64,
-    pub freq: Arc<Mutex<Unit>>,
+    pub freq: Arc<Mutex<UnitGraph>>,
 }
 
 impl Signal for Sine {
@@ -30,15 +31,15 @@ impl Signal for Sine {
 }
 
 impl Osc for Sine {
-    fn set_freq(&mut self, u: Arc<Mutex<Unit>>) {
+    fn set_freq(&mut self, u: Arc<Mutex<UnitGraph>>) {
         self.freq = u;
     }
 }
 
 pub struct Tri {
-    pub init_ph: Arc<Mutex<Unit>>,
+    pub init_ph: Arc<Mutex<UnitGraph>>,
     pub ph: f64,
-    pub freq: Arc<Mutex<Unit>>,
+    pub freq: Arc<Mutex<UnitGraph>>,
 }
 
 impl Signal for Tri {
@@ -63,10 +64,16 @@ impl Signal for Tri {
     }
 }
 
+impl Osc for Tri {
+    fn set_freq(&mut self, u: Arc<Mutex<UnitGraph>>) {
+        self.freq = u;
+    }
+}
+
 pub struct Saw {
-    pub init_ph: Arc<Mutex<Unit>>,
+    pub init_ph: Arc<Mutex<UnitGraph>>,
     pub ph: f64,
-    pub freq: Arc<Mutex<Unit>>,
+    pub freq: Arc<Mutex<UnitGraph>>,
 }
 
 impl Signal for Saw {
@@ -89,11 +96,17 @@ impl Signal for Saw {
     }
 }
 
+impl Osc for Saw {
+    fn set_freq(&mut self, u: Arc<Mutex<UnitGraph>>) {
+        self.freq = u;
+    }
+}
+
 pub struct Pulse {
-    pub init_ph: Arc<Mutex<Unit>>,
+    pub init_ph: Arc<Mutex<UnitGraph>>,
     pub ph: f64,
-    pub freq: Arc<Mutex<Unit>>,
-    pub duty: Arc<Mutex<Unit>>,
+    pub freq: Arc<Mutex<UnitGraph>>,
+    pub duty: Arc<Mutex<UnitGraph>>,
 }
 
 impl Signal for Pulse {
@@ -115,6 +128,12 @@ impl Signal for Pulse {
         self.freq.lock().unwrap().update(&time);
         self.duty.lock().unwrap().update(&time);
         self.ph += self.freq.lock().unwrap().calc(&time).0 / time.sample_rate as f64;
+    }
+}
+
+impl Osc for Pulse {
+    fn set_freq(&mut self, u: Arc<Mutex<UnitGraph>>) {
+        self.freq = u;
     }
 }
 

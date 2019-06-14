@@ -3,6 +3,7 @@ use std::str::Chars;
 use std::sync::{Arc, Mutex};
 
 use super::unit::Unit;
+use super::unit::UnitGraph;
 
 use super::core::Pan;
 use super::core::Offset;
@@ -174,16 +175,17 @@ fn to_vec(list: &Cons) -> Vec<&Cons> {
     }
 }
 
-fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<Unit>> {
+fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<UnitGraph>> {
     match &name[..] {
         "sine" => {
             if args.len() == 2 {
                 Arc::new(Mutex::new(
-                    Unit::Unit(Arc::new(Mutex::new(Sine {
-                        init_ph: eval_one(args[0]),
-                        ph: 0.0,
-                        freq: eval_one(args[1]),
-                    })))))
+                    UnitGraph::Unit(Unit::Osc(
+                        Arc::new(Mutex::new(Sine {
+                            init_ph: eval_one(args[0]),
+                            ph: 0.0,
+                            freq: eval_one(args[1]),
+                    }))))))
             } else {
                 panic!("wrong params");
             }
@@ -191,11 +193,12 @@ fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<Unit>> {
         "tri" => {
             if args.len() == 2 {
                 Arc::new(Mutex::new(
-                    Unit::Unit(Arc::new(Mutex::new(Tri {
-                        init_ph: eval_one(args[0]),
-                        ph: 0.0,
-                        freq: eval_one(args[1]),
-                })))))
+                    UnitGraph::Unit(Unit::Osc(
+                        Arc::new(Mutex::new(Tri {
+                            init_ph: eval_one(args[0]),
+                            ph: 0.0,
+                            freq: eval_one(args[1]),
+                }))))))
             } else {
                 panic!("wrong params");
             }
@@ -203,11 +206,12 @@ fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<Unit>> {
         "saw" => {
             if args.len() == 2 {
                 Arc::new(Mutex::new(
-                    Unit::Unit(Arc::new(Mutex::new(Saw {
-                        init_ph: eval_one(args[0]),
-                        ph: 0.0,
-                        freq: eval_one(args[1]),
-                })))))
+                    UnitGraph::Unit(Unit::Osc(
+                        Arc::new(Mutex::new(Saw {
+                            init_ph: eval_one(args[0]),
+                            ph: 0.0,
+                            freq: eval_one(args[1]),
+                }))))))
             } else {
                 panic!("wrong params");
             }
@@ -215,12 +219,13 @@ fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<Unit>> {
         "pulse" => {
             if args.len() == 3 {
                 Arc::new(Mutex::new(
-                    Unit::Unit(Arc::new(Mutex::new(Pulse {
-                        init_ph: eval_one(args[0]),
-                        ph: 0.0,
-                        freq: eval_one(args[1]),
-                        duty: eval_one(args[2]),
-                })))))
+                    UnitGraph::Unit(Unit::Osc(
+                        Arc::new(Mutex::new(Pulse {
+                            init_ph: eval_one(args[0]),
+                            ph: 0.0,
+                            freq: eval_one(args[1]),
+                            duty: eval_one(args[2]),
+                }))))))
             } else {
                 panic!("wrong params");
             }
@@ -228,13 +233,14 @@ fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<Unit>> {
         "pan" => {
             if args.len() == 2 {
                 Arc::new(Mutex::new(
-                    Unit::Unit(Arc::new(Mutex::new(Pan {
-                        v: match args[0] {
-                            Cons::Number(n) => Arc::new(Mutex::new(Unit::Value(*n))),
-                            exp => eval_one(exp),
-                        },
-                        src: eval_one(args[1]),
-                })))))
+                    UnitGraph::Unit(Unit::Sig(
+                        Arc::new(Mutex::new(Pan {
+                            v: match args[0] {
+                                Cons::Number(n) => Arc::new(Mutex::new(UnitGraph::Value(*n))),
+                                exp => eval_one(exp),
+                            },
+                            src: eval_one(args[1]),
+                }))))))
             } else {
                 panic!("wrong params");
             }
@@ -242,13 +248,14 @@ fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<Unit>> {
         "offset" => {
             if args.len() == 2 {
                 Arc::new(Mutex::new(
-                    Unit::Unit(Arc::new(Mutex::new(Offset {
-                        v: match args[0] {
-                            Cons::Number(n) => *n,
-                            exp => panic!("{:?} is not a number", print(exp)),
-                        },
-                        src: eval_one(args[1]),
-                })))))
+                    UnitGraph::Unit(Unit::Sig(
+                        Arc::new(Mutex::new(Offset {
+                            v: match args[0] {
+                                Cons::Number(n) => *n,
+                                exp => panic!("{:?} is not a number", print(exp)),
+                            },
+                            src: eval_one(args[1]),
+                }))))))
             } else {
                 panic!("wrong params");
             }
@@ -256,39 +263,40 @@ fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<Unit>> {
         "gain" => {
             if args.len() == 2 {
                 Arc::new(Mutex::new(
-                    Unit::Unit(Arc::new(Mutex::new(Gain {
-                        v: match args[0] {
-                            Cons::Number(n) => *n,
-                            exp => panic!("{:?} is not a number", print(exp)),
-                        },
-                        src: eval_one(args[1]),
-                })))))
+                    UnitGraph::Unit(Unit::Sig(
+                        Arc::new(Mutex::new(Gain {
+                            v: match args[0] {
+                                Cons::Number(n) => *n,
+                                exp => panic!("{:?} is not a number", print(exp)),
+                            },
+                            src: eval_one(args[1]),
+                }))))))
             } else {
                 panic!("wrong params");
             }
         },
         _ => {
             println!("{:?} is unknown or not implemented.", name);
-            Arc::new(Mutex::new(Unit::Value(0.0)))
+            Arc::new(Mutex::new(UnitGraph::Value(0.0)))
         }
     }
 }
 
-fn eval_list(name: &Cons, args: &Cons) -> Arc<Mutex<Unit>> {
+fn eval_list(name: &Cons, args: &Cons) -> Arc<Mutex<UnitGraph>> {
     match name {
         Cons::Symbol(n) => construct(&n[..], to_vec(&args)),
         _ => panic!("ill formed form"),
     }
 }
 
-pub fn eval_one(sexp: &Cons) -> Arc<Mutex<Unit>> {
+pub fn eval_one(sexp: &Cons) -> Arc<Mutex<UnitGraph>> {
     match sexp {
         Cons::Cons(car, cdr) => eval_list(car, cdr),
         Cons::Symbol(name) => {
             println!("name: {:?}", name);
-            Arc::new(Mutex::new(Unit::Value(0.0)))
+            Arc::new(Mutex::new(UnitGraph::Value(0.0)))
         },
-        Cons::Number(num) => Arc::new(Mutex::new(Unit::Value(*num))),
+        Cons::Number(num) => Arc::new(Mutex::new(UnitGraph::Value(*num))),
         Cons::Nil => panic!("what should I do?"),
     }
 }

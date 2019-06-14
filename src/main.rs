@@ -2,7 +2,7 @@ mod audio_device;
 mod time;
 mod units;
 
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard};
 
 use audio_device::AudioDevice;
 use time::Time;
@@ -11,6 +11,7 @@ use time::Clock;
 use units::unit::Signal;
 use units::unit::Osc;
 use units::unit::Unit;
+use units::unit::UnitGraph;
 
 use units::oscillator::WaveTable;
 // use units::oscillator::TablePhase;
@@ -39,7 +40,11 @@ fn main() {
     let s = String::from("(sine 0 440)");
     let mut unit_graph = units::conflisp::eval_one(&units::conflisp::read(s)[0]);
     // I want to set a freq!!!!!!!!!!!!
-    unit_graph.lock().unwrap().set_freq(Arc::new(Mutex::new(Unit::Value(880.0))));
+    // -> this way
+    let freq = Arc::new(Mutex::new(UnitGraph::Value(880.0)));
+    if let UnitGraph::Unit(Unit::Osc(o)) = &*unit_graph.lock().unwrap() {
+        o.lock().unwrap().set_freq(freq);
+    }
 
     audio_device.run(|mut buffer| {
         for elem in buffer.iter_mut() {
