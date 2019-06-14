@@ -177,9 +177,15 @@ impl Unit for Phase {
     }
 }
 
+impl Osc for Phase {
+    fn set_freq(&mut self, freq: AUnit) {
+        self.osc = freq;
+    }
+}
+
 pub struct WaveTable {
     pub table: Vec<f64>,
-    pub ph: Arc<Mutex<Unit>>,
+    pub ph: Amut<Phase>,
 }
 
 fn linear_interpol(v1: f64, v2: f64, r: f64) -> f64 {
@@ -199,5 +205,11 @@ impl Unit for WaveTable {
 
     fn update(&mut self, time: &Time) {
         self.ph.lock().unwrap().update(&time);
+    }
+}
+
+impl Osc for WaveTable {
+    fn set_freq(&mut self, freq: AUnit) {
+        self.ph.lock().unwrap().set_freq(freq);
     }
 }
