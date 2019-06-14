@@ -28,7 +28,7 @@ impl Unit for Sine {
     fn update(&mut self, time: &Time) {
         self.init_ph.lock().unwrap().update(&time);
         self.freq.lock().unwrap().update(&time);
-        let ph_diff = time.sample_rate as f64 * std::f64::consts::PI;
+        let ph_diff = time.sample_rate as f64 / std::f64::consts::PI;
         self.ph += self.freq.lock().unwrap().calc(&time).0 / ph_diff;
     }
 }
