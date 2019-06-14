@@ -20,6 +20,8 @@ pub enum UnitGraph {
     Unit(UType),
 }
 
+pub type AUnit = Amut<UnitGraph>;
+
 pub trait Osc: Unit {
     fn set_freq(&mut self, freq: Arc<Mutex<UnitGraph>>);
 }

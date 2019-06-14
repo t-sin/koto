@@ -7,14 +7,15 @@ use super::unit::Unit;
 use super::unit::UType;
 use super::unit::Osc;
 use super::unit::UnitGraph;
+use super::unit::AUnit;
 
 use super::core::Gain;
 use super::core::Offset;
 
 pub struct Sine {
-    pub init_ph: Arc<Mutex<UnitGraph>>,
+    pub init_ph: AUnit,
     pub ph: f64,
-    pub freq: Arc<Mutex<UnitGraph>>,
+    pub freq: AUnit,
 }
 
 impl Unit for Sine {
@@ -33,15 +34,15 @@ impl Unit for Sine {
 }
 
 impl Osc for Sine {
-    fn set_freq(&mut self, u: Arc<Mutex<UnitGraph>>) {
+    fn set_freq(&mut self, u: AUnit) {
         self.freq = u;
     }
 }
 
 pub struct Tri {
-    pub init_ph: Arc<Mutex<UnitGraph>>,
+    pub init_ph: AUnit,
     pub ph: f64,
-    pub freq: Arc<Mutex<UnitGraph>>,
+    pub freq: AUnit,
 }
 
 impl Unit for Tri {
@@ -68,15 +69,15 @@ impl Unit for Tri {
 }
 
 impl Osc for Tri {
-    fn set_freq(&mut self, u: Arc<Mutex<UnitGraph>>) {
+    fn set_freq(&mut self, u: AUnit) {
         self.freq = u;
     }
 }
 
 pub struct Saw {
-    pub init_ph: Arc<Mutex<UnitGraph>>,
+    pub init_ph: AUnit,
     pub ph: f64,
-    pub freq: Arc<Mutex<UnitGraph>>,
+    pub freq: AUnit,
 }
 
 impl Unit for Saw {
@@ -101,16 +102,16 @@ impl Unit for Saw {
 }
 
 impl Osc for Saw {
-    fn set_freq(&mut self, u: Arc<Mutex<UnitGraph>>) {
+    fn set_freq(&mut self, u: AUnit) {
         self.freq = u;
     }
 }
 
 pub struct Pulse {
-    pub init_ph: Arc<Mutex<UnitGraph>>,
+    pub init_ph: AUnit,
     pub ph: f64,
-    pub freq: Arc<Mutex<UnitGraph>>,
-    pub duty: Arc<Mutex<UnitGraph>>,
+    pub freq: AUnit,
+    pub duty: AUnit,
 }
 
 impl Unit for Pulse {
@@ -137,7 +138,7 @@ impl Unit for Pulse {
 }
 
 impl Osc for Pulse {
-    fn set_freq(&mut self, u: Arc<Mutex<UnitGraph>>) {
+    fn set_freq(&mut self, u: AUnit) {
         self.freq = u;
     }
 }

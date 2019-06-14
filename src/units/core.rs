@@ -5,10 +5,11 @@ use super::unit::Signal;
 use super::unit::Unit;
 use super::unit::UType;
 use super::unit::UnitGraph;
+use super::unit::AUnit;
 
 pub struct Pan {
-    pub v: Arc<Mutex<UnitGraph>>,
-    pub src: Arc<Mutex<UnitGraph>>,
+    pub v: AUnit,
+    pub src: AUnit,
 }
 
 impl Unit for Pan {
@@ -32,7 +33,7 @@ impl Unit for Pan {
 
 pub struct Offset {
     pub v: f64,
-    pub src: Arc<Mutex<UnitGraph>>,
+    pub src: AUnit,
 }
 
 impl Unit for Offset {
@@ -48,7 +49,7 @@ impl Unit for Offset {
 
 pub struct Gain {
     pub v: f64,
-    pub src: Arc<Mutex<UnitGraph>>,
+    pub src: AUnit,
 }
 
 impl Unit for Gain {
