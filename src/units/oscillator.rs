@@ -1,6 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use super::super::time::Time;
+use super::super::time::Clock;
 
 use super::unit::Amut;
 use super::unit::Signal;
@@ -191,7 +192,31 @@ impl Osc for Phase {
 
 pub struct WaveTable {
     pub table: Vec<f64>,
-    pub ph: Amut<Phase>,
+    pub ph: AUnit,
+}
+
+impl WaveTable {
+    pub fn new(wave: AUnit, ph: AUnit) -> AUnit {
+        let mut table = Vec::new();
+        let table_len = 256;
+        let mut time = Time::new(table_len / 2, 120.0);
+        for i in 0..table_len {
+            let v = wave.lock().unwrap().calc(&time).0;
+            table.push(v);
+            wave.lock().unwrap().update(&time);
+            time.inc();
+        }
+        Arc::new(Mutex::new(
+            UnitGraph::Unit(UType::Osc(
+                Arc::new(Mutex::new(
+                    WaveTable {
+                        table: table,
+                        ph: ph,
+                    }
+                ))
+            ))
+        ))
+    }
 }
 
 fn linear_interpol(v1: f64, v2: f64, r: f64) -> f64 {
@@ -216,6 +241,6 @@ impl Unit for WaveTable {
 
 impl Osc for WaveTable {
     fn set_freq(&mut self, freq: AUnit) {
-        self.ph.lock().unwrap().set_freq(freq);
+        self.ph = freq;
     }
 }

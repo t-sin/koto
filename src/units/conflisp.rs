@@ -2,6 +2,7 @@ use std::iter::Peekable;
 use std::str::Chars;
 use std::sync::{Arc, Mutex};
 
+use super::unit::Amut;
 use super::unit::UType;
 use super::unit::Osc;
 use super::unit::UnitGraph;
@@ -310,6 +311,13 @@ fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<UnitGraph>> {
                 panic!("wrong params");
             }
         },
+        "wavetable" => {
+            if args.len() == 2 {
+                WaveTable::new(eval_one(args[0]), eval_one(args[1]))
+            } else {
+                panic!("wrong params");
+            }
+        }
         _ => {
             println!("{:?} is unknown or not implemented.", name);
             Arc::new(Mutex::new(UnitGraph::Value(0.0)))
