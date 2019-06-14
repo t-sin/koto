@@ -2,7 +2,7 @@ use std::iter::Peekable;
 use std::str::Chars;
 use std::sync::{Arc, Mutex};
 
-use super::unit::Unit;
+use super::unit::UType;
 use super::unit::UnitGraph;
 
 use super::core::Pan;
@@ -180,7 +180,7 @@ fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<UnitGraph>> {
         "sine" => {
             if args.len() == 2 {
                 Arc::new(Mutex::new(
-                    UnitGraph::Unit(Unit::Osc(
+                    UnitGraph::Unit(UType::Osc(
                         Arc::new(Mutex::new(Sine {
                             init_ph: eval_one(args[0]),
                             ph: 0.0,
@@ -193,7 +193,7 @@ fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<UnitGraph>> {
         "tri" => {
             if args.len() == 2 {
                 Arc::new(Mutex::new(
-                    UnitGraph::Unit(Unit::Osc(
+                    UnitGraph::Unit(UType::Osc(
                         Arc::new(Mutex::new(Tri {
                             init_ph: eval_one(args[0]),
                             ph: 0.0,
@@ -206,7 +206,7 @@ fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<UnitGraph>> {
         "saw" => {
             if args.len() == 2 {
                 Arc::new(Mutex::new(
-                    UnitGraph::Unit(Unit::Osc(
+                    UnitGraph::Unit(UType::Osc(
                         Arc::new(Mutex::new(Saw {
                             init_ph: eval_one(args[0]),
                             ph: 0.0,
@@ -219,7 +219,7 @@ fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<UnitGraph>> {
         "pulse" => {
             if args.len() == 3 {
                 Arc::new(Mutex::new(
-                    UnitGraph::Unit(Unit::Osc(
+                    UnitGraph::Unit(UType::Osc(
                         Arc::new(Mutex::new(Pulse {
                             init_ph: eval_one(args[0]),
                             ph: 0.0,
@@ -233,7 +233,7 @@ fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<UnitGraph>> {
         "pan" => {
             if args.len() == 2 {
                 Arc::new(Mutex::new(
-                    UnitGraph::Unit(Unit::Sig(
+                    UnitGraph::Unit(UType::Sig(
                         Arc::new(Mutex::new(Pan {
                             v: match args[0] {
                                 Cons::Number(n) => Arc::new(Mutex::new(UnitGraph::Value(*n))),
@@ -248,7 +248,7 @@ fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<UnitGraph>> {
         "offset" => {
             if args.len() == 2 {
                 Arc::new(Mutex::new(
-                    UnitGraph::Unit(Unit::Sig(
+                    UnitGraph::Unit(UType::Sig(
                         Arc::new(Mutex::new(Offset {
                             v: match args[0] {
                                 Cons::Number(n) => *n,
@@ -263,7 +263,7 @@ fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<UnitGraph>> {
         "gain" => {
             if args.len() == 2 {
                 Arc::new(Mutex::new(
-                    UnitGraph::Unit(Unit::Sig(
+                    UnitGraph::Unit(UType::Sig(
                         Arc::new(Mutex::new(Gain {
                             v: match args[0] {
                                 Cons::Number(n) => *n,

@@ -1,10 +1,10 @@
 use std::sync::{Arc, Mutex};
 
 use super::super::time::Time;
-use super::unit::Value;
 use super::unit::Signal;
-use super::unit::Osc;
 use super::unit::Unit;
+use super::unit::UType;
+use super::unit::Osc;
 use super::unit::UnitGraph;
 
 use super::core::Gain;
@@ -16,8 +16,8 @@ pub struct Sine {
     pub freq: Arc<Mutex<UnitGraph>>,
 }
 
-impl Signal for Sine {
-    fn calc(&self, time: &Time) -> Value {
+impl Unit for Sine {
+    fn calc(&self, time: &Time) -> Signal {
         let init_ph = self.init_ph.lock().unwrap().calc(&time).0;
         let v = (init_ph + self.ph).sin();
         (v, v)
@@ -42,8 +42,8 @@ pub struct Tri {
     pub freq: Arc<Mutex<UnitGraph>>,
 }
 
-impl Signal for Tri {
-    fn calc(&self, time: &Time) -> Value {
+impl Unit for Tri {
+    fn calc(&self, time: &Time) -> Signal {
         let ph = self.init_ph.lock().unwrap().calc(&time).0 + self.ph;
         let x = ph % 1.0;
         let v;
@@ -76,8 +76,8 @@ pub struct Saw {
     pub freq: Arc<Mutex<UnitGraph>>,
 }
 
-impl Signal for Saw {
-    fn calc(&self, time: &Time) -> Value {
+impl Unit for Saw {
+    fn calc(&self, time: &Time) -> Signal {
         let ph = self.init_ph.lock().unwrap().calc(&time).0 + self.ph;
         let x = ph % 1.0;
         let v;
@@ -109,8 +109,8 @@ pub struct Pulse {
     pub duty: Arc<Mutex<UnitGraph>>,
 }
 
-impl Signal for Pulse {
-    fn calc(&self, time: &Time) -> Value {
+impl Unit for Pulse {
+    fn calc(&self, time: &Time) -> Signal {
         let ph = self.init_ph.lock().unwrap().calc(&time).0 + self.ph;
         let duty = self.duty.lock().unwrap().calc(&time).0;
         let x = ph % 1.0;
@@ -147,8 +147,8 @@ fn linear_interpol(v1: f64, v2: f64, r: f64) -> f64 {
     v1 * r + v2 * (1.0 - r)
 }
 
-impl Signal for WaveTable {
-    fn calc(&self, time: &Time) -> Value {
+impl Unit for WaveTable {
+    fn calc(&self, time: &Time) -> Signal {
         let len = self.table.len() as f64;
         let p = self.ph.lock().unwrap().calc(&time).0 * len;
         let pos1 = (p.floor() % len) as usize;

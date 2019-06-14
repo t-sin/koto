@@ -9,8 +9,9 @@ use time::Time;
 use time::Clock;
 
 use units::unit::Signal;
-use units::unit::Osc;
 use units::unit::Unit;
+use units::unit::Osc;
+use units::unit::UType;
 use units::unit::UnitGraph;
 
 use units::oscillator::WaveTable;
@@ -42,7 +43,7 @@ fn main() {
     // I want to set a freq!!!!!!!!!!!!
     // -> this way
     let freq = Arc::new(Mutex::new(UnitGraph::Value(880.0)));
-    if let UnitGraph::Unit(Unit::Osc(o)) = &*unit_graph.lock().unwrap() {
+    if let UnitGraph::Unit(UType::Osc(o)) = &*unit_graph.lock().unwrap() {
         o.lock().unwrap().set_freq(freq);
     }
 

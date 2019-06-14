@@ -2,54 +2,55 @@ use std::sync::{Arc, Mutex};
 
 use super::super::time::Time;
 
-pub type Value = (f64, f64);
+pub type Signal = (f64, f64);
+pub type Amut<T> = Arc<Mutex<T>>;
 
-pub trait Signal {
-    fn calc(&self, time: &Time) -> Value;
+pub trait Unit {
+    fn calc(&self, time: &Time) -> Signal;
     fn update(&mut self, time: &Time);
 }
 
-pub enum Unit {
-    Sig(Arc<Mutex<Signal + Send>>),
-    Osc(Arc<Mutex<Osc + Send>>),
+pub enum UType {
+    Sig(Amut<Unit + Send>),
+    Osc(Amut<Osc + Send>),
 }
 
 pub enum UnitGraph {
     Value(f64),
-    Unit(Unit),
+    Unit(UType),
 }
 
-pub trait Osc: Signal {
+pub trait Osc: Unit {
     fn set_freq(&mut self, freq: Arc<Mutex<UnitGraph>>);
 }
 
-impl Signal for Unit {
-    fn calc(&self, time: &Time) -> Value {
+impl Unit for UType {
+    fn calc(&self, time: &Time) -> Signal {
         match self {
-            Unit::Sig(u) => u.lock().unwrap().calc(time),
-            Unit::Osc(u) => u.lock().unwrap().calc(time),
+            UType::Sig(u) => u.lock().unwrap().calc(time),
+            UType::Osc(u) => u.lock().unwrap().calc(time),
         }
     }
 
     fn update(&mut self, time: &Time) {
         match self {
-            Unit::Sig(u) => u.lock().unwrap().update(time),
-            Unit::Osc(u) => u.lock().unwrap().update(time),
+            UType::Sig(u) => u.lock().unwrap().update(time),
+            UType::Osc(u) => u.lock().unwrap().update(time),
         }
     }
 }
 
-impl Osc for Unit {
-    fn set_freq(&mut self, freq: Arc<Mutex<UnitGraph>>) {
+impl Osc for UType {
+    fn set_freq(&mut self, freq: Amut<UnitGraph>) {
         match self {
-            Unit::Sig(_u) => (),
-            Unit::Osc(u) => u.lock().unwrap().set_freq(freq),
+            UType::Sig(_u) => (),
+            UType::Osc(u) => u.lock().unwrap().set_freq(freq),
         }
     }
 }
 
-impl Signal for UnitGraph {
-    fn calc(&self, time: &Time) -> Value {
+impl Unit for UnitGraph {
+    fn calc(&self, time: &Time) -> Signal {
         match self {
             UnitGraph::Value(v) => (*v, *v),
             UnitGraph::Unit(u) => u.calc(&time),

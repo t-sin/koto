@@ -1,9 +1,9 @@
 use std::sync::{Arc, Mutex};
 
 use super::super::time::Time;
-use super::unit::Value;
 use super::unit::Signal;
 use super::unit::Unit;
+use super::unit::UType;
 use super::unit::UnitGraph;
 
 pub struct Pan {
@@ -11,8 +11,8 @@ pub struct Pan {
     pub src: Arc<Mutex<UnitGraph>>,
 }
 
-impl Signal for Pan {
-    fn calc(&self, time: &Time) -> Value {
+impl Unit for Pan {
+    fn calc(&self, time: &Time) -> Signal {
         let (l, r) = self.src.lock().unwrap().calc(&time);
         let v = self.v.lock().unwrap().calc(&time).0;
         if v > 0.0 {
@@ -35,8 +35,8 @@ pub struct Offset {
     pub src: Arc<Mutex<UnitGraph>>,
 }
 
-impl Signal for Offset {
-    fn calc(&self, time: &Time) -> Value {
+impl Unit for Offset {
+    fn calc(&self, time: &Time) -> Signal {
         let (l, r) = self.src.lock().unwrap().calc(&time);
         (l + self.v, r + self.v)
     }
@@ -51,8 +51,8 @@ pub struct Gain {
     pub src: Arc<Mutex<UnitGraph>>,
 }
 
-impl Signal for Gain {
-    fn calc(&self, time: &Time) -> Value {
+impl Unit for Gain {
+    fn calc(&self, time: &Time) -> Signal {
         let (l, r) = self.src.lock().unwrap().calc(&time);
         (l * self.v, r * self.v)
     }
@@ -63,11 +63,11 @@ impl Signal for Gain {
 }
 
 pub struct AMix {
-    pub sources: Vec<Box<Signal>>,
+    pub sources: Vec<Box<Unit>>,
 }
 
-impl Signal for AMix {
-    fn calc(&self, time: &Time) -> Value {
+impl Unit for AMix {
+    fn calc(&self, time: &Time) -> Signal {
         let mut l = 0.0;
         let mut r = 0.0;
         for u in self.sources.iter() {
@@ -86,11 +86,11 @@ impl Signal for AMix {
 }
 
 pub struct MMix {
-    pub sources: Vec<Box<Signal>>,
+    pub sources: Vec<Box<Unit>>,
 }
 
-impl Signal for MMix {
-    fn calc(&self, time: &Time) -> Value {
+impl Unit for MMix {
+    fn calc(&self, time: &Time) -> Signal {
         let mut l = 0.0;
         let mut r = 0.0;
         for u in self.sources.iter() {
