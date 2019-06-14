@@ -2,6 +2,8 @@
 
 ![koto logo](koto-logo.gif)
 
+[Dedicated](https://twitter.com/tobuzoo7/status/999061314818359296) [with](https://twitter.com/tobuzoo7/status/1021623019465146368) [you](https://mobile.twitter.com/sin_clav/status/1069065073912496130).
+
 ## TODOs
 
 - [x] Unit graph framework
