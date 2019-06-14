@@ -2,6 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use super::super::time::Time;
 
+use super::unit::Amut;
 use super::unit::Signal;
 use super::unit::Unit;
 use super::unit::UType;
@@ -140,6 +141,39 @@ impl Unit for Pulse {
 impl Osc for Pulse {
     fn set_freq(&mut self, u: AUnit) {
         self.freq = u;
+    }
+}
+
+pub struct Phase {
+    pub root: Amut<Unit>,
+    pub osc: AUnit,
+}
+
+impl Phase {
+    pub fn new(u: AUnit) -> Amut<Unit> {
+        Arc::new(Mutex::new(Phase {
+            root: Arc::new(Mutex::new(
+                UnitGraph::Unit(UType::Sig(Arc::new(Mutex::new(Offset {
+                    v: 1.0,
+                    src: Arc::new(Mutex::new(
+                        UnitGraph::Unit(UType::Sig(
+                            Arc::new(Mutex::new(Gain {
+                                v: 0.5,
+                                src: u.clone(),
+                    })))))),
+                }))))
+            )),
+            osc: u.clone(),
+        }))
+    }
+}
+
+impl Unit for Phase {
+    fn calc(&self, time: &Time) -> Signal {
+        self.root.lock().unwrap().calc(time)
+    }
+    fn update(&mut self, time: &Time) {
+        self.root.lock().unwrap().update(time);
     }
 }
 
