@@ -1,6 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use super::super::time::Time;
+
 use super::unit::Signal;
 use super::unit::Unit;
 use super::unit::UType;
@@ -26,7 +27,8 @@ impl Unit for Sine {
     fn update(&mut self, time: &Time) {
         self.init_ph.lock().unwrap().update(&time);
         self.freq.lock().unwrap().update(&time);
-        self.ph += self.freq.lock().unwrap().calc(&time).0 / time.sample_rate as f64 * std::f64::consts::PI;
+        let ph_diff = time.sample_rate as f64 * std::f64::consts::PI;
+        self.ph += self.freq.lock().unwrap().calc(&time).0 / ph_diff;
     }
 }
 
@@ -60,7 +62,8 @@ impl Unit for Tri {
     fn update(&mut self, time: &Time) {
         self.init_ph.lock().unwrap().update(&time);
         self.freq.lock().unwrap().update(&time);
-        self.ph += self.freq.lock().unwrap().calc(&time).0 / time.sample_rate as f64;
+        let ph_diff = time.sample_rate as f64 * 2.0;
+        self.ph += self.freq.lock().unwrap().calc(&time).0 / ph_diff;
     }
 }
 
@@ -92,7 +95,8 @@ impl Unit for Saw {
     fn update(&mut self, time: &Time) {
         self.init_ph.lock().unwrap().update(&time);
         self.freq.lock().unwrap().update(&time);
-        self.ph += self.freq.lock().unwrap().calc(&time).0 / time.sample_rate as f64;
+        let ph_diff = time.sample_rate as f64 * 2.0;
+        self.ph += self.freq.lock().unwrap().calc(&time).0 / ph_diff;
     }
 }
 
@@ -127,7 +131,8 @@ impl Unit for Pulse {
         self.init_ph.lock().unwrap().update(&time);
         self.freq.lock().unwrap().update(&time);
         self.duty.lock().unwrap().update(&time);
-        self.ph += self.freq.lock().unwrap().calc(&time).0 / time.sample_rate as f64;
+        let ph_diff = time.sample_rate as f64 * 2.0;
+        self.ph += self.freq.lock().unwrap().calc(&time).0 / ph_diff;
     }
 }
 
