@@ -63,16 +63,16 @@ impl Unit for Gain {
     }
 }
 
-pub struct AMix {
-    pub sources: Vec<Box<Unit>>,
+pub struct Add {
+    pub sources: Vec<AUnit>,
 }
 
-impl Unit for AMix {
+impl Unit for Add {
     fn calc(&self, time: &Time) -> Signal {
         let mut l = 0.0;
         let mut r = 0.0;
         for u in self.sources.iter() {
-            let (l2, r2) = u.calc(&time);
+            let (l2, r2) = u.lock().unwrap().calc(&time);
             l += l2;
             r += r2;
         }
@@ -81,21 +81,21 @@ impl Unit for AMix {
 
     fn update(&mut self, time: &Time) {
         for u in self.sources.iter_mut() {
-            u.update(&time);
+            u.lock().unwrap().update(&time);
         }
     }
 }
 
-pub struct MMix {
-    pub sources: Vec<Box<Unit>>,
+pub struct Multiply {
+    pub sources: Vec<AUnit>,
 }
 
-impl Unit for MMix {
+impl Unit for Multiply {
     fn calc(&self, time: &Time) -> Signal {
         let mut l = 0.0;
         let mut r = 0.0;
         for u in self.sources.iter() {
-            let (l2, r2) = u.calc(&time);
+            let (l2, r2) = u.lock().unwrap().calc(&time);
             l *= l2;
             r *= r2;
         }
@@ -104,7 +104,7 @@ impl Unit for MMix {
 
     fn update(&mut self, time: &Time) {
         for u in self.sources.iter_mut() {
-            u.update(&time);
+            u.lock().unwrap().update(&time);
         }
     }
 }
