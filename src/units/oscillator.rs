@@ -145,26 +145,32 @@ impl Osc for Pulse {
 }
 
 pub struct Phase {
-    pub root: Amut<Unit>,
+    pub root: AUnit,
     pub osc: AUnit,
 }
 
 impl Phase {
-    pub fn new(u: AUnit) -> Amut<Unit> {
-        Arc::new(Mutex::new(Phase {
-            root: Arc::new(Mutex::new(
-                UnitGraph::Unit(UType::Sig(Arc::new(Mutex::new(Offset {
-                    v: 1.0,
-                    src: Arc::new(Mutex::new(
-                        UnitGraph::Unit(UType::Sig(
-                            Arc::new(Mutex::new(Gain {
-                                v: 0.5,
-                                src: u.clone(),
-                    })))))),
-                }))))
-            )),
-            osc: u.clone(),
-        }))
+    pub fn new(u: AUnit) -> AUnit {
+        Arc::new(Mutex::new(
+            UnitGraph::Unit(UType::Sig(
+                Arc::new(Mutex::new(Phase {
+                    root: Arc::new(Mutex::new(
+                        UnitGraph::Unit(UType::Sig(Arc::new(Mutex::new(Offset {
+                            v: 1.0,
+                            src: Arc::new(Mutex::new(
+                                UnitGraph::Unit(UType::Sig(
+                                    Arc::new(Mutex::new(Gain {
+                                        v: 0.5,
+                                        src: u.clone(),
+                                    }
+                                ))))
+                            )),
+                        }
+                    ))))
+                )),
+                osc: u.clone(),
+            }))
+        ))))
     }
 }
 

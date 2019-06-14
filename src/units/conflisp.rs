@@ -3,6 +3,7 @@ use std::str::Chars;
 use std::sync::{Arc, Mutex};
 
 use super::unit::UType;
+use super::unit::Osc;
 use super::unit::UnitGraph;
 
 use super::core::Pan;
@@ -15,7 +16,8 @@ use super::oscillator::Sine;
 use super::oscillator::Tri;
 use super::oscillator::Saw;
 use super::oscillator::Pulse;
-
+use super::oscillator::Phase;
+use super::oscillator::WaveTable;
 
 #[derive(Debug, PartialEq)]
 pub enum Cons {
@@ -300,6 +302,13 @@ fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<UnitGraph>> {
                          }
                      }
              ))))))
+        },
+        "phase" => {
+            if args.len() == 1 {
+                Phase::new(eval_one(args[0]))
+            } else {
+                panic!("wrong params");
+            }
         },
         _ => {
             println!("{:?} is unknown or not implemented.", name);
