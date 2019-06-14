@@ -38,14 +38,14 @@ fn main() {
     //         table: table,
     //         ph: unit_graph1
     // })))));
-    let s = String::from("(sine 0 440)");
+    let s = String::from("(+ (sine 0 440) (sine 0 880))");
     let mut unit_graph = units::conflisp::eval_one(&units::conflisp::read(s)[0]);
     // I want to set a freq!!!!!!!!!!!!
     // -> this way
-    let freq = Arc::new(Mutex::new(UnitGraph::Value(880.0)));
-    if let UnitGraph::Unit(UType::Osc(o)) = &*unit_graph.lock().unwrap() {
-        o.lock().unwrap().set_freq(freq);
-    }
+    // let freq = Arc::new(Mutex::new(UnitGraph::Value(880.0)));
+    // if let UnitGraph::Unit(UType::Osc(o)) = &*unit_graph.lock().unwrap() {
+    //     o.lock().unwrap().set_freq(freq);
+    // }
 
     audio_device.run(|mut buffer| {
         for elem in buffer.iter_mut() {

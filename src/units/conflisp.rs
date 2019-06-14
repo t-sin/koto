@@ -8,6 +8,8 @@ use super::unit::UnitGraph;
 use super::core::Pan;
 use super::core::Offset;
 use super::core::Gain;
+use super::core::Add;
+use super::core::Multiply;
 
 use super::oscillator::Sine;
 use super::oscillator::Tri;
@@ -275,10 +277,34 @@ fn construct(name: &str, args: Vec<&Cons>) -> Arc<Mutex<UnitGraph>> {
                 panic!("wrong params");
             }
         },
+        "+" => {
+             Arc::new(Mutex::new(
+                 UnitGraph::Unit(UType::Sig(
+                     Arc::new(Mutex::new(Add {
+                         sources: {
+                              let mut v: Vec<Arc<Mutex<UnitGraph>>> = Vec::new();
+                              for s in args.iter() { v.push(eval_one(s)) }
+                              v
+                         }
+                     }
+             ))))))
+        },
+        "*" => {
+             Arc::new(Mutex::new(
+                 UnitGraph::Unit(UType::Sig(
+                     Arc::new(Mutex::new(Multiply {
+                         sources: {
+                              let mut v: Vec<Arc<Mutex<UnitGraph>>> = Vec::new();
+                              for s in args.iter() { v.push(eval_one(s)) }
+                              v
+                         }
+                     }
+             ))))))
+        },
         _ => {
             println!("{:?} is unknown or not implemented.", name);
             Arc::new(Mutex::new(UnitGraph::Value(0.0)))
-        }
+        },
     }
 }
 
