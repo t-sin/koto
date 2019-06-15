@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use super::super::tapirlisp;
+use super::super::tapirlisp as lisp;
 use super::super::tapirlisp::Cons;
 
 use super::unit::{AUnit, UType, UnitGraph};
@@ -9,19 +9,6 @@ use super::core::{Pan, Offset, Gain, Add, Multiply};
 use super::oscillator::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
 
 //// unit graph constructor (or eval?)
-
-fn to_vec(list: &Cons) -> Vec<&Cons> {
-    match list {
-        Cons::Nil => Vec::new(),
-        Cons::Cons(elem, rest) => {
-            let mut v: Vec<&Cons> = Vec::new();
-            v.push(elem);
-            v.append(&mut to_vec(rest));
-            v
-        },
-        _ => panic!("it's not proper list: {:?}", list),
-    }
-}
 
 fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
     match &name[..] {
@@ -110,7 +97,7 @@ fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
                         Arc::new(Mutex::new(Offset {
                             v: match args[0] {
                                 Cons::Number(n) => *n,
-                                exp => panic!("{:?} is not a number", tapirlisp::print(exp)),
+                                exp => panic!("{:?} is not a number", lisp::print(exp)),
                             },
                             src: eval_one(args[1]),
                         }))
@@ -127,7 +114,7 @@ fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
                         Arc::new(Mutex::new(Gain {
                             v: match args[0] {
                                 Cons::Number(n) => *n,
-                                exp => panic!("{:?} is not a number", tapirlisp::print(exp)),
+                                exp => panic!("{:?} is not a number", lisp::print(exp)),
                             },
                             src: eval_one(args[1]),
                         }))
@@ -197,7 +184,7 @@ fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
 
 fn eval_list(name: &Cons, args: &Cons) -> AUnit {
     match name {
-        Cons::Symbol(n) => construct_one(&n[..], to_vec(&args)),
+        Cons::Symbol(n) => construct_one(&n[..], lisp::to_vec(&args)),
         _ => panic!("ill formed form"),
     }
 }
