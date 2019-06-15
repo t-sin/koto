@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 
 use super::super::time::{Time, Pos, PosOps};
+use super::super::events::event::{Event, Freq};
 use super::unit::{Signal, AUnit};
 use super::unit::{Unit, UType, UnitGraph, ADSR, Eg};
 
@@ -111,28 +112,8 @@ impl Eg for AdsrEg {
     }
 }
 
-
-type Freq = f64;
-
 fn to_freq(note: u32) -> Freq {
     440.0 * ((note - 69) as f64 / 12.0).exp2()
-}
-
-#[derive(Debug)]
-pub enum Event {
-    On(Pos, Freq),
-    Off(Pos),
-    Loop(Pos),
-}
-
-impl Clone for Event {
-    fn clone(&self) -> Self {
-        match self {
-            Event::On(pos, freq) => Event::On(pos.clone(), *freq),
-            Event::Off(pos) => Event::Off(pos.clone()),
-            Event::Loop(pos) => Event::Loop(pos.clone()),
-        }
-    }
 }
 
 pub struct Seq {

@@ -1,14 +1,17 @@
 mod audio_device;
 mod tapirlisp;
 mod time;
+mod events;
 mod units;
 
 use audio_device::AudioDevice;
 use time::{Time, Pos, Clock};
 
+use events::event::Event;
+
 use units::unit::Unit;
 use units::unit::{UnitGraph, UType, ADSR, Eg};
-use units::sequencer::{AdsrEg, Event, Seq};
+use units::sequencer::{AdsrEg, Seq};
 
 fn main() {
     let channels = 1;
@@ -27,6 +30,8 @@ fn main() {
     pat.push(Box::new(Event::On(Pos {bar: 0, beat: 1, pos: 0.0}, 440.0)));
     pat.push(Box::new(Event::Off(Pos {bar: 0, beat: 1 , pos: 0.25})));
     pat.push(Box::new(Event::Loop(Pos {bar: 1, beat :0 , pos: 0.0})));
+    // let s2 = String::from("");
+    // let pat = event::elisp::eval(&tapirlisp::read(s));
     let unit_graph = Seq::new(pat, osc, eg);
 
     audio_device.run(|mut buffer| {
