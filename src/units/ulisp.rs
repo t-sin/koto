@@ -6,7 +6,7 @@ use super::super::tapirlisp::Cons;
 use super::unit::{AUnit, UType, UnitGraph};
 use super::core::{Pan, Offset, Gain, Add, Multiply};
 
-use super::oscillator::{Sine, Tri, Saw, Pulse, Phase, WaveTable};
+use super::oscillator::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
 
 //// unit graph constructor (or eval?)
 
@@ -160,7 +160,18 @@ fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
             } else {
                 panic!("wrong params");
             }
-        }
+        },
+        "rand" => {
+            if args.len() == 1 {
+                if let UnitGraph::Value(v) = *eval_one(args[0]).lock().unwrap() {
+                    Rand::new(v as u64)
+                } else {
+                    Rand::new(0)
+                }
+            } else {
+                panic!("wrong params");
+            }
+        },
         _ => {
             println!("{:?} is unknown or not implemented.", name);
             Arc::new(Mutex::new(UnitGraph::Value(0.0)))
