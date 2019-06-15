@@ -1,16 +1,19 @@
 use std::cmp::{Ord, Ordering};
 
+#[derive(Debug)]
 pub struct Pos {
     pub bar: u64,
     pub beat: u64,
     pub pos: f64,
 }
 
+#[derive(Debug)]
 pub struct Measure {
     pub beat: u64,
     pub note: u64,
 }
 
+#[derive(Debug)]
 pub struct Time {
     pub sample_rate: u32,
     pub tick: u64,
@@ -29,7 +32,7 @@ impl PosOps<Pos> for Pos {
         let beat_diff = self.beat + other.beat + pos_diff.trunc() as u64;
 
         let new_pos = pos_diff.fract();
-        let new_beat = beat_diff / time.measure.note;
+        let new_beat = beat_diff % time.measure.note;
         let new_bar =  self.bar + other.bar + (beat_diff / time.measure.beat);
 
         Pos { bar: new_bar, beat: new_beat, pos: new_pos }
