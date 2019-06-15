@@ -3,26 +3,13 @@ use std::sync::{Arc, Mutex};
 use super::super::conflisp;
 use super::super::conflisp::Cons;
 
-use super::unit::Amut;
-use super::unit::UType;
-use super::unit::Osc;
-use super::unit::UnitGraph;
+use super::unit::{Amut, AUnit, UType, Osc, UnitGraph};
+use super::core::{Pan, Offset, Gain, Add, Multiply};
 
-use super::core::Pan;
-use super::core::Offset;
-use super::core::Gain;
-use super::core::Add;
-use super::core::Multiply;
-
-use super::oscillator::Sine;
-use super::oscillator::Tri;
-use super::oscillator::Saw;
-use super::oscillator::Pulse;
-use super::oscillator::Phase;
-use super::oscillator::WaveTable;
-
+use super::oscillator::{Sine, Tri, Saw, Pulse, Phase, WaveTable};
 
 //// unit graph constructor (or eval?)
+
 fn to_vec(list: &Cons) -> Vec<&Cons> {
     match list {
         Cons::Nil => Vec::new(),
@@ -36,7 +23,7 @@ fn to_vec(list: &Cons) -> Vec<&Cons> {
     }
 }
 
-fn construct_one(name: &str, args: Vec<&Cons>) -> Arc<Mutex<UnitGraph>> {
+fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
     match &name[..] {
         "sine" => {
             if args.len() == 2 {
@@ -181,14 +168,14 @@ fn construct_one(name: &str, args: Vec<&Cons>) -> Arc<Mutex<UnitGraph>> {
     }
 }
 
-fn eval_list(name: &Cons, args: &Cons) -> Arc<Mutex<UnitGraph>> {
+fn eval_list(name: &Cons, args: &Cons) -> AUnit {
     match name {
         Cons::Symbol(n) => construct_one(&n[..], to_vec(&args)),
         _ => panic!("ill formed form"),
     }
 }
 
-pub fn eval_one(sexp: &Cons) -> Arc<Mutex<UnitGraph>> {
+pub fn eval_one(sexp: &Cons) -> AUnit {
     match sexp {
         Cons::Cons(car, cdr) => eval_list(car, cdr),
         Cons::Symbol(name) => {

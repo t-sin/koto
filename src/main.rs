@@ -3,15 +3,12 @@ mod conflisp;
 mod time;
 mod units;
 
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::{Arc, Mutex};
 
 use audio_device::AudioDevice;
-use time::Time;
-use time::Clock;
+use time::{Time, Clock};
 
-use units::unit::Signal;
-use units::unit::Unit;
-use units::unit::Osc;
+use units::unit::{Signal, Unit, Osc};
 
 fn main() {
     let channels = 1;

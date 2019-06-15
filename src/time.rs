@@ -1,5 +1,4 @@
-use std::cmp::Ordering;
-use std::cmp::Ord;
+use std::cmp::{Ord, Ordering};
 
 pub struct Pos {
     pub bar: u64,

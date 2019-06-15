@@ -3,16 +3,10 @@ use std::sync::{Arc, Mutex};
 use super::super::time::Time;
 use super::super::time::Clock;
 
-use super::unit::Amut;
-use super::unit::Signal;
-use super::unit::Unit;
-use super::unit::UType;
-use super::unit::Osc;
-use super::unit::UnitGraph;
-use super::unit::AUnit;
+use super::unit::{Signal, Amut, AUnit};
+use super::unit::{Unit, UType, Osc, UnitGraph};
 
-use super::core::Gain;
-use super::core::Offset;
+use super::core::{Gain, Offset};
 
 pub struct Sine {
     pub init_ph: AUnit,
