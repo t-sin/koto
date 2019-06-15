@@ -1,5 +1,8 @@
 use std::sync::{Arc, Mutex};
 
+use rand::{Rng, SeedableRng};
+use rand::rngs::SmallRng;
+
 use super::super::time::Time;
 use super::super::time::Clock;
 
@@ -7,6 +10,37 @@ use super::unit::{Signal, AUnit};
 use super::unit::{Unit, UType, Osc, UnitGraph};
 
 use super::core::{Gain, Offset};
+
+pub struct Rand {
+    rng: SmallRng,
+    v: f64,
+}
+
+impl Rand {
+    pub fn new(seed: u64) -> AUnit {
+        Arc::new(Mutex::new(
+            UnitGraph::Unit(UType::Osc(
+                Arc::new(Mutex::new(Rand {
+                    rng: SmallRng::seed_from_u64(seed),
+                    v: 0.15,
+                }))
+            ))
+        ))
+    }
+}
+
+impl Unit for Rand {
+    fn calc(&self, _time: &Time) -> Signal {
+        (self.v, self.v)
+    }
+    fn update(&mut self, _time: &Time) {
+        self.v = self.rng.gen();
+    }
+}
+
+impl Osc for Rand {
+    fn set_freq(&mut self, _u: AUnit) {}
+}
 
 pub struct Sine {
     pub init_ph: AUnit,
