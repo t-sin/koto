@@ -7,6 +7,16 @@ pub struct Pos {
     pub pos: f64,
 }
 
+impl Clone for Pos {
+    fn clone(&self) -> Self {
+        Pos {
+            bar: self.bar.clone(),
+            beat: self.beat.clone(),
+            pos: self.pos.clone(),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Measure {
     pub beat: u64,
