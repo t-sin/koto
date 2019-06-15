@@ -33,7 +33,9 @@ fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
                             init_ph: eval_one(args[0]),
                             ph: 0.0,
                             freq: eval_one(args[1]),
-                    }))))))
+                        }))
+                    ))
+                ))
             } else {
                 panic!("wrong params");
             }
@@ -46,7 +48,9 @@ fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
                             init_ph: eval_one(args[0]),
                             ph: 0.0,
                             freq: eval_one(args[1]),
-                }))))))
+                        }))
+                    ))
+                ))
             } else {
                 panic!("wrong params");
             }
@@ -59,7 +63,9 @@ fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
                             init_ph: eval_one(args[0]),
                             ph: 0.0,
                             freq: eval_one(args[1]),
-                }))))))
+                        }))
+                    ))
+                ))
             } else {
                 panic!("wrong params");
             }
@@ -73,7 +79,9 @@ fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
                             ph: 0.0,
                             freq: eval_one(args[1]),
                             duty: eval_one(args[2]),
-                }))))))
+                        }))
+                    ))
+                ))
             } else {
                 panic!("wrong params");
             }
@@ -88,7 +96,9 @@ fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
                                 exp => eval_one(exp),
                             },
                             src: eval_one(args[1]),
-                }))))))
+                        }))
+                    ))
+                ))
             } else {
                 panic!("wrong params");
             }
@@ -103,7 +113,9 @@ fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
                                 exp => panic!("{:?} is not a number", tapirlisp::print(exp)),
                             },
                             src: eval_one(args[1]),
-                }))))))
+                        }))
+                    ))
+                ))
             } else {
                 panic!("wrong params");
             }
@@ -118,7 +130,9 @@ fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
                                 exp => panic!("{:?} is not a number", tapirlisp::print(exp)),
                             },
                             src: eval_one(args[1]),
-                }))))))
+                        }))
+                    ))
+                ))
             } else {
                 panic!("wrong params");
             }
@@ -132,8 +146,9 @@ fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
                               for s in args.iter() { v.push(eval_one(s)) }
                               v
                          }
-                     }
-             ))))))
+                     }))
+                ))
+            ))
         },
         "*" => {
              Arc::new(Mutex::new(
@@ -144,8 +159,9 @@ fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
                               for s in args.iter() { v.push(eval_one(s)) }
                               v
                          }
-                     }
-             ))))))
+                     }))
+                ))
+            ))
         },
         "phase" => {
             if args.len() == 1 {
