@@ -7,9 +7,13 @@ mod units;
 use audio_device::AudioDevice;
 use time::{Time, Pos, Clock};
 
+use tapirlisp as tlisp;
+
 use events::event::Event;
 
 use units::unit::Unit;
+use units::ulisp as ulisp;
+
 use units::unit::{UnitGraph, UType, ADSR, Eg};
 use units::sequencer::{AdsrEg, Seq};
 
@@ -21,7 +25,7 @@ fn main() {
     let mut time = Time::new(sample_rate, 120.0);
 
     let s = String::from("(+ (rand 0) (wavetable (saw 0 1) (phase (saw 0 440))))");
-    let osc = units::ulisp::eval_one(&tapirlisp::read(s)[0]);
+    let osc = ulisp::eval_one(&tlisp::read(s)[0]);
 
     let eg = AdsrEg::new(1, 1000, 1.0, 1000);
     let mut pat = Vec::new();
