@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use super::super::time::Time;
 use super::super::time::Clock;
 
-use super::unit::{Signal, Amut, AUnit};
+use super::unit::{Signal, AUnit};
 use super::unit::{Unit, UType, Osc, UnitGraph};
 
 use super::core::{Gain, Offset};
@@ -194,7 +194,7 @@ impl WaveTable {
         let mut table = Vec::new();
         let table_len = 256;
         let mut time = Time::new(table_len / 2, 120.0);
-        for i in 0..table_len {
+        for _i in 0..table_len {
             let v = wave.lock().unwrap().calc(&time).0;
             table.push(v);
             wave.lock().unwrap().update(&time);

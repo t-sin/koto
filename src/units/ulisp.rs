@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use super::super::tapirlisp;
 use super::super::tapirlisp::Cons;
 
-use super::unit::{Amut, AUnit, UType, Osc, UnitGraph};
+use super::unit::{AUnit, UType, UnitGraph};
 use super::core::{Pan, Offset, Gain, Add, Multiply};
 
 use super::oscillator::{Sine, Tri, Saw, Pulse, Phase, WaveTable};

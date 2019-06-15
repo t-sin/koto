@@ -1,8 +1,6 @@
-use std::sync::{Arc, Mutex};
-
 use super::super::time::Time;
 use super::unit::Signal;
-use super::unit::{Unit, UType, UnitGraph, AUnit};
+use super::unit::{Unit, AUnit};
 
 pub struct Pan {
     pub v: AUnit,
