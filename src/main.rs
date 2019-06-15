@@ -5,16 +5,15 @@ mod events;
 mod units;
 
 use audio_device::AudioDevice;
-use time::{Time, Pos, Clock};
+use time::{Time, Clock};
 
 use tapirlisp as tlisp;
 
-use events::event::Event;
+use events::elisp as elisp;
 
 use units::unit::Unit;
 use units::ulisp as ulisp;
 
-use units::unit::{UnitGraph, UType, ADSR, Eg};
 use units::sequencer::{AdsrEg, Seq};
 
 fn main() {
@@ -28,14 +27,15 @@ fn main() {
     let osc = ulisp::eval_one(&tlisp::read(s)[0]);
 
     let eg = AdsrEg::new(1, 1000, 1.0, 1000);
-    let mut pat = Vec::new();
-    pat.push(Box::new(Event::On(Pos {bar: 0, beat: 0, pos: 0.0}, 440.0)));
-    pat.push(Box::new(Event::Off(Pos {bar: 0, beat:0 , pos: 0.25})));
-    pat.push(Box::new(Event::On(Pos {bar: 0, beat: 1, pos: 0.0}, 440.0)));
-    pat.push(Box::new(Event::Off(Pos {bar: 0, beat: 1 , pos: 0.25})));
-    pat.push(Box::new(Event::Loop(Pos {bar: 1, beat :0 , pos: 0.0})));
-    // let s2 = String::from("");
-    // let pat = event::elisp::eval(&tapirlisp::read(s));
+    // let mut pat = Vec::new();
+    // pat.push(Box::new(Event::On(Pos {bar: 0, beat: 0, pos: 0.0}, 440.0)));
+    // pat.push(Box::new(Event::Off(Pos {bar: 0, beat:0 , pos: 0.25})));
+    // pat.push(Box::new(Event::On(Pos {bar: 0, beat: 1, pos: 0.0}, 440.0)));
+    // pat.push(Box::new(Event::Off(Pos {bar: 0, beat: 1 , pos: 0.25})));
+    // pat.push(Box::new(Event::Loop(Pos {bar: 1, beat :0 , pos: 0.0})));
+    let s2 = String::from("((a b))");
+    println!("{:?}", tlisp::print(&tlisp::read(s2.clone())[0]));
+    let pat = elisp::eval_one(&tapirlisp::read(s2)[0]);
     let unit_graph = Seq::new(pat, osc, eg);
 
     audio_device.run(|mut buffer| {
