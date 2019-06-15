@@ -180,7 +180,11 @@ impl Unit for Phase {
 
 impl Osc for Phase {
     fn set_freq(&mut self, freq: AUnit) {
-        self.osc = freq;
+        if let UnitGraph::Unit(UType::Osc(osc)) = &*self.osc.clone().lock().unwrap() {
+            osc.lock().unwrap().set_freq(freq);
+        } else {
+            self.osc = freq;
+        }
     }
 }
 
@@ -235,6 +239,8 @@ impl Unit for WaveTable {
 
 impl Osc for WaveTable {
     fn set_freq(&mut self, freq: AUnit) {
-        self.ph = freq;
+        if let UnitGraph::Unit(UType::Osc(osc)) = &*self.ph.clone().lock().unwrap() {
+            osc.lock().unwrap().set_freq(freq);
+        }
     }
 }
