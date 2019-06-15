@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
-use super::super::conflisp;
-use super::super::conflisp::Cons;
+use super::super::tapirlisp;
+use super::super::tapirlisp::Cons;
 
 use super::unit::{Amut, AUnit, UType, Osc, UnitGraph};
 use super::core::{Pan, Offset, Gain, Add, Multiply};
@@ -100,7 +100,7 @@ fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
                         Arc::new(Mutex::new(Offset {
                             v: match args[0] {
                                 Cons::Number(n) => *n,
-                                exp => panic!("{:?} is not a number", conflisp::print(exp)),
+                                exp => panic!("{:?} is not a number", tapirlisp::print(exp)),
                             },
                             src: eval_one(args[1]),
                 }))))))
@@ -115,7 +115,7 @@ fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
                         Arc::new(Mutex::new(Gain {
                             v: match args[0] {
                                 Cons::Number(n) => *n,
-                                exp => panic!("{:?} is not a number", conflisp::print(exp)),
+                                exp => panic!("{:?} is not a number", tapirlisp::print(exp)),
                             },
                             src: eval_one(args[1]),
                 }))))))
