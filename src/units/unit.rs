@@ -13,6 +13,7 @@ pub trait Unit {
 pub enum UType {
     Sig(Amut<Unit + Send>),
     Osc(Amut<Osc + Send>),
+    Eg(Amut<Eg + Send>),
 }
 
 pub enum UnitGraph {
@@ -26,11 +27,24 @@ pub trait Osc: Unit {
     fn set_freq(&mut self, freq: AUnit);
 }
 
+pub enum ADSR {
+    Attack,
+    Decay,
+    Sustin,
+    Release,
+    None,
+}
+
+pub trait Eg: Unit {
+    fn set_state(&mut self, state: ADSR, eplaced: u64);
+}
+
 impl Unit for UType {
     fn calc(&self, time: &Time) -> Signal {
         match self {
             UType::Sig(u) => u.lock().unwrap().calc(time),
             UType::Osc(u) => u.lock().unwrap().calc(time),
+            UType::Eg(u) => u.lock().unwrap().calc(time),
         }
     }
 
@@ -38,6 +52,7 @@ impl Unit for UType {
         match self {
             UType::Sig(u) => u.lock().unwrap().update(time),
             UType::Osc(u) => u.lock().unwrap().update(time),
+            UType::Eg(u) => u.lock().unwrap().update(time),
         }
     }
 }
@@ -47,6 +62,7 @@ impl Osc for UType {
         match self {
             UType::Sig(_u) => (),
             UType::Osc(u) => u.lock().unwrap().set_freq(freq),
+            UType::Eg(_u) => (),
         }
     }
 }
