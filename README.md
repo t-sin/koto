@@ -18,7 +18,8 @@
     - [ ] Delay
 - [ ] Sequencers
     - [x] Envelope
-    - [ ] Events (notes, fx values)
+    - [x] Events (notes, fx values)
+    - [x] Sequencers
     - [ ] MML-like score description
 - [ ] FUSE interfaces
 - [ ] Command line interfaces
