@@ -5,4 +5,4 @@ pub mod oscillator;
 //pub mod effect;
 //pub mod sequencer;
 
-pub mod conflisp;
+pub mod ulisp;
