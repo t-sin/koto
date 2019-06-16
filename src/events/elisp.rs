@@ -92,7 +92,7 @@ fn to_pos(len: u32) -> Pos {
 
 fn eval_event(e: &Cons, pos: &mut Pos) -> Vec<Box<Event>> {
     let mut ev = Vec::new();
-    let mut time = Time { // TODO: read from global settings
+    let time = Time { // TODO: read from global settings
         sample_rate: 0, tick: 0, bpm: 0.0,  // not used
         pos: Pos { bar: 0, beat: 0, pos: 0.0 },  // not used
         measure: Measure { beat: 4, note: 4 }
