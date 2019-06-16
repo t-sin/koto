@@ -5,9 +5,12 @@ use super::super::time::{Pos, Measure, PosOps, Time};
 
 use super::event::{Event, Freq};
 
+type NoteNum = u32;
+type Octave = u32;
+
 enum Note {
-    R, C(u32), Cs(u32), D(u32), Ds(u32), E(u32), F(u32),
-    Fs(u32), G(u32), Gs(u32), A(u32), As(u32), B(u32),
+    Note(NoteNum, Octave),
+    Rest,
 }
 
 fn to_note(name: &str) -> Note {
@@ -16,66 +19,45 @@ fn to_note(name: &str) -> Note {
         Some(c) => if c.is_digit(10) { c.to_digit(10).unwrap() } else { 4 }
         _ => 4,
     };
-    match name.chars().nth(0) {
-        Some('c') => match name.chars().nth(1) {
-            Some('+') => Note::Cs(octave),
-            Some('-') => Note::B(octave - 1),
-            _ => Note::C(octave),
-        },
-        Some('d') => match name.chars().nth(1) {
-            Some('+') => Note::Ds(octave),
-            Some('-') => Note::Cs(octave),
-            _ => Note::D(octave),
-        },
-        Some('e') => match name.chars().nth(1) {
-            Some('+') => Note::F(octave),
-            Some('-') => Note::Ds(octave),
-            _ => Note::E(octave),
-        },
-        Some('f') => match name.chars().nth(1) {
-            Some('+') => Note::Fs(octave),
-            Some('-') => Note::E(octave),
-            _ => Note::F(octave),
-        },
-        Some('g') => match name.chars().nth(1) {
-            Some('+') => Note::Gs(octave),
-            Some('-') => Note::Fs(octave),
-            _ => Note::G(octave),
-        },
-        Some('a') => match name.chars().nth(1) {
-            Some('+') => Note::As(octave),
-            Some('-') => Note::Gs(octave),
-            _ => Note::A(octave),
-        },
-        Some('b') => match name.chars().nth(1) {
-            Some('+') => Note::C(octave + 1),
-            Some('-') => Note::As(octave),
-            _ => Note::B(octave),
-        },
-        Some('r') => Note::R,
-        _ => Note::R,
+    let note = match name.chars().nth(0) {
+        Some('a') => Note::Note(0, octave + 1),
+        Some('b') => Note::Note(2, octave + 1),
+        Some('c') => Note::Note(3, octave),
+        Some('d') => Note::Note(5, octave),
+        Some('e') => Note::Note(7, octave),
+        Some('f') => Note::Note(8, octave),
+        Some('g') => Note::Note(10, octave),
+        Some('r') => Note::Rest,
+        _ => panic!("invalid note name: {:?}", name),
+    };
+    if let Note::Rest = note {
+        note
+    } else {
+        match name.chars().nth(1) {
+            Some('+') => {
+                if let Note::Note(n, o) = note {
+                    Note::Note(n + 1, o)
+                } else {
+                    note
+                }
+            },
+            Some('-') => {
+                if let Note::Note(n, o) = note {
+                    Note::Note(n - 1, o)
+                } else {
+                    note
+                }
+            },
+            _ => note,
+        }
     }
 }
 
-fn freq(note_num: u32, octave: u32) -> f64 {
-    440.0 + (440.0 * note_num as f64 / 12.0) / (4.0 / octave as f64)
-}
-
-fn to_freq(n: Note) -> Freq {
-    match n {
-        Note::A(o) => freq(0, o + 1),
-        Note::As(o) => freq(1, o + 1),
-        Note::B(o) => freq(2, o + 1),
-        Note::C(o) => freq(3, o),
-        Note::Cs(o) => freq(4, o),
-        Note::D(o) => freq(5, o),
-        Note::Ds(o) => freq(6, o),
-        Note::E(o) => freq(7, o),
-        Note::F(o) => freq(8, o),
-        Note::Fs(o) => freq(9, o),
-        Note::G(o) => freq(10, o),
-        Note::Gs(o) => freq(11, o),
-        Note::R => 442.0,  // whatever
+fn to_freq(note: &Note) -> Freq {
+    if let Note::Note(n, o) = note {
+        440.0 * 2.0f64.powf(*n as f64 / 12.0 + (*o as f64) - 5.0)
+    } else {
+        440.0
     }
 }
 
@@ -107,11 +89,11 @@ fn eval_event(e: &Cons, pos: &mut Pos) -> Vec<Box<Event>> {
                         _ => to_pos(4),
                     };
                     match to_note(&n) {
-                        Note::R => {
+                        Note::Rest => {
                             *pos = pos.add(len, &time);
                         },
                         n => {
-                            ev.push(Box::new(Event::On(pos.clone(), to_freq(n))));
+                            ev.push(Box::new(Event::On(pos.clone(), to_freq(&n))));
                             *pos = pos.add(len, &time);
                             ev.push(Box::new(Event::Off(pos.clone())));
                         },

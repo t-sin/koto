@@ -30,7 +30,7 @@ fn main() {
     let s2 = String::from(r"((c 2) (r 2)   (d 2) (r 2)
                              (e 2) (r 2)   (f 2) (r 2)
                              (g 2) (r 2)   (a 2) (r 2)
-                             (b 2) (r 2)   (c 2) (r 2))");
+                             (b 2) (r 2)   (c5 2) (r 2))");
     let pat = elisp::eval_one(&tapirlisp::read(s2)[0]);
     println!("{:?}", pat);
     let unit_graph = Seq::new(pat, osc, eg);
