@@ -63,9 +63,9 @@ fn freq(note_num: u32, octave: u32) -> f64 {
 
 fn to_freq(n: Note) -> Freq {
     match n {
-        Note::A(o) => freq(0, o),
-        Note::As(o) => freq(1, o),
-        Note::B(o) => freq(2, o),
+        Note::A(o) => freq(0, o + 1),
+        Note::As(o) => freq(1, o + 1),
+        Note::B(o) => freq(2, o + 1),
         Note::C(o) => freq(3, o),
         Note::Cs(o) => freq(4, o),
         Note::D(o) => freq(5, o),
@@ -103,11 +103,7 @@ fn eval_event(e: &Cons, pos: &mut Pos) -> Vec<Box<Event>> {
             if let Cons::Symbol(n) = &**name {
                 if let Cons::Cons(len, _) = &**cdr {
                     let len = match &**len {
-                        Cons::Symbol(l) => if l.chars().fold(true, |a, c| a && c.is_digit(10)) {
-                            to_pos(l.parse::<u32>().unwrap())
-                        } else {
-                            to_pos(4)
-                        },
+                        Cons::Number(l) => to_pos(*l as u32),
                         _ => to_pos(4),
                     };
                     match to_note(&n) {

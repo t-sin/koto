@@ -26,9 +26,11 @@ fn main() {
     let s = String::from("(sine 0 440)");
     let osc = ulisp::eval_one(&tlisp::read(s)[0]);
 
-    let eg = AdsrEg::new(1, 1000, 1.0, 1000);
-    let s2 = String::from("((c4 2) (d4 0) (e4 0) (f4 0) (g4 0) (a4 0) (b4 0) (c5 0))");
-    println!("{:?}", tlisp::print(&tlisp::read(s2.clone())[0]));
+    let eg = AdsrEg::new(1000, 10000, 0.5, 10000);
+    let s2 = String::from(r"((c 2) (r 2)   (d 2) (r 2)
+                             (e 2) (r 2)   (f 2) (r 2)
+                             (g 2) (r 2)   (a 2) (r 2)
+                             (b 2) (r 2)   (c 2) (r 2))");
     let pat = elisp::eval_one(&tapirlisp::read(s2)[0]);
     println!("{:?}", pat);
     let unit_graph = Seq::new(pat, osc, eg);
