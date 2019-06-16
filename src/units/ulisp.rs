@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use super::super::tapirlisp as lisp;
-use super::super::tapirlisp::Cons;
+use super::super::tapirlisp::cons::Cons;
 
 use super::unit::{AUnit, UType, UnitGraph};
 use super::core::{Pan, Offset, Gain, Add, Multiply};

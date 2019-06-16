@@ -1,15 +1,9 @@
+pub mod cons;
+
 use std::iter::Peekable;
 use std::str::Chars;
 
-#[derive(Debug, PartialEq)]
-pub enum Cons {
-    Cons(Box<Cons>, Box<Cons>),
-    Symbol(String),
-    Number(f64),
-    Nil,
-}
-
-//// reader
+use cons::Cons;
 
 fn skip_whitespaces(chars: &mut Peekable<Chars>) {
     loop {
@@ -115,8 +109,6 @@ pub fn read(s: String) -> Vec<Cons> {
     }
     sexp_vec
 }
-
-//// printer
 
 fn print_list(car: &Cons, cdr: &Cons) -> String {
     let mut s = String::new();
