@@ -181,7 +181,7 @@ pub struct Phase {
 impl Phase {
     pub fn new(u: AUnit) -> AUnit {
         Arc::new(Mutex::new(
-            UnitGraph::Unit(UType::Sig(
+            UnitGraph::Unit(UType::Osc(
                 Arc::new(Mutex::new(Phase {
                     root: Arc::new(Mutex::new(
                         UnitGraph::Unit(UType::Sig(Arc::new(Mutex::new(Offset {
@@ -273,7 +273,7 @@ impl Unit for WaveTable {
 
 impl Osc for WaveTable {
     fn set_freq(&mut self, freq: AUnit) {
-        if let UnitGraph::Unit(UType::Osc(osc)) = &*self.ph.clone().lock().unwrap() {
+        if let UnitGraph::Unit(UType::Osc(osc)) = &*self.ph.lock().unwrap() {
             osc.lock().unwrap().set_freq(freq);
         }
     }

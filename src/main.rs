@@ -23,7 +23,7 @@ fn main() {
 
     let mut time = Time::new(sample_rate, 120.0);
 
-    let s = String::from("(sine 0 440)");
+    let s = String::from("(wavetable (tri 0 1) (phase (saw 0 440)))");
     let osc = ulisp::eval_one(&tlisp::read(s)[0]);
 
     let eg = AdsrEg::new(1000, 10000, 0.5, 10000);
