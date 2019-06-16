@@ -23,19 +23,14 @@ fn main() {
 
     let mut time = Time::new(sample_rate, 120.0);
 
-    let s = String::from("(+ (rand 0) (wavetable (saw 0 1) (phase (saw 0 440))))");
+    let s = String::from("(sine 0 440)");
     let osc = ulisp::eval_one(&tlisp::read(s)[0]);
 
     let eg = AdsrEg::new(1, 1000, 1.0, 1000);
-    // let mut pat = Vec::new();
-    // pat.push(Box::new(Event::On(Pos {bar: 0, beat: 0, pos: 0.0}, 440.0)));
-    // pat.push(Box::new(Event::Off(Pos {bar: 0, beat:0 , pos: 0.25})));
-    // pat.push(Box::new(Event::On(Pos {bar: 0, beat: 1, pos: 0.0}, 440.0)));
-    // pat.push(Box::new(Event::Off(Pos {bar: 0, beat: 1 , pos: 0.25})));
-    // pat.push(Box::new(Event::Loop(Pos {bar: 1, beat :0 , pos: 0.0})));
-    let s2 = String::from("((a b))");
+    let s2 = String::from("((c4 2) (d4 0) (e4 0) (f4 0) (g4 0) (a4 0) (b4 0) (c5 0))");
     println!("{:?}", tlisp::print(&tlisp::read(s2.clone())[0]));
     let pat = elisp::eval_one(&tapirlisp::read(s2)[0]);
+    println!("{:?}", pat);
     let unit_graph = Seq::new(pat, osc, eg);
 
     audio_device.run(|mut buffer| {
