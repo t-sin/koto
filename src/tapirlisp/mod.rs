@@ -1,11 +1,11 @@
-pub mod cons;
+pub mod types;
 
 use std::error::Error;
 use std::fmt;
 use std::iter::Peekable;
 use std::str::Chars;
 
-use cons::Cons;
+use types::Cons;
 
 #[derive(Debug)]
 pub enum ReadError {

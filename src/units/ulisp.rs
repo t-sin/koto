@@ -1,14 +1,12 @@
 use std::sync::{Arc, Mutex};
 
 use super::super::tapirlisp as lisp;
-use super::super::tapirlisp::cons::Cons;
+use super::super::tapirlisp::types::Cons;
 
 use super::unit::{AUnit, UType, UnitGraph};
 use super::core::{Pan, Offset, Gain, Add, Multiply};
 
 use super::oscillator::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
-
-//// unit graph constructor (or eval?)
 
 fn construct_one(name: &str, args: Vec<&Cons>) -> AUnit {
     match &name[..] {

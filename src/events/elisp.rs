@@ -1,5 +1,5 @@
 use super::super::tapirlisp as lisp;
-use super::super::tapirlisp::cons::Cons;
+use super::super::tapirlisp::types::Cons;
 
 use super::super::time::{Pos, Measure, PosOps, Time};
 
