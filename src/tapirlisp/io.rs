@@ -3,32 +3,7 @@ use std::fmt;
 use std::iter::Peekable;
 use std::str::Chars;
 
-use super::types::Cons;
-
-#[derive(Debug)]
-pub enum ReadError {
-    InvalidNumber(String),
-    UnexpectedCloseParen,
-}
-
-impl fmt::Display for ReadError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            ReadError::InvalidNumber(s) => write!(f, "Cannot parse '{}' as a number", s),
-            ReadError::UnexpectedCloseParen => write!(f, "Unexpected ')'"),
-        }
-    }
-}
-
-impl Error for ReadError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            ReadError::InvalidNumber(_s) => None,
-            ReadError::UnexpectedCloseParen => None,
-        }
-    }
-}
-
+use super::types::{Cons, ReadError};
 
 fn skip_whitespaces(chars: &mut Peekable<Chars>) {
     loop {

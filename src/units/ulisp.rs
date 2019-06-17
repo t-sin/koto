@@ -1,62 +1,12 @@
-use std::error::Error;
-use std::fmt;
 use std::sync::{Arc, Mutex};
 
 use super::super::tapirlisp as lisp;
-use super::super::tapirlisp::types::Cons;
+use super::super::tapirlisp::types::{Cons, EvalError};
 
 use super::unit::{AUnit, UType, UnitGraph};
 use super::core::{Pan, Offset, Gain, Add, Multiply};
 
 use super::oscillator::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
-
-#[derive(Debug)]
-pub enum EvalError {
-    FnWrongParams(String, Vec<Box<Cons>>),
-    FnUnknown(String),
-    FnMalformedName(Box<Cons>),
-    NotANumber(String),
-    TodoSearchValueFromBinding,
-    Nil
-}
-
-impl fmt::Display for EvalError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            EvalError::FnWrongParams(name, args) => {
-                write!(f, "Wrong params for '{:?}' with args '{:?}'", name, args)
-            },
-            EvalError::FnUnknown(name) => {
-                write!(f, "{:?} is unknown or not implemented.", name)
-            },
-            EvalError::FnMalformedName(cons) => {
-                write!(f, "{:?} is not a symbol.", cons)
-            },
-            EvalError::NotANumber(s) => {
-                write!(f, "{:?} is not a number", s)
-            },
-            EvalError::TodoSearchValueFromBinding => {
-                write!(f, "TODO: searching from binding.")
-            },
-            EvalError::Nil => {
-                write!(f, "nil.")
-            },
-        }
-    }
-}
-
-impl Error for EvalError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            EvalError::FnWrongParams(_name, _args) => None,
-            EvalError::FnUnknown(_) => None,
-            EvalError::FnMalformedName(_) => None,
-            EvalError::TodoSearchValueFromBinding => None,
-            EvalError::NotANumber(_) => None,
-            EvalError::Nil => None,
-        }
-    }
-}
 
 // core units
 
