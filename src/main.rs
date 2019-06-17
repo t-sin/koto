@@ -12,7 +12,6 @@ use tapirlisp as tlisp;
 use events::elisp as elisp;
 
 use units::unit::Unit;
-use units::ulisp as ulisp;
 
 use units::sequencer::{AdsrEg, Seq};
 
