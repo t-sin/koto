@@ -127,13 +127,13 @@ fn read_exp(chars: &mut Peekable<Chars>) -> Result<Cons, ReadError> {
     }
 }
 
-pub fn read(s: String) -> Result<Vec<Cons>, ReadError> {
+pub fn read(s: String) -> Result<Vec<Box<Cons>>, ReadError> {
     let mut chars = s.chars().peekable();
     let mut sexp_vec = Vec::new();
     loop {
         match read_exp(&mut chars) {
             Ok(Cons::Nil) => break,
-            Ok(c) => sexp_vec.push(c),
+            Ok(c) => sexp_vec.push(Box::new(c)),
             Err(e) => return Err(e),
         }
     }
