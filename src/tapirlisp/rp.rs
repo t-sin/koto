@@ -1,5 +1,3 @@
-use std::error::Error;
-use std::fmt;
 use std::iter::Peekable;
 use std::str::Chars;
 
@@ -56,7 +54,7 @@ fn read_number(chars: &mut Peekable<Chars>) -> Result<Cons, ReadError> {
     }
     match num.parse::<f64>() {
         Ok(n) => Ok(Cons::Number(n)),
-        Err(e) => Err(ReadError::InvalidNumber(num)),
+        Err(_) => Err(ReadError::InvalidNumber(num)),
     }
 }
 

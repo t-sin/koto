@@ -106,12 +106,12 @@ impl Error for EvalError {
             EvalError::FnWrongParams(_name, _args) => None,
             EvalError::FnUnknown(_) => None,
             EvalError::FnMalformedName(_) => None,
-            EvalError::EvWrongParams(args) => None,
+            EvalError::EvWrongParams(_) => None,
             EvalError::EvUnknown(_) => None,
-            EvalError::EvMalformedEvent(s) => None,
+            EvalError::EvMalformedEvent(_) => None,
             EvalError::TodoSearchValueFromBinding => None,
             EvalError::NotANumber(_) => None,
-            EvalError::NotAUnit(v) => None,
+            EvalError::NotAUnit(_) => None,
             EvalError::Nil => None,
         }
     }

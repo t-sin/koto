@@ -1,13 +1,13 @@
 use std::sync::{Arc, Mutex};
 
 
-use super::super::time::{Pos, Measure, PosOps, Time};
-use super::super::event::{Event, Freq, Note, to_note, to_freq, to_pos};
+use super::super::time::Pos;
+use super::super::event::Event;
 
-use super::super::units::unit::{AUnit, UType, UnitGraph};
+use super::super::units::unit::UnitGraph;
 
 use super::super::tapirlisp::types::{Cons, Value, EvalError};
-use super::super::tapirlisp::{to_vec, make_unit, make_event, print};
+use super::super::tapirlisp::{to_vec, make_unit, make_event};
 
 fn eval_events(events: Vec<Box<Cons>>) -> Result<Vec<Box<Event>>, EvalError> {
     let mut ev: Vec<Box<Event>> = Vec::new();

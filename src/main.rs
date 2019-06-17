@@ -23,7 +23,7 @@ fn main() {
     let s = String::from("(wavetable (saw 0 1) (phase (saw 0 440)))");
     let osc = match tlisp::eval(&tlisp::read(s).unwrap()[0]) {
         Ok(Value::Unit(osc)) => osc,
-        err => return,
+        _err => return,
     };
 
     let eg = AdsrEg::new(1000, 10000, 0.5, 10000);
@@ -33,7 +33,7 @@ fn main() {
                                   (b 2) (r 2)   (c5 2) (r 2)))");
     let pat = match tlisp::eval(&tlisp::read(s2).unwrap()[0]) {
         Ok(Value::Pattern(pat)) => pat,
-        err => return,
+        _err => return,
     };
     println!("{:?}", pat);
     let unit_graph = Seq::new(pat, osc, eg);

@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use super::super::time::{Pos, Measure, PosOps, Time};
-use super::super::event::{Event, Freq, Note, to_note, to_freq, to_pos};
+use super::super::event::{Event, Note, to_note, to_freq, to_pos};
 
 use super::super::units::unit::{AUnit, UType, UnitGraph};
 use super::super::units::core::{Pan, Offset, Gain, Add, Multiply};
