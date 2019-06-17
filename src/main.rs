@@ -24,7 +24,7 @@ fn main() {
     let mut time = Time::new(sample_rate, 120.0);
 
     let s = String::from("(wavetable (saw 0 1) (phase (saw 0 440)))");
-    let osc = ulisp::eval_one(&tlisp::read(s).unwrap()[0]);
+    let osc = ulisp::eval(&tlisp::read(s).unwrap()[0]).unwrap();
 
     let eg = AdsrEg::new(1000, 10000, 0.5, 10000);
     let s2 = String::from(r"((c 2) (r 2)   (d 2) (r 2)
