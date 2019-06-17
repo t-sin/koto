@@ -1,7 +1,7 @@
-pub mod io;
+pub mod rp;
 pub mod types;
 
-pub use io::{read, print};
+pub use rp::{read, print};
 
 use types::Cons;
 
