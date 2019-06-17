@@ -6,7 +6,8 @@ use super::super::event::Event;
 use super::super::units::unit::UnitGraph;
 
 use super::super::tapirlisp::types::{Cons, Value, EvalError};
-use super::super::tapirlisp::{to_vec, make_unit, make_event};
+use super::super::tapirlisp::to_vec;
+use super::super::tapirlisp::make::{make_unit, make_event};
 
 fn eval_events(events: Vec<Box<Cons>>) -> Result<Vec<Box<Event>>, EvalError> {
     let mut ev: Vec<Box<Event>> = Vec::new();
