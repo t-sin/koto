@@ -151,7 +151,14 @@ fn print_list(car: &Cons, cdr: &Cons) -> String {
             s.push_str(print_list(car2, cdr2).as_str())
         },
         Cons::Nil => (),
-        exp => panic!("ill formed S-expression: {:?}", exp),
+        Cons::Number(n) => {
+            s.push_str(" . ");
+            s.push_str(&n.to_string());
+        },
+        Cons::Symbol(n) => {
+            s.push_str(" . ");
+            s.push_str(n);
+        },
     }
     s
 }
