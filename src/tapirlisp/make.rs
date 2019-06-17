@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use super::super::tapirlisp::{print, eval};
-use super::super::tapirlisp::types::{Cons, EvalError};
+use super::super::tapirlisp::types::{Cons, Value, EvalError};
 
 use super::super::units::unit::{AUnit, UType, UnitGraph};
 use super::super::units::core::{Pan, Offset, Gain, Add, Multiply};
@@ -18,13 +18,15 @@ fn make_pan(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
                     v: match &*args[0] {
                         Cons::Number(n) => Arc::new(Mutex::new(UnitGraph::Value(*n))),
                         exp => match eval(&exp) {
-                            Ok(unit) => unit,
-                            err => return err,
+                            Ok(Value::Unit(unit)) => unit,
+                            Ok(Value::Pattern(p)) => return Err(EvalError::NotAUnit(p)),
+                            Err(err) => return Err(err),
                         }
                     },
                     src: match eval(&args[1]) {
-                        Ok(src) => src,
-                        err => return err,
+                        Ok(Value::Unit(src)) => src,
+                        Ok(Value::Pattern(p)) => return Err(EvalError::NotAUnit(p)),
+                        Err(err) => return Err(err),
                     },
                 }))
             ))
@@ -44,8 +46,9 @@ fn make_offset(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
                         exp => return Err(EvalError::NotANumber(print(&exp))),
                     },
                     src: match eval(&args[1]) {
-                        Ok(src) => src,
-                        err => return err,
+                        Ok(Value::Unit(src)) => src,
+                        Ok(Value::Pattern(p)) => return Err(EvalError::NotAUnit(p)),
+                        Err(err) => return Err(err),
                     },
                 }))
             ))
@@ -65,8 +68,9 @@ fn make_gain(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
                         exp => return Err(EvalError::NotANumber(print(&exp))),
                     },
                     src: match eval(&args[1]) {
-                        Ok(src) => src,
-                        err => return err,
+                        Ok(Value::Unit(src)) => src,
+                        Ok(Value::Pattern(p)) => return Err(EvalError::NotAUnit(p)),
+                        Err(err) => return Err(err),
                     },
                 }))
             ))
@@ -84,8 +88,9 @@ fn make_add(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
                     let mut v: Vec<Arc<Mutex<UnitGraph>>> = Vec::new();
                     for s in args.iter() {
                         match eval(s) {
-                            Ok(unit) => v.push(unit),
-                            err => return err,
+                            Ok(Value::Unit(unit)) => v.push(unit),
+                            Ok(Value::Pattern(p)) => return Err(EvalError::NotAUnit(p)),
+                            Err(err) => return Err(err),
                         }
                     }
                     v
@@ -103,8 +108,9 @@ fn make_multiply(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
                     let mut v: Vec<Arc<Mutex<UnitGraph>>> = Vec::new();
                     for s in args.iter() {
                         match eval(s) {
-                            Ok(unit) => v.push(unit),
-                            err => return err,
+                            Ok(Value::Unit(unit)) => v.push(unit),
+                            Ok(Value::Pattern(p)) => return Err(EvalError::NotAUnit(p)),
+                            Err(err) => return Err(err),
                         }
                     }
                     v
@@ -119,12 +125,13 @@ fn make_multiply(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
 fn make_rand(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
     if args.len() == 1 {
         match eval(&args[0]) {
-            Ok(unit) => if let UnitGraph::Value(v) = *unit.lock().unwrap() {
+            Ok(Value::Unit(unit)) => if let UnitGraph::Value(v) = *unit.lock().unwrap() {
                 Ok(Rand::new(v as u64))
             } else {
                 Ok(Rand::new(0))
             },
-            err => err,
+            Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+            Err(err) => Err(err),
         }
     } else {
         Err(EvalError::FnWrongParams(String::from("wavetable"), args))
@@ -134,8 +141,8 @@ fn make_rand(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
 fn make_sine(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
     if args.len() == 2 {
         match eval(&args[0]) {
-            Ok(init_ph) => match eval(&args[1]) {
-                Ok(freq) => Ok(Arc::new(Mutex::new(
+            Ok(Value::Unit(init_ph)) => match eval(&args[1]) {
+                Ok(Value::Unit(freq)) => Ok(Arc::new(Mutex::new(
                     UnitGraph::Unit(UType::Osc(
                         Arc::new(Mutex::new(Sine {
                             init_ph: init_ph,
@@ -144,9 +151,11 @@ fn make_sine(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
                         }))
                     ))
                 ))),
-                err => err,
+                Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                Err(err) => Err(err),
             },
-            err => err,
+            Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+            Err(err) => Err(err),
         }
     } else {
         Err(EvalError::FnWrongParams(String::from("sine"), args))
@@ -156,8 +165,8 @@ fn make_sine(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
 fn make_tri(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
     if args.len() == 2 {
         match eval(&args[0]) {
-            Ok(init_ph) => match eval(&args[1]) {
-                Ok(freq) => Ok(Arc::new(Mutex::new(
+            Ok(Value::Unit(init_ph)) => match eval(&args[1]) {
+                Ok(Value::Unit(freq)) => Ok(Arc::new(Mutex::new(
                     UnitGraph::Unit(UType::Osc(
                         Arc::new(Mutex::new(Tri {
                             init_ph: init_ph,
@@ -166,9 +175,11 @@ fn make_tri(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
                         }))
                     ))
                 ))),
-                err => err,
+                Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                Err(err) => Err(err),
             },
-            err => err,
+            Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+            Err(err) => Err(err),
         }
     } else {
         Err(EvalError::FnWrongParams(String::from("tri"), args))
@@ -178,8 +189,8 @@ fn make_tri(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
 fn make_saw(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
     if args.len() == 2 {
         match eval(&args[0]) {
-            Ok(init_ph) => match eval(&args[1]) {
-                Ok(freq) => Ok(Arc::new(Mutex::new(
+            Ok(Value::Unit(init_ph)) => match eval(&args[1]) {
+                Ok(Value::Unit(freq)) => Ok(Arc::new(Mutex::new(
                     UnitGraph::Unit(UType::Osc(
                         Arc::new(Mutex::new(Saw {
                             init_ph: init_ph,
@@ -188,9 +199,11 @@ fn make_saw(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
                         }))
                     ))
                 ))),
-                err => err,
+                Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                Err(err) => Err(err),
             },
-            err => err,
+            Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+            Err(err) => Err(err),
         }
     } else {
         Err(EvalError::FnWrongParams(String::from("tri"), args))
@@ -200,9 +213,9 @@ fn make_saw(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
 fn make_pulse(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
     if args.len() == 3 {
         match eval(&args[0]) {
-            Ok(init_ph) => match eval(&args[1]) {
-                Ok(freq) => match eval(&args[2]) {
-                    Ok(duty) => Ok(Arc::new(Mutex::new(
+            Ok(Value::Unit(init_ph)) => match eval(&args[1]) {
+                Ok(Value::Unit(freq)) => match eval(&args[2]) {
+                    Ok(Value::Unit(duty)) => Ok(Arc::new(Mutex::new(
                         UnitGraph::Unit(UType::Osc(
                             Arc::new(Mutex::new(Pulse {
                                 init_ph: init_ph,
@@ -212,11 +225,14 @@ fn make_pulse(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
                             }))
                         ))
                     ))),
-                    err => err,
+                    Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                    Err(err) => Err(err),
                 },
-                err => err,
+                Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                Err(err) => Err(err),
             },
-            err => err,
+            Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+            Err(err) => Err(err),
         }
     } else {
         Err(EvalError::FnWrongParams(String::from("pulse"), args))
@@ -228,8 +244,9 @@ fn make_pulse(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
 fn make_phase(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
     if args.len() == 1 {
         match eval(&args[0]) {
-            Ok(osc) => Ok(Phase::new(osc)),
-            err => err,
+            Ok(Value::Unit(osc)) => Ok(Phase::new(osc)),
+            Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+            Err(err) => Err(err),
         }
     } else {
         Err(EvalError::FnWrongParams(String::from("phase"), args))
@@ -239,11 +256,13 @@ fn make_phase(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
 fn make_wavetable(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
     if args.len() == 2 {
         match eval(&args[0]) {
-            Ok(table) => match eval(&args[1]) {
-                Ok(osc) => Ok(WaveTable::new(table, osc)),
-                err => err,
+            Ok(Value::Unit(table)) => match eval(&args[1]) {
+                Ok(Value::Unit(osc)) => Ok(WaveTable::new(table, osc)),
+                Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                Err(err) => Err(err),
             },
-            err => err,
+            Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+            Err(err) => Err(err),
         }
     } else {
         Err(EvalError::FnWrongParams(String::from("wavetable"), args))

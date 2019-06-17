@@ -1,18 +1,16 @@
 mod audio_device;
-mod tapirlisp;
 mod time;
-mod events;
+mod event;
 mod units;
+mod tapirlisp;
 
 use audio_device::AudioDevice;
 use time::{Time, Clock};
 
+use tapirlisp::types::{Value};
 use tapirlisp as tlisp;
 
-use events::elisp as elisp;
-
 use units::unit::Unit;
-
 use units::sequencer::{AdsrEg, Seq};
 
 fn main() {
@@ -23,14 +21,20 @@ fn main() {
     let mut time = Time::new(sample_rate, 120.0);
 
     let s = String::from("(wavetable (saw 0 1) (phase (saw 0 440)))");
-    let osc = tlisp::eval(&tlisp::read(s).unwrap()[0]).unwrap();
+    let osc = match tlisp::eval(&tlisp::read(s).unwrap()[0]) {
+        Ok(Value::Unit(osc)) => osc,
+        err => return,
+    };
 
     let eg = AdsrEg::new(1000, 10000, 0.5, 10000);
-    let s2 = String::from(r"((c 2) (r 2)   (d 2) (r 2)
-                             (e 2) (r 2)   (f 2) (r 2)
-                             (g 2) (r 2)   (a 2) (r 2)
-                             (b 2) (r 2)   (c5 2) (r 2))");
-    let pat = elisp::eval_one(&tlisp::read(s2).unwrap()[0]);
+    let s2 = String::from(r"(pat ((c 2) (r 2)   (d 2) (r 2)
+                                  (e 2) (r 2)   (f 2) (r 2)
+                                  (g 2) (r 2)   (a 2) (r 2)
+                                  (b 2) (r 2)   (c5 2) (r 2)))");
+    let pat = match tlisp::eval(&tlisp::read(s2).unwrap()[0]) {
+        Ok(Value::Pattern(pat)) => pat,
+        err => return,
+    };
     println!("{:?}", pat);
     let unit_graph = Seq::new(pat, osc, eg);
 

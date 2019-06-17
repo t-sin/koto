@@ -1,4 +1,4 @@
-use super::super::time::{Pos};
+use super::time::{Pos};
 
 pub type Freq = f64;
 

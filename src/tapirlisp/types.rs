@@ -3,6 +3,8 @@ use std::error::Error;
 use std::fmt;
 
 use super::super::time::{Measure};
+use super::super::event::{Event};
+use super::super::units::unit::{AUnit};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Cons {
@@ -13,7 +15,10 @@ pub enum Cons {
 }
 
 pub type Name = String;
-pub trait Value {}
+pub enum Value {
+    Pattern(Vec<Box<Event>>),
+    Unit(AUnit),
+}
 
 pub struct Env {
     measure: Measure,
@@ -50,6 +55,7 @@ pub enum EvalError {
     FnUnknown(String),
     FnMalformedName(Box<Cons>),
     NotANumber(String),
+    NotAUnit(Vec<Box<Event>>),
     TodoSearchValueFromBinding,
     Nil
 }
@@ -69,6 +75,9 @@ impl fmt::Display for EvalError {
             EvalError::NotANumber(s) => {
                 write!(f, "{:?} is not a number", s)
             },
+            EvalError::NotAUnit(vec) => {
+                write!(f, "{:?} is not an unit", vec)
+            },
             EvalError::TodoSearchValueFromBinding => {
                 write!(f, "TODO: searching from binding.")
             },
@@ -87,6 +96,7 @@ impl Error for EvalError {
             EvalError::FnMalformedName(_) => None,
             EvalError::TodoSearchValueFromBinding => None,
             EvalError::NotANumber(_) => None,
+            EvalError::NotAUnit(v) => None,
             EvalError::Nil => None,
         }
     }

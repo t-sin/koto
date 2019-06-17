@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 
 use super::super::time::{Time, PosOps};
-use super::super::events::event::Event;
+use super::super::event::Event;
 use super::unit::{Signal, AUnit};
 use super::unit::{Unit, UType, UnitGraph, ADSR, Eg};
 
