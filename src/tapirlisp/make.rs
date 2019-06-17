@@ -1,12 +1,15 @@
 use std::sync::{Arc, Mutex};
 
-use super::super::tapirlisp::{print, eval};
-use super::super::tapirlisp::types::{Cons, Value, EvalError};
+use super::super::time::{Pos, Measure, PosOps, Time};
+use super::super::event::{Event, Freq, Note, to_note, to_freq, to_pos};
 
 use super::super::units::unit::{AUnit, UType, UnitGraph};
 use super::super::units::core::{Pan, Offset, Gain, Add, Multiply};
 
 use super::super::units::oscillator::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
+
+use super::super::tapirlisp::{print, eval};
+use super::super::tapirlisp::types::{Cons, Value, EvalError};
 
 // core units
 
@@ -287,4 +290,50 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
         "wavetable" => make_wavetable(args),
         _ => Err(EvalError::FnUnknown(String::from(name))),
     }
+}
+
+pub fn make_event(e: &Cons, pos: &mut Pos) -> Result<Vec<Box<Event>>, EvalError> {
+    let mut ev = Vec::new();
+    let time = Time { // TODO: read from global settings
+        sample_rate: 0, tick: 0, bpm: 0.0,  // not used
+        pos: Pos { bar: 0, beat: 0, pos: 0.0 },  // not used
+        measure: Measure { beat: 4, note: 4 }
+    };
+
+    match e {
+        Cons::Cons(name, cdr) => {
+            if let Cons::Symbol(n) = &**name {
+                if let Cons::Cons(len, _) = &**cdr {
+                    let len = match &**len {
+                        Cons::Number(l) => to_pos(*l as u32),
+                        _ => to_pos(4),
+                    };
+                    match to_note(&n) {
+                        Note::Rest => {
+                            *pos = pos.add(len, &time);
+                        },
+                        n => {
+                            ev.push(Box::new(Event::On(pos.clone(), to_freq(&n))));
+                            *pos = pos.add(len, &time);
+                            ev.push(Box::new(Event::Off(pos.clone())));
+                        },
+                    }
+                } else {
+                    // without length
+                }
+            } else {
+                return Err(EvalError::EvWrongParams(print(e)))
+            }
+        },
+        Cons::Symbol(name) => {
+            match &name[..] {
+                "loop" => ev.push(Box::new(Event::Loop(pos.clone()))),
+                name => return Err(EvalError::EvUnknown(name.to_string())),
+            }
+        },
+        sexp => {
+            return Err(EvalError::EvMalformedEvent(print(sexp)))
+        },
+    }
+    Ok(ev)
 }

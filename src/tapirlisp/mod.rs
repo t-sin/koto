@@ -4,7 +4,7 @@ pub mod make;
 pub mod eval;
 
 pub use rp::{read, print};
-pub use make::make_unit;
+pub use make::{make_event, make_unit};
 pub use eval::eval;
 
 use types::Cons;
