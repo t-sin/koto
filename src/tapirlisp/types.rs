@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use super::super::time::{Measure};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Cons {
     Cons(Box<Cons>, Box<Cons>),
     Symbol(String),
