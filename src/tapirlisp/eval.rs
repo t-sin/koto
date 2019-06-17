@@ -1,6 +1,5 @@
 use std::sync::{Arc, Mutex};
 
-
 use super::super::time::Pos;
 use super::super::event::Event;
 

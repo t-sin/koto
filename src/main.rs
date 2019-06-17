@@ -7,11 +7,11 @@ mod tapirlisp;
 use audio_device::AudioDevice;
 use time::{Time, Clock};
 
-use tapirlisp::types::{Value};
-use tapirlisp as tlisp;
-
 use units::unit::Unit;
 use units::sequencer::{AdsrEg, Seq};
+
+use tapirlisp::types::Value;
+use tapirlisp as tlisp;
 
 fn main() {
     let channels = 1;
