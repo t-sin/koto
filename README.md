@@ -16,11 +16,11 @@
 - [ ] Effects
     - [ ] Filters
     - [ ] Delay
-- [ ] Sequencers
+- [x] Sequencers
     - [x] Envelope
     - [x] Events (notes, fx values)
     - [x] Sequencers
-    - [ ] MML-like score description
+    - [x] MML-like score description
 - [ ] FUSE interfaces
 - [ ] Command line interfaces
 - [ ] SAVE the graph
