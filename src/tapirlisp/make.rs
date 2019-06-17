@@ -7,6 +7,7 @@ use super::super::units::unit::{AUnit, UType, UnitGraph};
 use super::super::units::core::{Pan, Offset, Gain, Add, Multiply};
 
 use super::super::units::oscillator::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
+use super::super::units::sequencer::{AdsrEg, Seq};
 
 use super::super::tapirlisp::{print, eval};
 use super::super::tapirlisp::types::{Cons, Value, EvalError};
@@ -272,6 +273,48 @@ fn make_wavetable(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
     }
 }
 
+// sequencer
+
+fn make_adsr_eg(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
+    if args.len() == 4 {
+        match &*args[0] {
+            Cons::Number(a) => match &*args[1] {
+                Cons::Number(d) => match &*args[2] {
+                    Cons::Number(s) => match &*args[3] {
+                        Cons::Number(r) => Ok(AdsrEg::new(*a as u64, *d as u64, *s, *r as u64)),
+                        _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
+                    },
+                    _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
+                },
+                _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
+            },
+            _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
+        }
+    } else {
+        Err(EvalError::FnWrongParams(String::from("asdr"), args))
+    }
+}
+
+fn make_seq(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
+    if args.len() == 3 {
+        match eval(&args[0]) {
+            Ok(Value::Pattern(pat)) => match eval(&args[1]) {
+                Ok(Value::Unit(osc)) => match eval(&args[2]) {
+                    Ok(Value::Unit(eg)) => Ok(Seq::new(pat, osc, eg)),
+                    Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                    Err(err) => Err(err),
+                },
+                Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                Err(err) => Err(err),
+            },
+            Ok(Value::Unit(_u)) => Err(EvalError::NotAPattern),
+            Err(err) => Err(err),
+        }
+    } else {
+        Err(EvalError::FnWrongParams(String::from("seq"), args))
+    }
+}
+
 pub fn make_unit(name: &str, args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
     match &name[..] {
         // core
@@ -288,6 +331,9 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
         "pulse" => make_pulse(args),
         "phase" => make_phase(args),
         "wavetable" => make_wavetable(args),
+        // sequencer
+        "adsr" => make_adsr_eg(args),
+        "seq" => make_seq(args),
         _ => Err(EvalError::FnUnknown(String::from(name))),
     }
 }

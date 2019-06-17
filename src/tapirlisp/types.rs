@@ -59,6 +59,7 @@ pub enum EvalError {
     EvMalformedEvent(String),
     NotANumber(String),
     NotAUnit(Vec<Box<Event>>),
+    NotAPattern,
     TodoSearchValueFromBinding,
     Nil
 }
@@ -90,6 +91,9 @@ impl fmt::Display for EvalError {
             EvalError::NotAUnit(vec) => {
                 write!(f, "{:?} is not an unit", vec)
             },
+            EvalError::NotAPattern => {
+                write!(f, "it's not a pattern")
+            },
             EvalError::TodoSearchValueFromBinding => {
                 write!(f, "TODO: searching from binding.")
             },
@@ -112,6 +116,7 @@ impl Error for EvalError {
             EvalError::TodoSearchValueFromBinding => None,
             EvalError::NotANumber(_) => None,
             EvalError::NotAUnit(_) => None,
+            EvalError::NotAPattern => None,
             EvalError::Nil => None,
         }
     }
