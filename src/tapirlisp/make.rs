@@ -277,17 +277,21 @@ fn make_wavetable(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
 
 fn make_adsr_eg(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
     if args.len() == 4 {
-        match &*args[0] {
-            Cons::Number(a) => match &*args[1] {
-                Cons::Number(d) => match &*args[2] {
-                    Cons::Number(s) => match &*args[3] {
-                        Cons::Number(r) => Ok(AdsrEg::new(*a as u64, *d as u64, *s, *r as u64)),
+        match eval(&args[0]) {
+            Ok(Value::Unit(a)) => match eval(&args[1]) {
+                Ok(Value::Unit(d)) => match eval(&args[2]) {
+                    Ok(Value::Unit(s)) => match eval(&args[3]) {
+                        Ok(Value::Unit(r)) => Ok(AdsrEg::new(a.clone(), d, s, r)),
+                        Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p.to_vec())),
                         _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
                     },
+                    Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p.to_vec())),
                     _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
                 },
+                Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p.to_vec())),
                 _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
             },
+            Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p.to_vec())),
             _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
         }
     } else {

@@ -8,16 +8,16 @@ use super::unit::{Signal, AUnit};
 use super::unit::{Unit, UType, UnitGraph, ADSR, Eg};
 
 pub struct AdsrEg {
-    a: u64,
-    d: u64,
-    s: f64,
-    r: u64,
+    a: AUnit,
+    d: AUnit,
+    s: AUnit,
+    r: AUnit,
     state: ADSR,
     eplaced: u64,
 }
 
 impl AdsrEg {
-    pub fn new(a: u64, d: u64, s: f64, r: u64) -> AUnit {
+    pub fn new(a: AUnit, d: AUnit, s: AUnit, r: AUnit) -> AUnit {
         Arc::new(Mutex::new(UnitGraph::Unit(UType::Eg(
             Arc::new(Mutex::new(AdsrEg {
                 a: a, d: d, s: s, r: r,
@@ -28,37 +28,45 @@ impl AdsrEg {
     }
 }
 
+fn sec_to_sample_num(sec: f64, time: &Time) -> u64 {
+    (time.sample_rate as f64 * sec) as u64
+}
+
 impl Unit for AdsrEg {
-    fn calc(&self, _time: &Time) -> Signal {
+    fn calc(&self, time: &Time) -> Signal {
+        let a = sec_to_sample_num(self.a.lock().unwrap().calc(time).0, time);
+        let d = sec_to_sample_num(self.d.lock().unwrap().calc(time).0, time);
+        let s = self.s.lock().unwrap().calc(time).0;
+        let r = sec_to_sample_num(self.r.lock().unwrap().calc(time).0, time);
         let state = &self.state;
         let eplaced = self.eplaced;
         let v;
 
         match state {
             ADSR::Attack => {
-                if eplaced < self.a {
-                    v = self.eplaced as f64 / self.a as f64;
-                } else if eplaced < self.a + self.d {
-                    v = 1.0 - (1.0 - self.s) * ((eplaced as f64 - self.a as f64) / self.d as f64);
+                if eplaced < a {
+                    v = self.eplaced as f64 / a as f64;
+                } else if eplaced < a + d {
+                    v = 1.0 - (1.0 - s) * ((eplaced as f64 - a as f64) / d as f64);
                 } else {
                     v = 0.0;
                 }
             },
             ADSR::Decay => {
-                if eplaced < self.a + self.d {
-                    v = 1.0 - (1.0 - self.s) * ((eplaced as f64 - self.a as f64) / self.d as f64);
-                } else if eplaced >= self.a + self.d {
-                    v = self.s;
+                if eplaced < a + d {
+                    v = 1.0 - (1.0 - s) * ((eplaced as f64 - a as f64) / d as f64);
+                } else if eplaced >= a + d {
+                    v = s;
                 } else {
                     v = 0.0;
                 }
             },
             ADSR::Sustin => {
-                v = self.s;
+                v = s;
             },
             ADSR::Release => {
-                if eplaced < self.r {
-                    v = self.s - eplaced as f64 * (self.s / self.r as f64);
+                if eplaced < r {
+                    v = s - eplaced as f64 * (s / r as f64);
                 } else {
                     v = 0.0;
                 }
@@ -70,24 +78,28 @@ impl Unit for AdsrEg {
         (v, v)
     }
 
-    fn update(&mut self, _time: &Time) {
+    fn update(&mut self, time: &Time) {
+        let a = sec_to_sample_num(self.a.lock().unwrap().calc(time).0, time);
+        let d = sec_to_sample_num(self.d.lock().unwrap().calc(time).0, time);
+        let s = self.s.lock().unwrap().calc(time).0;
+        let r = sec_to_sample_num(self.r.lock().unwrap().calc(time).0, time);
         let state = &self.state;
         let eplaced = self.eplaced;
 
         match state {
             ADSR::Attack => {
-                if eplaced < self.a {
+                if eplaced < a {
                     ;
-                } else if eplaced < self.a + self.d {
+                } else if eplaced < a + d {
                     self.state = ADSR::Decay;
                 } else {
                     self.state = ADSR::None;
                 }
             },
             ADSR::Decay => {
-                if eplaced < self.a + self.d {
+                if eplaced < a + d {
                     ;
-                } else if eplaced >= self.a + self.d {
+                } else if eplaced >= a + d {
                     self.state = ADSR::Sustin;
                 } else {
                     self.state = ADSR::None;
@@ -95,13 +107,17 @@ impl Unit for AdsrEg {
             },
             ADSR::Sustin => {},
             ADSR::Release => {
-                if eplaced < self.r {
+                if eplaced < r {
                 } else {
                     self.state = ADSR::None;
                 }
             },
             ADSR::None => {},
         }
+        self.a.lock().unwrap().update(time);
+        self.d.lock().unwrap().update(time);
+        self.s.lock().unwrap().update(time);
+        self.r.lock().unwrap().update(time);
         self.eplaced += 1;
     }
 }

@@ -8,7 +8,6 @@ use audio_device::AudioDevice;
 use time::{Time, Clock};
 
 use units::unit::Unit;
-use units::sequencer::{AdsrEg, Seq};
 
 use tapirlisp::types::Value;
 use tapirlisp as tlisp;
@@ -26,7 +25,7 @@ fn main() {
                          (b 2) (r 2)   (c5 2) (r 2)
                          loop))
                    (wavetable (saw 0 1) (phase (saw 0 440)))
-                   (adsr 1000 10000 0.5 10000))".to_string();
+                   (adsr 0 (gain 0.2 (offset 1 (saw 0 0.25))) 0.0 0.1))".to_string();
     let unit_graph = match tlisp::eval(&tlisp::read(s).unwrap()[0]) {
         Ok(Value::Unit(ug)) => ug,
         Ok(Value::Pattern(p)) => panic!("Pattern!! {:?}", p),
