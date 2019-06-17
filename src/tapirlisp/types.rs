@@ -49,11 +49,14 @@ impl Error for ReadError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum EvalError {
     FnWrongParams(String, Vec<Box<Cons>>),
     FnUnknown(String),
     FnMalformedName(Box<Cons>),
+    EvWrongParams(String),
+    EvUnknown(String),
+    EvMalformedEvent(String),
     NotANumber(String),
     NotAUnit(Vec<Box<Event>>),
     TodoSearchValueFromBinding,
@@ -71,6 +74,15 @@ impl fmt::Display for EvalError {
             },
             EvalError::FnMalformedName(cons) => {
                 write!(f, "{:?} is not a symbol.", cons)
+            },
+            EvalError::EvWrongParams(args) => {
+                write!(f, "Wrong params for 'pat' with args '{:?}'", args)
+            },
+            EvalError::EvUnknown(name) => {
+                write!(f, "{:?} is unknown or not implemented event.", name)
+            },
+            EvalError::EvMalformedEvent(s) => {
+                write!(f, "{:?} is not an event.", s)
             },
             EvalError::NotANumber(s) => {
                 write!(f, "{:?} is not a number", s)
@@ -94,6 +106,9 @@ impl Error for EvalError {
             EvalError::FnWrongParams(_name, _args) => None,
             EvalError::FnUnknown(_) => None,
             EvalError::FnMalformedName(_) => None,
+            EvalError::EvWrongParams(args) => None,
+            EvalError::EvUnknown(_) => None,
+            EvalError::EvMalformedEvent(s) => None,
             EvalError::TodoSearchValueFromBinding => None,
             EvalError::NotANumber(_) => None,
             EvalError::NotAUnit(v) => None,

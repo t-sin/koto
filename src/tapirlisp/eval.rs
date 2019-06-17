@@ -39,32 +39,32 @@ fn make_event(e: &Cons, pos: &mut Pos) -> Result<Vec<Box<Event>>, EvalError> {
                     // without length
                 }
             } else {
-                panic!("invalid length: {:?}", print(e));
+                return Err(EvalError::EvWrongParams(print(e)))
             }
         },
         Cons::Symbol(name) => {
             match &name[..] {
                 "loop" => ev.push(Box::new(Event::Loop(pos.clone()))),
-                _ => panic!("unknown keyword or not implemented: {:?}", pos),
+                name => return Err(EvalError::EvUnknown(name.to_string())),
             }
         },
         sexp => {
-            panic!("{:?} is not valid event", print(sexp));
+            return Err(EvalError::EvMalformedEvent(print(sexp)))
         },
     }
     Ok(ev)
 }
 
-fn eval_events(events: Vec<Box<Cons>>) -> Vec<Box<Event>> {
+fn eval_events(events: Vec<Box<Cons>>) -> Result<Vec<Box<Event>>, EvalError> {
     let mut ev: Vec<Box<Event>> = Vec::new();
     let mut pos = Pos { bar: 0, beat: 0, pos: 0.0 };
     for e in events.iter() {
         match &mut make_event(e, &mut pos) {
             Ok(vec) => ev.append(vec),
-            err => panic!("aaaaaaaaaaaaaaaaaaaaaaaa"),
+            Err(err) => return Err(err.clone()),
         }
     }
-    ev
+    Ok(ev)
 }
 
 fn eval_call(name: &Cons, args: &Cons) -> Result<Value, EvalError> {
@@ -72,7 +72,10 @@ fn eval_call(name: &Cons, args: &Cons) -> Result<Value, EvalError> {
         Cons::Symbol(name) if &name[..] == "pat" => {
             let vec = to_vec(&args);
             if vec.len() == 1 {
-                Ok(Value::Pattern(eval_events(to_vec(&vec[0]))))
+                match eval_events(to_vec(&vec[0])) {
+                    Ok(ev) => Ok(Value::Pattern(ev)),
+                    Err(err) => Err(err),
+                }
             } else {
                 Err(EvalError::FnWrongParams("pat".to_string(), vec))
             }
