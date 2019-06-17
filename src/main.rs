@@ -7,7 +7,7 @@ mod units;
 use audio_device::AudioDevice;
 use time::{Time, Clock};
 
-use tapirlisp as tlisp;
+use tapirlisp::io as tlisp;
 
 use events::elisp as elisp;
 
