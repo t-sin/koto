@@ -81,7 +81,6 @@ impl Unit for AdsrEg {
     fn update(&mut self, time: &Time) {
         let a = sec_to_sample_num(self.a.lock().unwrap().calc(time).0, time);
         let d = sec_to_sample_num(self.d.lock().unwrap().calc(time).0, time);
-        let s = self.s.lock().unwrap().calc(time).0;
         let r = sec_to_sample_num(self.r.lock().unwrap().calc(time).0, time);
         let state = &self.state;
         let eplaced = self.eplaced;
