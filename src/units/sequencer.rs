@@ -90,7 +90,7 @@ impl Unit for AdsrEg {
         vec.push(Box::new(self.d.lock().unwrap().dump()));
         vec.push(Box::new(self.s.lock().unwrap().dump()));
         vec.push(Box::new(self.r.lock().unwrap().dump()));
-        Dump::Params(vec)
+        Dump::Op("adsr".to_string(), vec)
     }
 }
 
@@ -184,6 +184,6 @@ impl Unit for Seq {
         vec.push(Box::new(self.pattern.dump()));
         vec.push(Box::new(self.osc.lock().unwrap().dump()));
         vec.push(Box::new(self.eg.lock().unwrap().dump()));
-        Dump::Params(vec)
+        Dump::Op("seq".to_string(), vec)
     }
 }

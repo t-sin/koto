@@ -36,7 +36,7 @@ impl Unit for Rand {
     }
 
     fn dump(&self) -> Dump {
-        Dump::Params(vec![Box::new(Dump::Str(self.v.to_string()))])
+        Dump::Op("rand".to_string(), vec![Box::new(Dump::Str(self.v.to_string()))])
     }
 }
 
@@ -64,7 +64,7 @@ impl Unit for Sine {
         let mut vec = Vec::new();
         vec.push(Box::new(self.init_ph.lock().unwrap().dump()));
         vec.push(Box::new(self.freq.lock().unwrap().dump()));
-        Dump::Params(vec)
+        Dump::Op("sine".to_string(), vec)
     }
 }
 
@@ -103,7 +103,7 @@ impl Unit for Tri {
         let mut vec = Vec::new();
         vec.push(Box::new(self.init_ph.lock().unwrap().dump()));
         vec.push(Box::new(self.freq.lock().unwrap().dump()));
-        Dump::Params(vec)
+        Dump::Op("tri".to_string(), vec)
     }
 }
 
@@ -139,7 +139,7 @@ impl Unit for Saw {
         let mut vec = Vec::new();
         vec.push(Box::new(self.init_ph.lock().unwrap().dump()));
         vec.push(Box::new(self.freq.lock().unwrap().dump()));
-        Dump::Params(vec)
+        Dump::Op("saw".to_string(), vec)
     }
 }
 
@@ -178,7 +178,7 @@ impl Unit for Pulse {
         vec.push(Box::new(self.init_ph.lock().unwrap().dump()));
         vec.push(Box::new(self.freq.lock().unwrap().dump()));
         vec.push(Box::new(self.duty.lock().unwrap().dump()));
-        Dump::Params(vec)
+        Dump::Op("pulse".to_string(), vec)
     }
 }
 
@@ -234,7 +234,7 @@ impl Unit for Phase {
         let mut vec = Vec::new();
         vec.push(Box::new(self.root.lock().unwrap().dump()));
         vec.push(Box::new(self.osc.lock().unwrap().dump()));
-        Dump::Params(vec)
+        Dump::Op("phase".to_string(), vec)
     }
 }
 
@@ -295,7 +295,7 @@ impl Unit for WaveTable {
         let mut vec = Vec::new();
         vec.push(Box::new(self.table.dump()));
         vec.push(Box::new(self.ph.lock().unwrap().dump()));
-        Dump::Params(vec)
+        Dump::Op("wavetable".to_string(), vec)
     }
 }
 

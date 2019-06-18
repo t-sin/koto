@@ -9,7 +9,7 @@ pub type Amut<T> = Arc<Mutex<T>>;
 #[derive(Debug)]
 pub enum Dump {
     Str(String),
-    Params(Vec<Box<Dump>>),
+    Op(String, Vec<Box<Dump>>),
 }
 
 pub trait Unit {
@@ -124,7 +124,7 @@ impl Unit for Table {
         for v in self.iter() {
             vec.push(Box::new(Dump::Str(v.to_string())));
         }
-        Dump::Params(vec)
+        Dump::Op("table".to_string(), vec)
     }
 }
 
@@ -150,6 +150,6 @@ impl Unit for Pattern {
         for ev in self.iter() {
             vec.push(Box::new(ev.dump()));
         }
-        Dump::Params(vec)
+        Dump::Op("pat".to_string(), vec)
     }
 }

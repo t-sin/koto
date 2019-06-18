@@ -6,9 +6,11 @@ use super::super::units::sequencer::{AdsrEg, Seq};
 pub fn dump_one(dump: &Dump) -> String {
     match dump {
         Dump::Str(s) => s.to_string(),
-        Dump::Params(vec) => {
+        Dump::Op(name, vec) => {
             let mut s = String::new();
             s.push_str("(");
+            s.push_str(&name[..]);
+            s.push_str(" ");
             for (i, d) in vec.iter().enumerate() {
                 s.push_str(&dump_one(&**d)[..]);
                 if i != vec.len() - 1 {

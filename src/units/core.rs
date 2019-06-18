@@ -28,7 +28,7 @@ impl Unit for Pan {
         let mut vec = Vec::new();
         vec.push(Box::new(self.v.lock().unwrap().dump()));
         vec.push(Box::new(self.src.lock().unwrap().dump()));
-        Dump::Params(vec)
+        Dump::Op("pan".to_string(), vec)
     }
 }
 
@@ -49,7 +49,7 @@ impl Unit for Clip {
         vec.push(Box::new(Dump::Str(self.min.to_string())));
         vec.push(Box::new(Dump::Str(self.max.to_string())));
         vec.push(Box::new(self.src.lock().unwrap().dump()));
-        Dump::Params(vec)
+        Dump::Op("clip".to_string(), vec)
     }
 }
 
@@ -68,7 +68,7 @@ impl Unit for Offset {
         let mut vec = Vec::new();
         vec.push(Box::new(Dump::Str(self.v.to_string())));
         vec.push(Box::new(self.src.lock().unwrap().dump()));
-        Dump::Params(vec)
+        Dump::Op("offset".to_string(), vec)
     }
 }
 
@@ -87,7 +87,7 @@ impl Unit for Gain {
         let mut vec = Vec::new();
         vec.push(Box::new(Dump::Str(self.v.to_string())));
         vec.push(Box::new(self.src.lock().unwrap().dump()));
-        Dump::Params(vec)
+        Dump::Op("gain".to_string(), vec)
     }
 }
 
@@ -112,7 +112,7 @@ impl Unit for Add {
         for u in self.sources.iter() {
             vec.push(Box::new(u.lock().unwrap().dump()));
         }
-        Dump::Params(vec)
+        Dump::Op("+".to_string(), vec)
     }
 }
 
@@ -137,6 +137,6 @@ impl Unit for Multiply {
         for u in self.sources.iter() {
             vec.push(Box::new(u.lock().unwrap().dump()));
         }
-        Dump::Params(vec)
+        Dump::Op("*".to_string(), vec)
     }
 }
