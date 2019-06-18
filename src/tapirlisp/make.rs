@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use super::super::time::{Pos, Measure, PosOps, Time};
+use super::super::time::{Pos, PosOps};
 use super::super::event::{Event, Note, to_note, to_freq, to_pos};
 
 use super::super::units::unit::{AUnit, UType, UnitGraph};
@@ -369,12 +369,6 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUni
 
 pub fn make_event(e: &Cons, pos: &mut Pos, env: &mut Env) -> Result<Vec<Box<Event>>, EvalError> {
     let mut ev = Vec::new();
-    let time = Time { // TODO: read from global settings
-        sample_rate: 0, tick: 0, bpm: 0.0,  // not used
-        pos: Pos { bar: 0, beat: 0, pos: 0.0 },  // not used
-        measure: Measure { beat: 4, note: 4 }
-    };
-
     match e {
         Cons::Cons(name, cdr) => {
             if let Cons::Symbol(n) = &**name {
@@ -385,11 +379,11 @@ pub fn make_event(e: &Cons, pos: &mut Pos, env: &mut Env) -> Result<Vec<Box<Even
                     };
                     match to_note(&n) {
                         Note::Rest => {
-                            *pos = pos.add(len, &time);
+                            *pos = pos.add(len, &env.time.measure);
                         },
                         n => {
                             ev.push(Box::new(Event::On(pos.clone(), to_freq(&n))));
-                            *pos = pos.add(len, &time);
+                            *pos = pos.add(len, &env.time.measure);
                             ev.push(Box::new(Event::Off(pos.clone())));
                         },
                     }

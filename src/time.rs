@@ -33,32 +33,32 @@ pub struct Time {
 }
 
 pub trait PosOps<T> {
-    fn add(&self, other: T, time: &Time) -> Pos;
+    fn add(&self, other: T, measure: &Measure) -> Pos;
 }
 
 impl PosOps<Pos> for Pos {
-    fn add(&self, other: Pos, time: &Time) -> Pos {
+    fn add(&self, other: Pos, measure: &Measure) -> Pos {
         let pos_diff = self.pos + other.pos;
         let beat_diff = self.beat + other.beat + pos_diff.trunc() as u64;
 
         let new_pos = pos_diff.fract();
-        let new_beat = beat_diff % time.measure.note;
-        let new_bar =  self.bar + other.bar + (beat_diff / time.measure.beat);
+        let new_beat = beat_diff % measure.note;
+        let new_bar =  self.bar + other.bar + (beat_diff / measure.beat);
 
         Pos { bar: new_bar, beat: new_beat, pos: new_pos }
     }
 }
 
 impl PosOps<(u64, u64, f64)> for Pos {
-    fn add(&self, other: (u64, u64, f64), time: &Time) -> Pos {
+    fn add(&self, other: (u64, u64, f64), measure: &Measure) -> Pos {
         let t = Pos { bar: other.0, beat: other.1, pos: other.2 };
-        self.add(t, &time)
+        self.add(t, &measure)
     }
 }
 
 impl PosOps<f64> for Pos {
-    fn add(&self, other: f64, time :&Time) -> Pos {
-        self.add((0, 0, other), &time)
+    fn add(&self, other: f64, measure: &Measure) -> Pos {
+        self.add((0, 0, other), &measure)
     }
 }
 
@@ -115,6 +115,6 @@ impl Clock for Time {
 
         // update pos
         let beat_diff = self.bpm / 60.0 / self.sample_rate as f64;
-        self.pos = self.pos.add(beat_diff, &self);
+        self.pos = self.pos.add(beat_diff, &self.measure);
     }
 }

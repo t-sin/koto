@@ -192,9 +192,15 @@ impl Unit for Seq {
                         let q = &mut self.queue;
                         self.pattern.iter().for_each(|ev| {
                             q.push_back(match &**ev {
-                                Event::On(pos, freq) => Box::new(Event::On(pos.add((time.pos.bar, 0, 0.0), &time), *freq)),
-                                Event::Off(pos) => Box::new(Event::Off(pos.add((time.pos.bar, 0, 0.0), &time))),
-                                Event::Loop(pos) => Box::new(Event::Loop(pos.add((time.pos.bar, 0, 0.0), &time))),
+                                Event::On(pos, freq) => {
+                                    Box::new(Event::On(pos.add((time.pos.bar, 0, 0.0), &time.measure), *freq))
+                                },
+                                Event::Off(pos) => {
+                                    Box::new(Event::Off(pos.add((time.pos.bar, 0, 0.0), &time.measure)))
+                                },
+                                Event::Loop(pos) => {
+                                    Box::new(Event::Loop(pos.add((time.pos.bar, 0, 0.0), &time.measure)))
+                                },
                             });
                         });
                     }
