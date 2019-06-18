@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 
-use super::super::time::{Measure};
+use super::super::time::{Measure, Time};
 use super::super::event::{Event};
 use super::super::units::unit::{AUnit};
 
@@ -21,8 +21,14 @@ pub enum Value {
 }
 
 pub struct Env {
-    measure: Measure,
-    binding: HashMap<String, Box<Value>>,
+    pub time: Time,
+    pub binding: HashMap<Name, Box<Value>>,
+}
+
+impl Env {
+    pub fn init(time: Time) -> Env {
+        Env { time: time, binding: HashMap::new() }
+    }
 }
 
 #[derive(Debug)]
