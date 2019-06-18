@@ -2,11 +2,13 @@ pub mod types;
 pub mod rp;
 pub mod make;
 pub mod eval;
+//pub mod dump;
 
 use std::collections::VecDeque;
 
 pub use rp::{read, print};
 pub use eval::eval;
+//pub use dump::dump;
 
 use types::{Cons, Value, Env, EvalError};
 
