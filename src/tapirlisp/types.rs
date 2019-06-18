@@ -20,6 +20,7 @@ pub type Name = String;
 pub enum Value {
     Pattern(Vec<Box<Event>>),
     Unit(AUnit),
+    Nil,
 }
 
 pub struct Env {
@@ -66,10 +67,11 @@ pub enum EvalError {
     EvUnknown(String),
     EvMalformedEvent(String),
     UnboundVariable(String),
+    AlreadyBound(String),
     NotANumber(String),
-    NotAUnit(Vec<Box<Event>>),
+    NotASymbol(Box<Cons>),
+    NotAUnit,
     NotAPattern,
-    Nil
 }
 
 impl fmt::Display for EvalError {
@@ -96,17 +98,20 @@ impl fmt::Display for EvalError {
             EvalError::UnboundVariable(name) => {
                 write!(f, "Unbound variable: '{:?}'", name)
             },
+            EvalError::AlreadyBound(name) => {
+                write!(f, "'{:?}' is already bound", name)
+            },
             EvalError::NotANumber(s) => {
                 write!(f, "{:?} is not a number", s)
             },
-            EvalError::NotAUnit(vec) => {
-                write!(f, "{:?} is not an unit", vec)
+            EvalError::NotASymbol(cons) => {
+                write!(f, "{:?} is not a symbol.", cons)
+            },
+            EvalError::NotAUnit => {
+                write!(f, "((serialized unit here)) is not an unit")
             },
             EvalError::NotAPattern => {
                 write!(f, "it's not a pattern")
-            },
-            EvalError::Nil => {
-                write!(f, "nil.")
             },
         }
     }
@@ -122,10 +127,11 @@ impl Error for EvalError {
             EvalError::EvUnknown(_) => None,
             EvalError::EvMalformedEvent(_) => None,
             EvalError::UnboundVariable(_) => None,
+            EvalError::AlreadyBound(_) => None,
             EvalError::NotANumber(_) => None,
-            EvalError::NotAUnit(_) => None,
+            EvalError::NotASymbol(_) => None,
+            EvalError::NotAUnit => None,
             EvalError::NotAPattern => None,
-            EvalError::Nil => None,
         }
     }
 }

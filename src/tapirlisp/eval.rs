@@ -21,6 +21,25 @@ fn eval_events(events: Vec<Box<Cons>>, env: &mut Env) -> Result<Vec<Box<Event>>,
     Ok(ev)
 }
 
+fn eval_def(name: &Cons, sexp: &Cons, env: &mut Env) -> Result<Value, EvalError> {
+    match name {
+        Cons::Symbol(name) => {
+            if env.binding.contains_key(name) {
+                Err(EvalError::AlreadyBound(name.to_string()))
+            } else {
+                match eval(sexp, env) {
+                    Ok(v) => {
+                        env.binding.insert(name.to_string(), Box::new(v));
+                        Ok(Value::Nil)
+                    },
+                    Err(err) => Err(err),
+                }
+            }
+        },
+        exp => Err(EvalError::NotASymbol(Box::new(exp.clone()))),
+    }
+}
+
 fn eval_call(name: &Cons, args: &Cons, env: &mut Env) -> Result<Value, EvalError> {
     match name {
         Cons::Symbol(name) if &name[..] == "pat" => {
@@ -28,6 +47,17 @@ fn eval_call(name: &Cons, args: &Cons, env: &mut Env) -> Result<Value, EvalError
             if vec.len() == 1 {
                 match eval_events(to_vec(&vec[0]), env) {
                     Ok(ev) => Ok(Value::Pattern(ev)),
+                    Err(err) => Err(err),
+                }
+            } else {
+                Err(EvalError::FnWrongParams("pat".to_string(), vec))
+            }
+        },
+        Cons::Symbol(name) if &name[..] == "def" => {
+            let vec = to_vec(&args);
+            if vec.len() == 1 {
+                match eval_def(&*vec[0], &*vec[2], env) {
+                    Ok(v) => Ok(v),
                     Err(err) => Err(err),
                 }
             } else {
@@ -52,6 +82,6 @@ pub fn eval(sexp: &Cons, env: &mut Env) -> Result<Value, EvalError> {
             None => Err(EvalError::UnboundVariable(name.to_string())),
         }
         Cons::Number(num) => Ok(Value::Unit(Arc::new(Mutex::new(UnitGraph::Value(*num))))),
-        Cons::Nil => Err(EvalError::Nil),
+        Cons::Nil => Ok(Value::Nil),
     }
 }

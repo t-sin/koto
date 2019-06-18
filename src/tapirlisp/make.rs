@@ -23,13 +23,13 @@ fn make_pan(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
                         Cons::Number(n) => Arc::new(Mutex::new(UnitGraph::Value(*n))),
                         exp => match eval(&exp, env) {
                             Ok(Value::Unit(unit)) => unit,
-                            Ok(Value::Pattern(p)) => return Err(EvalError::NotAUnit(p)),
+                            Ok(_v) => return Err(EvalError::NotAUnit),
                             Err(err) => return Err(err),
                         }
                     },
                     src: match eval(&args[1], env) {
                         Ok(Value::Unit(src)) => src,
-                        Ok(Value::Pattern(p)) => return Err(EvalError::NotAUnit(p)),
+                        Ok(_v) => return Err(EvalError::NotAUnit),
                         Err(err) => return Err(err),
                     },
                 }))
@@ -52,7 +52,7 @@ fn make_clip(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
                             }))
                         ))
                     ))),
-                    Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                    Ok(_v) => Err(EvalError::NotAUnit),
                     Err(err) => Err(err),
                 },
                 exp => Err(EvalError::NotANumber(print(&exp))),
@@ -75,7 +75,7 @@ fn make_offset(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> 
                     },
                     src: match eval(&args[1], env) {
                         Ok(Value::Unit(src)) => src,
-                        Ok(Value::Pattern(p)) => return Err(EvalError::NotAUnit(p)),
+                        Ok(_v) => return Err(EvalError::NotAUnit),
                         Err(err) => return Err(err),
                     },
                 }))
@@ -97,7 +97,7 @@ fn make_gain(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
                     },
                     src: match eval(&args[1], env) {
                         Ok(Value::Unit(src)) => src,
-                        Ok(Value::Pattern(p)) => return Err(EvalError::NotAUnit(p)),
+                        Ok(_v) => return Err(EvalError::NotAUnit),
                         Err(err) => return Err(err),
                     },
                 }))
@@ -117,7 +117,7 @@ fn make_add(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
                     for s in args.iter() {
                         match eval(s, env) {
                             Ok(Value::Unit(unit)) => v.push(unit),
-                            Ok(Value::Pattern(p)) => return Err(EvalError::NotAUnit(p)),
+                            Ok(_v) => return Err(EvalError::NotAUnit),
                             Err(err) => return Err(err),
                         }
                     }
@@ -137,7 +137,7 @@ fn make_multiply(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError
                     for s in args.iter() {
                         match eval(s, env) {
                             Ok(Value::Unit(unit)) => v.push(unit),
-                            Ok(Value::Pattern(p)) => return Err(EvalError::NotAUnit(p)),
+                            Ok(_v) => return Err(EvalError::NotAUnit),
                             Err(err) => return Err(err),
                         }
                     }
@@ -158,7 +158,7 @@ fn make_rand(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
             } else {
                 Ok(Rand::new(0))
             },
-            Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+            Ok(_v) => Err(EvalError::NotAUnit),
             Err(err) => Err(err),
         }
     } else {
@@ -179,10 +179,10 @@ fn make_sine(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
                         }))
                     ))
                 ))),
-                Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                Ok(_v) => Err(EvalError::NotAUnit),
                 Err(err) => Err(err),
             },
-            Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+            Ok(_v) => Err(EvalError::NotAUnit),
             Err(err) => Err(err),
         }
     } else {
@@ -203,10 +203,10 @@ fn make_tri(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
                         }))
                     ))
                 ))),
-                Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                Ok(_v) => Err(EvalError::NotAUnit),
                 Err(err) => Err(err),
             },
-            Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+            Ok(_v) => Err(EvalError::NotAUnit),
             Err(err) => Err(err),
         }
     } else {
@@ -227,10 +227,10 @@ fn make_saw(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
                         }))
                     ))
                 ))),
-                Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                Ok(_v) => Err(EvalError::NotAUnit),
                 Err(err) => Err(err),
             },
-            Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+            Ok(_v) => Err(EvalError::NotAUnit),
             Err(err) => Err(err),
         }
     } else {
@@ -253,13 +253,13 @@ fn make_pulse(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
                             }))
                         ))
                     ))),
-                    Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                    Ok(_v) => Err(EvalError::NotAUnit),
                     Err(err) => Err(err),
                 },
-                Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                Ok(_v) => Err(EvalError::NotAUnit),
                 Err(err) => Err(err),
             },
-            Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+            Ok(_v) => Err(EvalError::NotAUnit),
             Err(err) => Err(err),
         }
     } else {
@@ -273,7 +273,7 @@ fn make_phase(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     if args.len() == 1 {
         match eval(&args[0], env) {
             Ok(Value::Unit(osc)) => Ok(Phase::new(osc)),
-            Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+            Ok(_v) => Err(EvalError::NotAUnit),
             Err(err) => Err(err),
         }
     } else {
@@ -286,10 +286,10 @@ fn make_wavetable(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalErro
         match eval(&args[0], env) {
             Ok(Value::Unit(table)) => match eval(&args[1], env) {
                 Ok(Value::Unit(osc)) => Ok(WaveTable::new(table, osc)),
-                Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                Ok(_v) => Err(EvalError::NotAUnit),
                 Err(err) => Err(err),
             },
-            Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+            Ok(_v) => Err(EvalError::NotAUnit),
             Err(err) => Err(err),
         }
     } else {
@@ -306,16 +306,16 @@ fn make_adsr_eg(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError>
                 Ok(Value::Unit(d)) => match eval(&args[2], env) {
                     Ok(Value::Unit(s)) => match eval(&args[3], env) {
                         Ok(Value::Unit(r)) => Ok(AdsrEg::new(a.clone(), d, s, r)),
-                        Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p.to_vec())),
+                        Ok(_v) => Err(EvalError::NotAUnit),
                         _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
                     },
-                    Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p.to_vec())),
+                    Ok(_v) => Err(EvalError::NotAUnit),
                     _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
                 },
-                Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p.to_vec())),
+                Ok(_v) => Err(EvalError::NotAUnit),
                 _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
             },
-            Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p.to_vec())),
+            Ok(_v) => Err(EvalError::NotAUnit),
             _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
         }
     } else {
@@ -329,13 +329,13 @@ fn make_seq(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
             Ok(Value::Pattern(pat)) => match eval(&args[1], env) {
                 Ok(Value::Unit(osc)) => match eval(&args[2], env) {
                     Ok(Value::Unit(eg)) => Ok(Seq::new(pat, osc, eg)),
-                    Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                    Ok(_v) => Err(EvalError::NotAUnit),
                     Err(err) => Err(err),
                 },
-                Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                Ok(_v) => Err(EvalError::NotAUnit),
                 Err(err) => Err(err),
             },
-            Ok(Value::Unit(_u)) => Err(EvalError::NotAPattern),
+            Ok(_v) => Err(EvalError::NotAPattern),
             Err(err) => Err(err),
         }
     } else {

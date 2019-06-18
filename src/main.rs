@@ -29,7 +29,7 @@ fn main() {
                    (adsr 0 (gain 0.2 (offset 1 (saw 0 0.25))) 0.0 0.1))".to_string();
     let unit_graph = match tlisp::eval(&tlisp::read(s).unwrap()[0], &mut env) {
         Ok(Value::Unit(ug)) => ug,
-        Ok(Value::Pattern(p)) => panic!("Pattern!! {:?}", p),
+        Ok(_v) => panic!("Oh, unit graph is not a unit!!"),
         Err(err) => panic!("Error!!! {:?}", err),
     };
 
