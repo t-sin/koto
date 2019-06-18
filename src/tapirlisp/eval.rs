@@ -55,13 +55,13 @@ fn eval_call(name: &Cons, args: &Cons, env: &mut Env) -> Result<Value, EvalError
         },
         Cons::Symbol(name) if &name[..] == "def" => {
             let vec = to_vec(&args);
-            if vec.len() == 1 {
-                match eval_def(&*vec[0], &*vec[2], env) {
+            if vec.len() == 2 {
+                match eval_def(&*vec[0], &*vec[1], env) {
                     Ok(v) => Ok(v),
                     Err(err) => Err(err),
                 }
             } else {
-                Err(EvalError::FnWrongParams("pat".to_string(), vec))
+                Err(EvalError::FnWrongParams("def".to_string(), vec))
             }
         },
         Cons::Symbol(name) => {
