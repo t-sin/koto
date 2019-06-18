@@ -41,7 +41,7 @@ fn main() {
         Ok(_v) => panic!("Oh, unit graph is not a unit!!"),
         Err(err) => panic!("Error!!! {:?}", err),
     };
-    println!("{:?}", unit_graph.clone().lock().unwrap().dump());
+    println!("{}", tlisp::dump(unit_graph.clone()));
 
     audio_device.run(|mut buffer| {
         for elem in buffer.iter_mut() {
