@@ -9,6 +9,22 @@ pub trait Unit {
     fn proc(&mut self, time: &Time) -> Signal;
 }
 
+pub trait Osc: Unit {
+    fn set_freq(&mut self, freq: AUnit);
+}
+
+pub enum ADSR {
+    Attack,
+    Decay,
+    Sustin,
+    Release,
+    None,
+}
+
+pub trait Eg: Unit {
+    fn set_state(&mut self, state: ADSR, eplaced: u64);
+}
+
 pub enum Node {
     Val(f64),
     Sig(Amut<Unit + Send>),
@@ -32,24 +48,7 @@ impl UnitGraph {
     }
 }
 
-
 pub type AUnit = Amut<UnitGraph>;
-
-pub trait Osc: Unit {
-    fn set_freq(&mut self, freq: AUnit);
-}
-
-pub enum ADSR {
-    Attack,
-    Decay,
-    Sustin,
-    Release,
-    None,
-}
-
-pub trait Eg: Unit {
-    fn set_state(&mut self, state: ADSR, eplaced: u64);
-}
 
 impl Unit for Node {
     fn proc(&mut self, time: &Time) -> Signal {
