@@ -21,9 +21,17 @@
     - [x] Events (notes, fx values)
     - [x] Sequencers
     - [x] MML-like score description
-- [ ] FUSE interfaces
-- [ ] Command line interfaces
 - [ ] SAVE the graph
+    - [x] Lisp reader/printer
+    - [x] Construct unit graph (with cheap `eval`)
+    - [ ] Value and simple calculation
+    - [ ] Global binding and `def` (with unit sharing)
+    - [ ] SAVE the graph
+- [ ] FUSE interfaces
+    - [ ] Map unit graph into filesystem (read only)
+    - [ ] Unit manipulation
+    - [ ] Unit manipulation via filesystem
+- [ ] Command line interfaces
 
 ## Installation
 
