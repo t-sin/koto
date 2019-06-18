@@ -20,14 +20,17 @@ fn main() {
     let time = Time::new(sample_rate, 120.0);
     let mut env = Env::init(time);
 
-    let s = r"(seq (pat ((c 2) (r 2)   (d 2) (r 2)
-                         (e 2) (r 2)   (f 2) (r 2)
-                         (g 2) (r 2)   (a 2) (r 2)
-                         (b 2) (r 2)   (c5 2) (r 2)
-                         loop))
-                   (wavetable (saw 0 1) (phase (saw 0 440)))
-                   (adsr 0 (gain 0.2 (offset 1 (saw 0 0.25))) 0.0 0.1))".to_string();
-    let unit_graph = match tlisp::eval(&tlisp::read(s).unwrap()[0], &mut env) {
+    let s = r"
+(def $pat (pat ((c 2) (r 2)   (d 2) (r 2)
+                (e 2) (r 2)   (f 2) (r 2)
+                (g 2) (r 2)   (a 2) (r 2)
+                (b 2) (r 2)   (c5 2) (r 2)
+                loop)))
+(def $osc (wavetable (saw 0 1) (phase (saw 0 440))))
+(def $eg (adsr 0 (gain 0.2 (offset 1 (saw 0 0.25))) 0.0 0.1))
+(seq $pat $osc $eg)
+".to_string();
+    let unit_graph = match tlisp::eval_all(tlisp::read(s).unwrap(), &mut env) {
         Ok(Value::Unit(ug)) => ug,
         Ok(_v) => panic!("Oh, unit graph is not a unit!!"),
         Err(err) => panic!("Error!!! {:?}", err),
