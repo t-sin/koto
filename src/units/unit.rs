@@ -1,12 +1,20 @@
 use std::sync::{Arc, Mutex};
 
 use super::super::time::Time;
+use super::super::event::Event;
 
 pub type Signal = (f64, f64);
 pub type Amut<T> = Arc<Mutex<T>>;
 
+#[derive(Debug)]
+pub enum Dump {
+    Str(String),
+    Params(Vec<Box<Dump>>),
+}
+
 pub trait Unit {
     fn proc(&mut self, time: &Time) -> Signal;
+    fn dump(&self) -> Dump;
 }
 
 pub trait Osc: Unit {
@@ -59,6 +67,15 @@ impl Unit for Node {
             Node::Eg(u) => u.lock().unwrap().proc(time),
         }
     }
+
+    fn dump(&self) -> Dump {
+        match self {
+            Node::Val(v) => Dump::Str(v.to_string()),
+            Node::Sig(u) => u.lock().unwrap().dump(),
+            Node::Osc(u) => u.lock().unwrap().dump(),
+            Node::Eg(u) => u.lock().unwrap().dump(),
+        }
+    }
 }
 
 impl Osc for Node {
@@ -88,5 +105,51 @@ impl Unit for UnitGraph {
         } else {
             self.last_sig
         }
+    }
+
+    fn dump(&self) -> Dump {
+        self.node.dump()
+    }
+}
+
+pub type Table = Vec<f64>;
+
+impl Unit for Table {
+    fn proc(&mut self, _time: &Time) -> Signal {  // dummy
+        (0.0, 0.0)
+    }
+
+    fn dump(&self) -> Dump {
+        let mut vec = Vec::new();
+        for v in self.iter() {
+            vec.push(Box::new(Dump::Str(v.to_string())));
+        }
+        Dump::Params(vec)
+    }
+}
+
+impl Unit for Event {
+    fn proc(&mut self, _time: &Time) -> Signal {  // dummy
+        (0.0, 0.0)
+    }
+    fn dump(&self) -> Dump {
+        // TODO: dump event
+        Dump::Str("event".to_string())
+    }
+}
+
+pub type Pattern = Vec<Box<Event>>;
+
+impl Unit for Pattern {
+    fn proc(&mut self, _time: &Time) -> Signal {  // dummy
+        (0.0, 0.0)
+    }
+
+    fn dump(&self) -> Dump {
+        let mut vec = Vec::new();
+        for ev in self.iter() {
+            vec.push(Box::new(ev.dump()));
+        }
+        Dump::Params(vec)
     }
 }

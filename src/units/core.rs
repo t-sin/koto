@@ -3,7 +3,7 @@ extern crate num;
 use super::super::time::Time;
 
 use super::unit::Signal;
-use super::unit::{Unit, AUnit};
+use super::unit::{Dump, Unit, AUnit};
 
 pub struct Pan {
     pub v: AUnit,
@@ -23,6 +23,13 @@ impl Unit for Pan {
             (l, r)
         }
     }
+
+    fn dump(&self) -> Dump {
+        let mut vec = Vec::new();
+        vec.push(Box::new(self.v.lock().unwrap().dump()));
+        vec.push(Box::new(self.src.lock().unwrap().dump()));
+        Dump::Params(vec)
+    }
 }
 
 pub struct Clip {
@@ -36,6 +43,14 @@ impl Unit for Clip {
         let (l, r) = self.src.lock().unwrap().proc(&time);
         (num::clamp(l, self.min, self.max), num::clamp(r, self.min, self.max))
     }
+
+    fn dump(&self) -> Dump {
+        let mut vec = Vec::new();
+        vec.push(Box::new(Dump::Str(self.min.to_string())));
+        vec.push(Box::new(Dump::Str(self.max.to_string())));
+        vec.push(Box::new(self.src.lock().unwrap().dump()));
+        Dump::Params(vec)
+    }
 }
 
 pub struct Offset {
@@ -48,6 +63,13 @@ impl Unit for Offset {
         let (l, r) = self.src.lock().unwrap().proc(&time);
         (l + self.v, r + self.v)
     }
+
+    fn dump(&self) -> Dump {
+        let mut vec = Vec::new();
+        vec.push(Box::new(Dump::Str(self.v.to_string())));
+        vec.push(Box::new(self.src.lock().unwrap().dump()));
+        Dump::Params(vec)
+    }
 }
 
 pub struct Gain {
@@ -59,6 +81,13 @@ impl Unit for Gain {
     fn proc(&mut self, time: &Time) -> Signal {
         let (l, r) = self.src.lock().unwrap().proc(&time);
         (l * self.v, r * self.v)
+    }
+
+    fn dump(&self) -> Dump {
+        let mut vec = Vec::new();
+        vec.push(Box::new(Dump::Str(self.v.to_string())));
+        vec.push(Box::new(self.src.lock().unwrap().dump()));
+        Dump::Params(vec)
     }
 }
 
@@ -77,6 +106,14 @@ impl Unit for Add {
         }
         (l, r)
     }
+
+    fn dump(&self) -> Dump {
+        let mut vec = Vec::new();
+        for u in self.sources.iter() {
+            vec.push(Box::new(u.lock().unwrap().dump()));
+        }
+        Dump::Params(vec)
+    }
 }
 
 pub struct Multiply {
@@ -93,5 +130,13 @@ impl Unit for Multiply {
             r *= r2;
         }
         (l, r)
+    }
+
+    fn dump(&self) -> Dump {
+        let mut vec = Vec::new();
+        for u in self.sources.iter() {
+            vec.push(Box::new(u.lock().unwrap().dump()));
+        }
+        Dump::Params(vec)
     }
 }

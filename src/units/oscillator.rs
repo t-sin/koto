@@ -7,7 +7,7 @@ use super::super::time::Time;
 use super::super::time::Clock;
 
 use super::unit::{Signal, AUnit};
-use super::unit::{Unit, Node, UnitGraph, Osc};
+use super::unit::{Dump, Unit, Node, UnitGraph, Osc, Table};
 
 use super::core::{Clip, Gain, Offset};
 
@@ -34,6 +34,10 @@ impl Unit for Rand {
         self.v = self.rng.gen();
         (self.v, self.v)
     }
+
+    fn dump(&self) -> Dump {
+        Dump::Params(vec![Box::new(Dump::Str(self.v.to_string()))])
+    }
 }
 
 impl Osc for Rand {
@@ -54,6 +58,13 @@ impl Unit for Sine {
         self.ph += self.freq.lock().unwrap().proc(&time).0 / ph_diff;
 
         (v, v)
+    }
+
+    fn dump(&self) -> Dump {
+        let mut vec = Vec::new();
+        vec.push(Box::new(self.init_ph.lock().unwrap().dump()));
+        vec.push(Box::new(self.freq.lock().unwrap().dump()));
+        Dump::Params(vec)
     }
 }
 
@@ -87,6 +98,13 @@ impl Unit for Tri {
         }
         (v, v)
     }
+
+    fn dump(&self) -> Dump {
+        let mut vec = Vec::new();
+        vec.push(Box::new(self.init_ph.lock().unwrap().dump()));
+        vec.push(Box::new(self.freq.lock().unwrap().dump()));
+        Dump::Params(vec)
+    }
 }
 
 impl Osc for Tri {
@@ -115,6 +133,13 @@ impl Unit for Saw {
             v = 2.0 * x;
         }
         (v, v)
+    }
+
+    fn dump(&self) -> Dump {
+        let mut vec = Vec::new();
+        vec.push(Box::new(self.init_ph.lock().unwrap().dump()));
+        vec.push(Box::new(self.freq.lock().unwrap().dump()));
+        Dump::Params(vec)
     }
 }
 
@@ -146,6 +171,14 @@ impl Unit for Pulse {
             v = -1.0;
         }
         (v, v)
+    }
+
+    fn dump(&self) -> Dump {
+        let mut vec = Vec::new();
+        vec.push(Box::new(self.init_ph.lock().unwrap().dump()));
+        vec.push(Box::new(self.freq.lock().unwrap().dump()));
+        vec.push(Box::new(self.duty.lock().unwrap().dump()));
+        Dump::Params(vec)
     }
 }
 
@@ -196,6 +229,13 @@ impl Unit for Phase {
         let v = self.root.lock().unwrap().proc(time);
         v
     }
+
+    fn dump(&self) -> Dump {
+        let mut vec = Vec::new();
+        vec.push(Box::new(self.root.lock().unwrap().dump()));
+        vec.push(Box::new(self.osc.lock().unwrap().dump()));
+        Dump::Params(vec)
+    }
 }
 
 impl Osc for Phase {
@@ -209,7 +249,7 @@ impl Osc for Phase {
 }
 
 pub struct WaveTable {
-    pub table: Vec<f64>,
+    pub table: Table,
     pub ph: AUnit,
 }
 
@@ -249,6 +289,13 @@ impl Unit for WaveTable {
         let pos2 = (p.ceil() % len) as usize;
         let v = linear_interpol(self.table[pos1], self.table[pos2], p.fract());
         (v, v)
+    }
+
+    fn dump(&self) -> Dump {
+        let mut vec = Vec::new();
+        vec.push(Box::new(self.table.dump()));
+        vec.push(Box::new(self.ph.lock().unwrap().dump()));
+        Dump::Params(vec)
     }
 }
 

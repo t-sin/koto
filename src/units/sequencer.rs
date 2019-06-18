@@ -5,7 +5,7 @@ use super::super::time::{Time, PosOps};
 use super::super::event::Event;
 
 use super::unit::{Signal, AUnit};
-use super::unit::{Unit, Node, UnitGraph, ADSR, Eg};
+use super::unit::{Dump, Unit, Node, UnitGraph, ADSR, Eg, Pattern};
 
 pub struct AdsrEg {
     a: AUnit,
@@ -83,6 +83,15 @@ impl Unit for AdsrEg {
         self.eplaced += 1;
         (v, v)
     }
+
+    fn dump(&self) -> Dump {
+        let mut vec = Vec::new();
+        vec.push(Box::new(self.a.lock().unwrap().dump()));
+        vec.push(Box::new(self.d.lock().unwrap().dump()));
+        vec.push(Box::new(self.s.lock().unwrap().dump()));
+        vec.push(Box::new(self.r.lock().unwrap().dump()));
+        Dump::Params(vec)
+    }
 }
 
 impl Eg for AdsrEg {
@@ -93,7 +102,7 @@ impl Eg for AdsrEg {
 }
 
 pub struct Seq {
-    pattern: Vec<Box<Event>>,
+    pattern: Pattern,
     queue: VecDeque<Box<Event>>,
     osc: AUnit,
     eg: AUnit,
@@ -168,5 +177,13 @@ impl Unit for Seq {
             None => (),
         }
         ((ol * el), (or * er))
+    }
+
+    fn dump(&self) -> Dump {
+        let mut vec = Vec::new();
+        vec.push(Box::new(self.pattern.dump()));
+        vec.push(Box::new(self.osc.lock().unwrap().dump()));
+        vec.push(Box::new(self.eg.lock().unwrap().dump()));
+        Dump::Params(vec)
     }
 }
