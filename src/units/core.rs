@@ -1,3 +1,5 @@
+extern crate num;
+
 use super::super::time::Time;
 
 use super::unit::Signal;
@@ -23,6 +25,23 @@ impl Unit for Pan {
 
     fn update(&mut self, time: &Time) {
         self.v.lock().unwrap().update(&time);
+        self.src.lock().unwrap().update(&time);
+    }
+}
+
+pub struct Clip {
+    pub min: f64,
+    pub max: f64,
+    pub src: AUnit,
+}
+
+impl Unit for Clip {
+    fn calc(&self, time: &Time) -> Signal {
+        let (l, r) = self.src.lock().unwrap().calc(&time);
+        (num::clamp(l, self.min, self.max), num::clamp(r, self.min, self.max))
+    }
+
+    fn update(&mut self, time: &Time) {
         self.src.lock().unwrap().update(&time);
     }
 }

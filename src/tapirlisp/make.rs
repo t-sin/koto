@@ -4,7 +4,7 @@ use super::super::time::{Pos, Measure, PosOps, Time};
 use super::super::event::{Event, Note, to_note, to_freq, to_pos};
 
 use super::super::units::unit::{AUnit, UType, UnitGraph};
-use super::super::units::core::{Pan, Offset, Gain, Add, Multiply};
+use super::super::units::core::{Pan, Clip, Offset, Gain, Add, Multiply};
 
 use super::super::units::oscillator::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
 use super::super::units::sequencer::{AdsrEg, Seq};
@@ -39,6 +39,30 @@ fn make_pan(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
         Err(EvalError::FnWrongParams(String::from("pan"), args))
     }
  }
+
+fn make_clip(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
+    if args.len() == 3 {
+        match &*args[0] {
+            Cons::Number(min) => match &*args[1] {
+                Cons::Number(max) => match eval(&args[2]) {
+                    Ok(Value::Unit(src)) => Ok(Arc::new(Mutex::new(
+                        UnitGraph::Unit(UType::Sig(
+                            Arc::new(Mutex::new(Clip {
+                                min: *min, max: *max, src: src
+                            }))
+                        ))
+                    ))),
+                    Ok(Value::Pattern(p)) => Err(EvalError::NotAUnit(p)),
+                    Err(err) => Err(err),
+                },
+                exp => Err(EvalError::NotANumber(print(&exp))),
+            },
+            exp => Err(EvalError::NotANumber(print(&exp))),
+        }
+    } else {
+        Err(EvalError::FnWrongParams(String::from("clip"), args))
+    }
+}
 
 fn make_offset(args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
     if args.len() == 2 {
@@ -323,6 +347,7 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>) -> Result<AUnit, EvalError> {
     match &name[..] {
         // core
         "pan" => make_pan(args),
+        "clip" => make_clip(args),
         "offset" => make_offset(args),
         "gain" => make_gain(args),
         "+" => make_add(args),
