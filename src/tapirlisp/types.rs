@@ -15,6 +15,8 @@ pub enum Cons {
 }
 
 pub type Name = String;
+
+#[derive(Clone)]
 pub enum Value {
     Pattern(Vec<Box<Event>>),
     Unit(AUnit),
@@ -63,10 +65,10 @@ pub enum EvalError {
     EvWrongParams(String),
     EvUnknown(String),
     EvMalformedEvent(String),
+    UnboundVariable(String),
     NotANumber(String),
     NotAUnit(Vec<Box<Event>>),
     NotAPattern,
-    TodoSearchValueFromBinding,
     Nil
 }
 
@@ -91,6 +93,9 @@ impl fmt::Display for EvalError {
             EvalError::EvMalformedEvent(s) => {
                 write!(f, "{:?} is not an event.", s)
             },
+            EvalError::UnboundVariable(name) => {
+                write!(f, "Unbound variable: '{:?}'", name)
+            },
             EvalError::NotANumber(s) => {
                 write!(f, "{:?} is not a number", s)
             },
@@ -99,9 +104,6 @@ impl fmt::Display for EvalError {
             },
             EvalError::NotAPattern => {
                 write!(f, "it's not a pattern")
-            },
-            EvalError::TodoSearchValueFromBinding => {
-                write!(f, "TODO: searching from binding.")
             },
             EvalError::Nil => {
                 write!(f, "nil.")
@@ -119,7 +121,7 @@ impl Error for EvalError {
             EvalError::EvWrongParams(_) => None,
             EvalError::EvUnknown(_) => None,
             EvalError::EvMalformedEvent(_) => None,
-            EvalError::TodoSearchValueFromBinding => None,
+            EvalError::UnboundVariable(_) => None,
             EvalError::NotANumber(_) => None,
             EvalError::NotAUnit(_) => None,
             EvalError::NotAPattern => None,

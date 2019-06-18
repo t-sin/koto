@@ -47,7 +47,10 @@ fn eval_call(name: &Cons, args: &Cons, env: &mut Env) -> Result<Value, EvalError
 pub fn eval(sexp: &Cons, env: &mut Env) -> Result<Value, EvalError> {
     match sexp {
         Cons::Cons(car, cdr) => eval_call(car, cdr, env),
-        Cons::Symbol(name) => Err(EvalError::TodoSearchValueFromBinding),
+        Cons::Symbol(name) => match env.binding.get(name) {
+            Some(v) => Ok((**v).clone()),
+            None => Err(EvalError::UnboundVariable(name.to_string())),
+        }
         Cons::Number(num) => Ok(Value::Unit(Arc::new(Mutex::new(UnitGraph::Value(*num))))),
         Cons::Nil => Err(EvalError::Nil),
     }
