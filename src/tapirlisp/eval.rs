@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use super::super::time::Pos;
 use super::super::event::Event;
 
-use super::super::units::unit::UnitGraph;
+use super::super::units::unit::{Node, UnitGraph};
 
 use super::super::tapirlisp::types::{Cons, Value, Env, EvalError};
 use super::super::tapirlisp::to_vec;
@@ -81,7 +81,8 @@ pub fn eval(sexp: &Cons, env: &mut Env) -> Result<Value, EvalError> {
             Some(v) => Ok((**v).clone()),
             None => Err(EvalError::UnboundVariable(name.to_string())),
         }
-        Cons::Number(num) => Ok(Value::Unit(Arc::new(Mutex::new(UnitGraph::Value(*num))))),
+        Cons::Number(num) => Ok(Value::Unit(
+            Arc::new(Mutex::new(UnitGraph::new(Node::Val(*num)))))),
         Cons::Nil => Ok(Value::Nil),
     }
 }

@@ -6,20 +6,32 @@ pub type Signal = (f64, f64);
 pub type Amut<T> = Arc<Mutex<T>>;
 
 pub trait Unit {
-    fn calc(&self, time: &Time) -> Signal;
-    fn update(&mut self, time: &Time);
+    fn proc(&mut self, time: &Time) -> Signal;
 }
 
-pub enum UType {
+pub enum Node {
+    Val(f64),
     Sig(Amut<Unit + Send>),
     Osc(Amut<Osc + Send>),
     Eg(Amut<Eg + Send>),
 }
 
-pub enum UnitGraph {
-    Value(f64),
-    Unit(UType),
+pub struct UnitGraph {
+    pub last_tick: u64,
+    pub last_sig: Signal,
+    pub node: Node,
 }
+
+impl UnitGraph {
+    pub fn new(node: Node) -> UnitGraph {
+        UnitGraph {
+            last_tick: 0,
+            last_sig: (0.0, 0.0),
+            node: node,
+        }
+    }
+}
+
 
 pub type AUnit = Amut<UnitGraph>;
 
@@ -39,46 +51,43 @@ pub trait Eg: Unit {
     fn set_state(&mut self, state: ADSR, eplaced: u64);
 }
 
-impl Unit for UType {
-    fn calc(&self, time: &Time) -> Signal {
+impl Unit for Node {
+    fn proc(&mut self, time: &Time) -> Signal {
         match self {
-            UType::Sig(u) => u.lock().unwrap().calc(time),
-            UType::Osc(u) => u.lock().unwrap().calc(time),
-            UType::Eg(u) => u.lock().unwrap().calc(time),
-        }
-    }
-
-    fn update(&mut self, time: &Time) {
-        match self {
-            UType::Sig(u) => u.lock().unwrap().update(time),
-            UType::Osc(u) => u.lock().unwrap().update(time),
-            UType::Eg(u) => u.lock().unwrap().update(time),
+            Node::Val(v) => (*v, *v),
+            Node::Sig(u) => u.lock().unwrap().proc(time),
+            Node::Osc(u) => u.lock().unwrap().proc(time),
+            Node::Eg(u) => u.lock().unwrap().proc(time),
         }
     }
 }
 
-impl Osc for UType {
+impl Osc for Node {
     fn set_freq(&mut self, freq: Amut<UnitGraph>) {
         match self {
-            UType::Sig(_u) => (),
-            UType::Osc(u) => u.lock().unwrap().set_freq(freq),
-            UType::Eg(_u) => (),
+            Node::Osc(u) => u.lock().unwrap().set_freq(freq),
+            _ => (),
+        }
+    }
+}
+
+impl Eg for Node {
+    fn set_state(&mut self, state: ADSR, eplaced: u64) {
+        match self {
+            Node::Eg(u) => u.lock().unwrap().set_state(state, eplaced),
+            _ => (),
         }
     }
 }
 
 impl Unit for UnitGraph {
-    fn calc(&self, time: &Time) -> Signal {
-        match self {
-            UnitGraph::Value(v) => (*v, *v),
-            UnitGraph::Unit(u) => u.calc(&time),
-        }
-    }
-
-    fn update(&mut self, time: &Time) {
-        match self {
-            UnitGraph::Value(_v) => (),
-            UnitGraph::Unit(u) => u.update(&time),
+    fn proc(&mut self, time: &Time) -> Signal {
+        if self.last_tick < time.tick {
+            self.last_sig = self.node.proc(&time);
+            self.last_tick = time.tick;
+            self.last_sig
+        } else {
+            self.last_sig
         }
     }
 }

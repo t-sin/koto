@@ -11,9 +11,10 @@ pub struct Pan {
 }
 
 impl Unit for Pan {
-    fn calc(&self, time: &Time) -> Signal {
-        let (l, r) = self.src.lock().unwrap().calc(&time);
-        let v = self.v.lock().unwrap().calc(&time).0;
+    fn proc(&mut self, time: &Time) -> Signal {
+        let (l, r) = self.src.lock().unwrap().proc(&time);
+        let v = self.v.lock().unwrap().proc(&time).0;
+
         if v > 0.0 {
             (l * (1.0 - v), r)
         } else if v < 0.0 {
@@ -21,11 +22,6 @@ impl Unit for Pan {
         } else {
             (l, r)
         }
-    }
-
-    fn update(&mut self, time: &Time) {
-        self.v.lock().unwrap().update(&time);
-        self.src.lock().unwrap().update(&time);
     }
 }
 
@@ -36,13 +32,9 @@ pub struct Clip {
 }
 
 impl Unit for Clip {
-    fn calc(&self, time: &Time) -> Signal {
-        let (l, r) = self.src.lock().unwrap().calc(&time);
+    fn proc(&mut self, time: &Time) -> Signal {
+        let (l, r) = self.src.lock().unwrap().proc(&time);
         (num::clamp(l, self.min, self.max), num::clamp(r, self.min, self.max))
-    }
-
-    fn update(&mut self, time: &Time) {
-        self.src.lock().unwrap().update(&time);
     }
 }
 
@@ -52,13 +44,9 @@ pub struct Offset {
 }
 
 impl Unit for Offset {
-    fn calc(&self, time: &Time) -> Signal {
-        let (l, r) = self.src.lock().unwrap().calc(&time);
+    fn proc(&mut self, time: &Time) -> Signal {
+        let (l, r) = self.src.lock().unwrap().proc(&time);
         (l + self.v, r + self.v)
-    }
-
-    fn update(&mut self, time: &Time) {
-        self.src.lock().unwrap().update(&time);
     }
 }
 
@@ -68,13 +56,9 @@ pub struct Gain {
 }
 
 impl Unit for Gain {
-    fn calc(&self, time: &Time) -> Signal {
-        let (l, r) = self.src.lock().unwrap().calc(&time);
+    fn proc(&mut self, time: &Time) -> Signal {
+        let (l, r) = self.src.lock().unwrap().proc(&time);
         (l * self.v, r * self.v)
-    }
-
-    fn update(&mut self, time: &Time) {
-        self.src.lock().unwrap().update(&time);
     }
 }
 
@@ -83,21 +67,15 @@ pub struct Add {
 }
 
 impl Unit for Add {
-    fn calc(&self, time: &Time) -> Signal {
+    fn proc(&mut self, time: &Time) -> Signal {
         let mut l = 0.0;
         let mut r = 0.0;
-        for u in self.sources.iter() {
-            let (l2, r2) = u.lock().unwrap().calc(&time);
+        for u in self.sources.iter_mut() {
+            let (l2, r2) = u.lock().unwrap().proc(&time);
             l += l2;
             r += r2;
         }
         (l, r)
-    }
-
-    fn update(&mut self, time: &Time) {
-        for u in self.sources.iter_mut() {
-            u.lock().unwrap().update(&time);
-        }
     }
 }
 
@@ -106,20 +84,14 @@ pub struct Multiply {
 }
 
 impl Unit for Multiply {
-    fn calc(&self, time: &Time) -> Signal {
+    fn proc(&mut self, time: &Time) -> Signal {
         let mut l = 0.0;
         let mut r = 0.0;
-        for u in self.sources.iter() {
-            let (l2, r2) = u.lock().unwrap().calc(&time);
+        for u in self.sources.iter_mut() {
+            let (l2, r2) = u.lock().unwrap().proc(&time);
             l *= l2;
             r *= r2;
         }
         (l, r)
-    }
-
-    fn update(&mut self, time: &Time) {
-        for u in self.sources.iter_mut() {
-            u.lock().unwrap().update(&time);
-        }
     }
 }
