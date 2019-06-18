@@ -25,7 +25,7 @@
     - [x] Lisp reader/printer
     - [x] Construct unit graph (with cheap `eval`)
     - [ ] Value and simple calculation
-    - [ ] Global binding and `def` (with unit sharing)
+    - [x] Global binding and `def` (with unit sharing)
     - [ ] SAVE the graph
 - [ ] FUSE interfaces
     - [ ] Map unit graph into filesystem (read only)
