@@ -9,7 +9,7 @@ use super::super::time::Clock;
 use super::unit::{Signal, AUnit};
 use super::unit::{Unit, UType, Osc, UnitGraph};
 
-use super::core::{Gain, Offset};
+use super::core::{Clip, Gain, Offset};
 
 pub struct Rand {
     rng: SmallRng,
@@ -190,9 +190,15 @@ impl Phase {
                                 UnitGraph::Unit(UType::Sig(
                                     Arc::new(Mutex::new(Gain {
                                         v: 0.5,
-                                        src: u.clone(),
-                                    }
-                                ))))
+                                        src: Arc::new(Mutex::new(
+                                            UnitGraph::Unit(UType::Sig(
+                                                Arc::new(Mutex::new(Clip {
+                                                    min: 0.0, max: 1.0, src: u.clone(),
+                                                }))
+                                            ))
+                                        )),
+                                    }))
+                                ))
                             )),
                         }
                     ))))
