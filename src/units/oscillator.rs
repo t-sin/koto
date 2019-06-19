@@ -46,6 +46,14 @@ pub struct Sine {
     pub freq: AUnit,
 }
 
+impl Sine {
+    pub fn new(init_ph: AUnit, freq: AUnit) -> AUnit {
+        Mut::amut(UnitGraph::new(Node::Osc(
+            Mut::amut(Sine { init_ph: init_ph, ph: 0.0, freq: freq })
+        )))
+    }
+}
+
 impl Unit for Sine {
     fn proc(&mut self, time: &Time) -> Signal {
         let init_ph = self.init_ph.0.lock().unwrap().proc(&time).0;
@@ -74,6 +82,14 @@ pub struct Tri {
     pub init_ph: AUnit,
     pub ph: f64,
     pub freq: AUnit,
+}
+
+impl Tri {
+    pub fn new(init_ph: AUnit, freq: AUnit) -> AUnit {
+        Mut::amut(UnitGraph::new(Node::Osc(
+            Mut::amut(Tri { init_ph: init_ph, ph: 0.0, freq: freq })
+        )))
+    }
 }
 
 impl Unit for Tri {
@@ -115,6 +131,14 @@ pub struct Saw {
     pub freq: AUnit,
 }
 
+impl Saw {
+    pub fn new(init_ph: AUnit, freq: AUnit) -> AUnit {
+        Mut::amut(UnitGraph::new(Node::Osc(
+            Mut::amut(Saw { init_ph: init_ph, ph: 0.0, freq: freq })
+        )))
+    }
+}
+
 impl Unit for Saw {
     fn proc(&mut self, time: &Time) -> Signal {
         let ph = self.init_ph.0.lock().unwrap().proc(&time).0 + self.ph;
@@ -150,6 +174,14 @@ pub struct Pulse {
     pub ph: f64,
     pub freq: AUnit,
     pub duty: AUnit,
+}
+
+impl Pulse {
+    pub fn new(init_ph: AUnit, freq: AUnit, duty: AUnit) -> AUnit {
+        Mut::amut(UnitGraph::new(Node::Osc(
+            Mut::amut(Pulse { init_ph: init_ph, ph: 0.0, freq: freq, duty: duty})
+        )))
+    }
 }
 
 impl Unit for Pulse {

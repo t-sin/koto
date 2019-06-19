@@ -3,11 +3,19 @@ extern crate num;
 use super::super::time::Time;
 
 use super::unit::Signal;
-use super::unit::{Dump, Unit, AUnit};
+use super::unit::{Mut, Dump, Unit, Node, UnitGraph, AUnit};
 
 pub struct Pan {
     pub v: AUnit,
     pub src: AUnit,
+}
+
+impl Pan {
+    pub fn new(v: AUnit, src: AUnit) -> AUnit {
+        Mut::amut(UnitGraph::new(Node::Sig(
+            Mut::amut(Pan { v: v, src: src })
+        )))
+    }
 }
 
 impl Unit for Pan {
@@ -38,6 +46,14 @@ pub struct Clip {
     pub src: AUnit,
 }
 
+impl Clip {
+    pub fn new(min: f64, max: f64, src: AUnit) -> AUnit {
+        Mut::amut(UnitGraph::new(Node::Sig(
+            Mut::amut(Clip { min: min, max: max, src: src })
+        )))
+    }
+}
+
 impl Unit for Clip {
     fn proc(&mut self, time: &Time) -> Signal {
         let (l, r) = self.src.0.lock().unwrap().proc(&time);
@@ -56,6 +72,14 @@ impl Unit for Clip {
 pub struct Offset {
     pub v: f64,
     pub src: AUnit,
+}
+
+impl Offset {
+    pub fn new(v: f64, src: AUnit) -> AUnit {
+        Mut::amut(UnitGraph::new(Node::Sig(
+            Mut::amut(Offset { v: v, src: src })
+        )))
+    }
 }
 
 impl Unit for Offset {
@@ -77,6 +101,14 @@ pub struct Gain {
     pub src: AUnit,
 }
 
+impl Gain {
+    pub fn new(v: f64, src: AUnit) -> AUnit {
+        Mut::amut(UnitGraph::new(Node::Sig(
+            Mut::amut(Gain { v: v, src: src })
+        )))
+    }
+}
+
 impl Unit for Gain {
     fn proc(&mut self, time: &Time) -> Signal {
         let (l, r) = self.src.0.lock().unwrap().proc(&time);
@@ -93,6 +125,14 @@ impl Unit for Gain {
 
 pub struct Add {
     pub sources: Vec<AUnit>,
+}
+
+impl Add {
+    pub fn new(sources: Vec<AUnit>) -> AUnit {
+        Mut::amut(UnitGraph::new(Node::Sig(
+            Mut::amut(Add { sources: sources })
+        )))
+    }
 }
 
 impl Unit for Add {
@@ -118,6 +158,14 @@ impl Unit for Add {
 
 pub struct Multiply {
     pub sources: Vec<AUnit>,
+}
+
+impl Multiply {
+    pub fn new(sources: Vec<AUnit>) -> AUnit {
+        Mut::amut(UnitGraph::new(Node::Sig(
+            Mut::amut(Multiply { sources: sources })
+        )))
+    }
 }
 
 impl Unit for Multiply {

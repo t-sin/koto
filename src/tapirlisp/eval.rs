@@ -14,23 +14,18 @@ use super::super::tapirlisp::to_vec;
 
 fn make_pan(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     if args.len() == 2 {
-        Ok(Mut::amut(UnitGraph::new(Node::Sig(
-                Mut::amut(Pan {
-                v: match &*args[0] {
-                    Cons::Number(n) => Mut::amut(UnitGraph::new(Node::Val(*n))),
-                    exp => match eval(&exp, env) {
-                        Ok(Value::Unit(unit)) => unit,
-                        Ok(_v) => return Err(EvalError::NotAUnit),
-                        Err(err) => return Err(err),
-                    }
+        match eval(&args[1], env) {
+            Ok(Value::Unit(src)) => match &*args[0] {
+                Cons::Number(n) => Ok(Pan::new(Mut::amut(UnitGraph::new(Node::Val(*n))), src)),
+                exp => match eval(&exp, env) {
+                    Ok(Value::Unit(v)) => Ok(Pan::new(v, src)),
+                    Ok(_v) => Err(EvalError::NotAUnit),
+                    Err(err) => Err(err),
                 },
-                src: match eval(&args[1], env) {
-                    Ok(Value::Unit(src)) => src,
-                    Ok(_v) => return Err(EvalError::NotAUnit),
-                    Err(err) => return Err(err),
-                },
-            })
-        ))))
+            },
+            Ok(_v) => return Err(EvalError::NotAUnit),
+            Err(err) => return Err(err),
+        }
     } else {
         Err(EvalError::FnWrongParams(String::from("pan"), args))
     }
@@ -41,11 +36,7 @@ fn make_clip(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
         match &*args[0] {
             Cons::Number(min) => match &*args[1] {
                 Cons::Number(max) => match eval(&args[2], env) {
-                    Ok(Value::Unit(src)) => Ok(Mut::amut(UnitGraph::new(Node::Sig(
-                        Mut::amut(Clip {
-                            min: *min, max: *max, src: src
-                        })
-                    )))),
+                    Ok(Value::Unit(src)) => Ok(Clip::new(*min, *max, src)),
                     Ok(_v) => Err(EvalError::NotAUnit),
                     Err(err) => Err(err),
                 },
@@ -60,19 +51,14 @@ fn make_clip(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
 
 fn make_offset(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     if args.len() == 2 {
-        Ok(Mut::amut(UnitGraph::new(Node::Sig(
-            Mut::amut(Offset {
-                v: match &*args[0] {
-                    Cons::Number(n) => *n,
-                    exp => return Err(EvalError::NotANumber(print(&exp))),
-                },
-                src: match eval(&args[1], env) {
-                    Ok(Value::Unit(src)) => src,
-                    Ok(_v) => return Err(EvalError::NotAUnit),
-                    Err(err) => return Err(err),
-                },
-            })
-        ))))
+        match &*args[0] {
+            Cons::Number(n) => match eval(&args[1], env) {
+                Ok(Value::Unit(src)) => Ok(Offset::new(*n, src)),
+                Ok(_v) => return Err(EvalError::NotAUnit),
+                Err(err) => return Err(err),
+            },
+            exp => return Err(EvalError::NotANumber(print(&exp))),
+        }
     } else {
         Err(EvalError::FnWrongParams(String::from("offset"), args))
     }
@@ -80,58 +66,41 @@ fn make_offset(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> 
 
 fn make_gain(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     if args.len() == 2 {
-        Ok(Mut::amut(UnitGraph::new(Node::Sig(
-            Mut::amut(Gain {
-                v: match &*args[0] {
-                    Cons::Number(n) => *n,
-                    exp => return Err(EvalError::NotANumber(print(&exp))),
-                },
-                src: match eval(&args[1], env) {
-                    Ok(Value::Unit(src)) => src,
-                    Ok(_v) => return Err(EvalError::NotAUnit),
-                    Err(err) => return Err(err),
-                },
-            })
-        ))))
+        match &*args[0] {
+            Cons::Number(n) => match eval(&args[1], env) {
+                Ok(Value::Unit(src)) => Ok(Gain::new(*n, src)),
+                Ok(_v) => return Err(EvalError::NotAUnit),
+                Err(err) => return Err(err),
+            },
+            exp => return Err(EvalError::NotANumber(print(&exp))),
+        }
     } else {
         Err(EvalError::FnWrongParams(String::from("gain"), args))
     }
 }
 
 fn make_add(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
-    Ok(Mut::amut(UnitGraph::new(Node::Sig(
-        Mut::amut(Add {
-            sources: {
-                let mut v: Vec<AUnit> = Vec::new();
-                for s in args.iter() {
-                    match eval(s, env) {
-                        Ok(Value::Unit(unit)) => v.push(unit),
-                        Ok(_v) => return Err(EvalError::NotAUnit),
-                        Err(err) => return Err(err),
-                    }
-                }
-                v
-            }
-        })
-    ))))
+    let mut v: Vec<AUnit> = Vec::new();
+    for s in args.iter() {
+        match eval(s, env) {
+            Ok(Value::Unit(unit)) => v.push(unit),
+            Ok(_v) => return Err(EvalError::NotAUnit),
+            Err(err) => return Err(err),
+        }
+    }
+    Ok(Add::new(v))
 }
 
 fn make_multiply(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
-    Ok(Mut::amut(UnitGraph::new(Node::Sig(
-        Mut::amut(Multiply {
-            sources: {
-                let mut v: Vec<AUnit> = Vec::new();
-                for s in args.iter() {
-                    match eval(s, env) {
-                        Ok(Value::Unit(unit)) => v.push(unit),
-                        Ok(_v) => return Err(EvalError::NotAUnit),
-                        Err(err) => return Err(err),
-                    }
-                }
-                v
-            }
-        })
-    ))))
+    let mut v: Vec<AUnit> = Vec::new();
+    for s in args.iter() {
+        match eval(s, env) {
+            Ok(Value::Unit(unit)) => v.push(unit),
+            Ok(_v) => return Err(EvalError::NotAUnit),
+            Err(err) => return Err(err),
+        }
+    }
+    Ok(Multiply::new(v))
 }
 
 // oscillators
@@ -156,13 +125,7 @@ fn make_sine(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     if args.len() == 2 {
         match eval(&args[0], env) {
             Ok(Value::Unit(init_ph)) => match eval(&args[1], env) {
-                Ok(Value::Unit(freq)) => Ok(Mut::amut(
-                    UnitGraph::new(Node::Osc(Mut::amut(Sine {
-                        init_ph: init_ph,
-                        ph: 0.0,
-                        freq: freq,
-                    })))
-                )),
+                Ok(Value::Unit(freq)) => Ok(Sine::new(init_ph, freq)),
                 Ok(_v) => Err(EvalError::NotAUnit),
                 Err(err) => Err(err),
             },
@@ -178,13 +141,7 @@ fn make_tri(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     if args.len() == 2 {
         match eval(&args[0], env) {
             Ok(Value::Unit(init_ph)) => match eval(&args[1], env) {
-                Ok(Value::Unit(freq)) => Ok(Mut::amut(UnitGraph::new(Node::Osc(
-                    Mut::amut(Tri {
-                        init_ph: init_ph,
-                        ph: 0.0,
-                        freq: freq,
-                    })
-                )))),
+                Ok(Value::Unit(freq)) => Ok(Tri::new(init_ph, freq)),
                 Ok(_v) => Err(EvalError::NotAUnit),
                 Err(err) => Err(err),
             },
@@ -200,13 +157,7 @@ fn make_saw(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     if args.len() == 2 {
         match eval(&args[0], env) {
             Ok(Value::Unit(init_ph)) => match eval(&args[1], env) {
-                Ok(Value::Unit(freq)) => Ok(Mut::amut(
-                    UnitGraph::new(Node::Osc(Mut::amut(Saw {
-                        init_ph: init_ph,
-                        ph: 0.0,
-                        freq: freq,
-                    })))
-                )),
+                Ok(Value::Unit(freq)) => Ok(Saw::new(init_ph, freq)),
                 Ok(_v) => Err(EvalError::NotAUnit),
                 Err(err) => Err(err),
             },
@@ -223,14 +174,7 @@ fn make_pulse(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
         match eval(&args[0], env) {
             Ok(Value::Unit(init_ph)) => match eval(&args[1], env) {
                 Ok(Value::Unit(freq)) => match eval(&args[2], env) {
-                    Ok(Value::Unit(duty)) => Ok(Mut::amut(UnitGraph::new(Node::Osc(
-                        Mut::amut(Pulse {
-                            init_ph: init_ph,
-                            ph: 0.0,
-                            freq: freq,
-                            duty: duty,
-                        })
-                    )))),
+                    Ok(Value::Unit(duty)) => Ok(Pulse::new(init_ph, freq, duty)),
                     Ok(_v) => Err(EvalError::NotAUnit),
                     Err(err) => Err(err),
                 },
