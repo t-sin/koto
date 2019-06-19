@@ -1,9 +1,9 @@
+use std::cmp::{PartialEq, Eq};
 use std::sync::{Arc, Mutex};
 
 use super::super::time::Time;
 use super::super::event::Event;
 
-pub type Signal = (f64, f64);
 pub struct Mut<T: ?Sized> (pub Mutex<T>);
 type Amut<T> = Arc<Mut<T>>;
 
@@ -13,11 +13,20 @@ impl<T> Mut<T> {
     }
 }
 
+impl<T: PartialEq> PartialEq for Mut<T> {
+    fn eq(&self, other: &Self) -> bool {
+        *self.0.lock().unwrap() == *other.0.lock().unwrap()
+    }
+}
+impl<T: Eq> Eq for Mut<T> {}
+
 #[derive(Debug)]
 pub enum Dump {
     Str(String),
     Op(String, Vec<Box<Dump>>),
 }
+
+pub type Signal = (f64, f64);
 
 pub trait Unit: Send {
     fn proc(&mut self, time: &Time) -> Signal;
@@ -47,11 +56,42 @@ pub enum Node {
     Eg(Amut<Eg + Send>),
 }
 
+impl PartialEq for Node {
+    fn eq(&self, other: &Self) -> bool {
+        match self {
+            Node::Val(s) => match other {
+                Node::Val(o) => s == o,
+                _ => false,
+            },
+            Node::Sig(s) => match other {
+                Node::Sig(o) => Arc::ptr_eq(&s, &o),
+                _ => false,
+            },
+            Node::Osc(s) => match other {
+                Node::Osc(o) => Arc::ptr_eq(&s, &o),
+                _ => false,
+            },
+            Node::Eg(s) => match other {
+                Node::Eg(o) => Arc::ptr_eq(&s, &o),
+                _ => false,
+            },
+        }
+    }
+}
+impl Eq for Node {}
+
 pub struct UnitGraph {
     pub last_tick: u64,
     pub last_sig: Signal,
     pub node: Node,
 }
+
+impl PartialEq for UnitGraph {
+    fn eq(&self, other: &Self) -> bool {
+        self.node == other.node
+    }
+}
+impl Eq for UnitGraph {}
 
 impl UnitGraph {
     pub fn new(node: Node) -> UnitGraph {
