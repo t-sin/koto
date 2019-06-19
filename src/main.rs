@@ -45,7 +45,7 @@ fn main() {
 
     audio_device.run(|mut buffer| {
         for elem in buffer.iter_mut() {
-            *elem = unit_graph.lock().unwrap().proc(&env.time).0 as f32;
+            *elem = unit_graph.0.lock().unwrap().proc(&env.time).0 as f32;
             env.time.inc();
         }
     });

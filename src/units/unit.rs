@@ -4,7 +4,14 @@ use super::super::time::Time;
 use super::super::event::Event;
 
 pub type Signal = (f64, f64);
-pub type Amut<T> = Arc<Mutex<T>>;
+pub struct Mut<T: ?Sized> (pub Mutex<T>);
+type Amut<T> = Arc<Mut<T>>;
+
+impl<T> Mut<T> {
+    pub fn amut(value: T) -> Amut<T> {
+        Arc::new(Mut(Mutex::new(value)))
+    }
+}
 
 #[derive(Debug)]
 pub enum Dump {
@@ -12,7 +19,7 @@ pub enum Dump {
     Op(String, Vec<Box<Dump>>),
 }
 
-pub trait Unit {
+pub trait Unit: Send {
     fn proc(&mut self, time: &Time) -> Signal;
     fn dump(&self) -> Dump;
 }
@@ -62,18 +69,18 @@ impl Unit for Node {
     fn proc(&mut self, time: &Time) -> Signal {
         match self {
             Node::Val(v) => (*v, *v),
-            Node::Sig(u) => u.lock().unwrap().proc(time),
-            Node::Osc(u) => u.lock().unwrap().proc(time),
-            Node::Eg(u) => u.lock().unwrap().proc(time),
+            Node::Sig(u) => u.0.lock().unwrap().proc(time),
+            Node::Osc(u) => u.0.lock().unwrap().proc(time),
+            Node::Eg(u) => u.0.lock().unwrap().proc(time),
         }
     }
 
     fn dump(&self) -> Dump {
         match self {
             Node::Val(v) => Dump::Str(v.to_string()),
-            Node::Sig(u) => u.lock().unwrap().dump(),
-            Node::Osc(u) => u.lock().unwrap().dump(),
-            Node::Eg(u) => u.lock().unwrap().dump(),
+            Node::Sig(u) => u.0.lock().unwrap().dump(),
+            Node::Osc(u) => u.0.lock().unwrap().dump(),
+            Node::Eg(u) => u.0.lock().unwrap().dump(),
         }
     }
 }
@@ -81,7 +88,7 @@ impl Unit for Node {
 impl Osc for Node {
     fn set_freq(&mut self, freq: Amut<UnitGraph>) {
         match self {
-            Node::Osc(u) => u.lock().unwrap().set_freq(freq),
+            Node::Osc(u) => u.0.lock().unwrap().set_freq(freq),
             _ => (),
         }
     }
@@ -90,7 +97,7 @@ impl Osc for Node {
 impl Eg for Node {
     fn set_state(&mut self, state: ADSR, eplaced: u64) {
         match self {
-            Node::Eg(u) => u.lock().unwrap().set_state(state, eplaced),
+            Node::Eg(u) => u.0.lock().unwrap().set_state(state, eplaced),
             _ => (),
         }
     }

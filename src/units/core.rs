@@ -12,8 +12,8 @@ pub struct Pan {
 
 impl Unit for Pan {
     fn proc(&mut self, time: &Time) -> Signal {
-        let (l, r) = self.src.lock().unwrap().proc(&time);
-        let v = self.v.lock().unwrap().proc(&time).0;
+        let (l, r) = self.src.0.lock().unwrap().proc(&time);
+        let v = self.v.0.lock().unwrap().proc(&time).0;
 
         if v > 0.0 {
             (l * (1.0 - v), r)
@@ -26,8 +26,8 @@ impl Unit for Pan {
 
     fn dump(&self) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.v.lock().unwrap().dump()));
-        vec.push(Box::new(self.src.lock().unwrap().dump()));
+        vec.push(Box::new(self.v.0.lock().unwrap().dump()));
+        vec.push(Box::new(self.src.0.lock().unwrap().dump()));
         Dump::Op("pan".to_string(), vec)
     }
 }
@@ -40,7 +40,7 @@ pub struct Clip {
 
 impl Unit for Clip {
     fn proc(&mut self, time: &Time) -> Signal {
-        let (l, r) = self.src.lock().unwrap().proc(&time);
+        let (l, r) = self.src.0.lock().unwrap().proc(&time);
         (num::clamp(l, self.min, self.max), num::clamp(r, self.min, self.max))
     }
 
@@ -48,7 +48,7 @@ impl Unit for Clip {
         let mut vec = Vec::new();
         vec.push(Box::new(Dump::Str(self.min.to_string())));
         vec.push(Box::new(Dump::Str(self.max.to_string())));
-        vec.push(Box::new(self.src.lock().unwrap().dump()));
+        vec.push(Box::new(self.src.0.lock().unwrap().dump()));
         Dump::Op("clip".to_string(), vec)
     }
 }
@@ -60,14 +60,14 @@ pub struct Offset {
 
 impl Unit for Offset {
     fn proc(&mut self, time: &Time) -> Signal {
-        let (l, r) = self.src.lock().unwrap().proc(&time);
+        let (l, r) = self.src.0.lock().unwrap().proc(&time);
         (l + self.v, r + self.v)
     }
 
     fn dump(&self) -> Dump {
         let mut vec = Vec::new();
         vec.push(Box::new(Dump::Str(self.v.to_string())));
-        vec.push(Box::new(self.src.lock().unwrap().dump()));
+        vec.push(Box::new(self.src.0.lock().unwrap().dump()));
         Dump::Op("offset".to_string(), vec)
     }
 }
@@ -79,14 +79,14 @@ pub struct Gain {
 
 impl Unit for Gain {
     fn proc(&mut self, time: &Time) -> Signal {
-        let (l, r) = self.src.lock().unwrap().proc(&time);
+        let (l, r) = self.src.0.lock().unwrap().proc(&time);
         (l * self.v, r * self.v)
     }
 
     fn dump(&self) -> Dump {
         let mut vec = Vec::new();
         vec.push(Box::new(Dump::Str(self.v.to_string())));
-        vec.push(Box::new(self.src.lock().unwrap().dump()));
+        vec.push(Box::new(self.src.0.lock().unwrap().dump()));
         Dump::Op("gain".to_string(), vec)
     }
 }
@@ -100,7 +100,7 @@ impl Unit for Add {
         let mut l = 0.0;
         let mut r = 0.0;
         for u in self.sources.iter_mut() {
-            let (l2, r2) = u.lock().unwrap().proc(&time);
+            let (l2, r2) = u.0.lock().unwrap().proc(&time);
             l += l2;
             r += r2;
         }
@@ -110,7 +110,7 @@ impl Unit for Add {
     fn dump(&self) -> Dump {
         let mut vec = Vec::new();
         for u in self.sources.iter() {
-            vec.push(Box::new(u.lock().unwrap().dump()));
+            vec.push(Box::new(u.0.lock().unwrap().dump()));
         }
         Dump::Op("+".to_string(), vec)
     }
@@ -125,7 +125,7 @@ impl Unit for Multiply {
         let mut l = 0.0;
         let mut r = 0.0;
         for u in self.sources.iter_mut() {
-            let (l2, r2) = u.lock().unwrap().proc(&time);
+            let (l2, r2) = u.0.lock().unwrap().proc(&time);
             l *= l2;
             r *= r2;
         }
@@ -135,7 +135,7 @@ impl Unit for Multiply {
     fn dump(&self) -> Dump {
         let mut vec = Vec::new();
         for u in self.sources.iter() {
-            vec.push(Box::new(u.lock().unwrap().dump()));
+            vec.push(Box::new(u.0.lock().unwrap().dump()));
         }
         Dump::Op("*".to_string(), vec)
     }

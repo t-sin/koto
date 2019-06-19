@@ -24,5 +24,5 @@ pub fn dump_one(dump: &Dump) -> String {
 }
 
 pub fn dump(ug: AUnit) -> String {
-    format!("{}", dump_one(&ug.lock().unwrap().dump()))
+    format!("{}", dump_one(&ug.0.lock().unwrap().dump()))
 }

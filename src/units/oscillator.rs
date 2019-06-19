@@ -1,12 +1,10 @@
-use std::sync::{Arc, Mutex};
-
 use rand::{Rng, SeedableRng};
 use rand::rngs::SmallRng;
 
 use super::super::time::Time;
 use super::super::time::Clock;
 
-use super::unit::{Signal, AUnit};
+use super::unit::{Signal, Mut, AUnit};
 use super::unit::{Dump, Unit, Node, UnitGraph, Osc, Table};
 
 use super::core::{Clip, Gain, Offset};
@@ -18,14 +16,12 @@ pub struct Rand {
 
 impl Rand {
     pub fn new(seed: u64) -> AUnit {
-        Arc::new(Mutex::new(
-            UnitGraph::new(Node::Osc(
-                Arc::new(Mutex::new(Rand {
-                    rng: SmallRng::seed_from_u64(seed),
-                    v: 0.15,
-                }))
-            ))
-        ))
+        Mut::amut(UnitGraph::new(Node::Osc(
+            Mut::amut(Rand {
+                rng: SmallRng::seed_from_u64(seed),
+                v: 0.15,
+            })
+        )))
     }
 }
 
@@ -52,18 +48,18 @@ pub struct Sine {
 
 impl Unit for Sine {
     fn proc(&mut self, time: &Time) -> Signal {
-        let init_ph = self.init_ph.lock().unwrap().proc(&time).0;
+        let init_ph = self.init_ph.0.lock().unwrap().proc(&time).0;
         let v = (init_ph + self.ph).sin();
         let ph_diff = time.sample_rate as f64 / std::f64::consts::PI;
-        self.ph += self.freq.lock().unwrap().proc(&time).0 / ph_diff;
+        self.ph += self.freq.0.lock().unwrap().proc(&time).0 / ph_diff;
 
         (v, v)
     }
 
     fn dump(&self) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.init_ph.lock().unwrap().dump()));
-        vec.push(Box::new(self.freq.lock().unwrap().dump()));
+        vec.push(Box::new(self.init_ph.0.lock().unwrap().dump()));
+        vec.push(Box::new(self.freq.0.lock().unwrap().dump()));
         Dump::Op("sine".to_string(), vec)
     }
 }
@@ -82,10 +78,10 @@ pub struct Tri {
 
 impl Unit for Tri {
     fn proc(&mut self, time: &Time) -> Signal {
-        let ph = self.init_ph.lock().unwrap().proc(&time).0 + self.ph;
+        let ph = self.init_ph.0.lock().unwrap().proc(&time).0 + self.ph;
 
         let ph_diff = time.sample_rate as f64 * 2.0;
-        self.ph += self.freq.lock().unwrap().proc(&time).0 / ph_diff;
+        self.ph += self.freq.0.lock().unwrap().proc(&time).0 / ph_diff;
 
         let x = ph % 1.0;
         let v;
@@ -101,8 +97,8 @@ impl Unit for Tri {
 
     fn dump(&self) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.init_ph.lock().unwrap().dump()));
-        vec.push(Box::new(self.freq.lock().unwrap().dump()));
+        vec.push(Box::new(self.init_ph.0.lock().unwrap().dump()));
+        vec.push(Box::new(self.freq.0.lock().unwrap().dump()));
         Dump::Op("tri".to_string(), vec)
     }
 }
@@ -121,9 +117,9 @@ pub struct Saw {
 
 impl Unit for Saw {
     fn proc(&mut self, time: &Time) -> Signal {
-        let ph = self.init_ph.lock().unwrap().proc(&time).0 + self.ph;
+        let ph = self.init_ph.0.lock().unwrap().proc(&time).0 + self.ph;
         let ph_diff = time.sample_rate as f64 * 2.0;
-        self.ph += self.freq.lock().unwrap().proc(&time).0 / ph_diff;
+        self.ph += self.freq.0.lock().unwrap().proc(&time).0 / ph_diff;
 
         let x = ph % 1.0;
         let v;
@@ -137,8 +133,8 @@ impl Unit for Saw {
 
     fn dump(&self) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.init_ph.lock().unwrap().dump()));
-        vec.push(Box::new(self.freq.lock().unwrap().dump()));
+        vec.push(Box::new(self.init_ph.0.lock().unwrap().dump()));
+        vec.push(Box::new(self.freq.0.lock().unwrap().dump()));
         Dump::Op("saw".to_string(), vec)
     }
 }
@@ -158,10 +154,10 @@ pub struct Pulse {
 
 impl Unit for Pulse {
     fn proc(&mut self, time: &Time) -> Signal {
-        let ph = self.init_ph.lock().unwrap().proc(&time).0 + self.ph;
-        let duty = self.duty.lock().unwrap().proc(&time).0;
+        let ph = self.init_ph.0.lock().unwrap().proc(&time).0 + self.ph;
+        let duty = self.duty.0.lock().unwrap().proc(&time).0;
         let ph_diff = time.sample_rate as f64 * 2.0;
-        self.ph += self.freq.lock().unwrap().proc(&time).0 / ph_diff;
+        self.ph += self.freq.0.lock().unwrap().proc(&time).0 / ph_diff;
 
         let x = ph % 1.0;
         let v;
@@ -175,9 +171,9 @@ impl Unit for Pulse {
 
     fn dump(&self) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.init_ph.lock().unwrap().dump()));
-        vec.push(Box::new(self.freq.lock().unwrap().dump()));
-        vec.push(Box::new(self.duty.lock().unwrap().dump()));
+        vec.push(Box::new(self.init_ph.0.lock().unwrap().dump()));
+        vec.push(Box::new(self.freq.0.lock().unwrap().dump()));
+        vec.push(Box::new(self.duty.0.lock().unwrap().dump()));
         Dump::Op("pulse".to_string(), vec)
     }
 }
@@ -195,53 +191,45 @@ pub struct Phase {
 
 impl Phase {
     pub fn new(u: AUnit) -> AUnit {
-        Arc::new(Mutex::new(
-            UnitGraph::new(Node::Osc(
-                Arc::new(Mutex::new(Phase {
-                    root: Arc::new(Mutex::new(
-                        UnitGraph::new(Node::Sig(Arc::new(Mutex::new(Offset {
-                            v: 1.0,
-                            src: Arc::new(Mutex::new(
-                                UnitGraph::new(Node::Sig(
-                                    Arc::new(Mutex::new(Gain {
-                                        v: 0.5,
-                                        src: Arc::new(Mutex::new(
-                                            UnitGraph::new(Node::Sig(
-                                                Arc::new(Mutex::new(Clip {
-                                                    min: 0.0, max: 1.0, src: u.clone(),
-                                                }))
-                                            ))
-                                        )),
-                                    }))
-                                ))
-                            )),
-                        }
-                    ))))
-                )),
+        Mut::amut(UnitGraph::new(Node::Osc(
+            Mut::amut(Phase {
+                root: Mut::amut(UnitGraph::new(Node::Sig(Mut::amut(Offset {
+                    v: 1.0,
+                    src: Mut::amut(UnitGraph::new(Node::Sig(
+                        Mut::amut(Gain {
+                            v: 0.5,
+                            src: Mut::amut(UnitGraph::new(Node::Sig(
+                                Mut::amut(Clip {
+                                    min: 0.0, max: 1.0, src: u.clone(),
+                                })
+                            ))),
+                        })
+                    ))),
+                })))),
                 osc: u.clone(),
-            }))
-        ))))
+            })
+        )))
     }
 }
 
 impl Unit for Phase {
     fn proc(&mut self, time: &Time) -> Signal {
-        let v = self.root.lock().unwrap().proc(time);
+        let v = self.root.0.lock().unwrap().proc(time);
         v
     }
 
     fn dump(&self) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.root.lock().unwrap().dump()));
-        vec.push(Box::new(self.osc.lock().unwrap().dump()));
+        vec.push(Box::new(self.root.0.lock().unwrap().dump()));
+        vec.push(Box::new(self.osc.0.lock().unwrap().dump()));
         Dump::Op("phase".to_string(), vec)
     }
 }
 
 impl Osc for Phase {
     fn set_freq(&mut self, freq: AUnit) {
-        if let Node::Osc(osc) = &self.osc.clone().lock().unwrap().node {
-            osc.lock().unwrap().set_freq(freq);
+        if let Node::Osc(osc) = &self.osc.clone().0.lock().unwrap().node {
+            osc.0.lock().unwrap().set_freq(freq);
         } else {
             self.osc = freq;
         }
@@ -259,20 +247,16 @@ impl WaveTable {
         let table_len = 256;
         let mut time = Time::new(table_len / 2, 120.0);
         for _i in 0..table_len {
-            let v = wave.lock().unwrap().proc(&time).0;
+            let v = wave.0.lock().unwrap().proc(&time).0;
             table.push(v);
             time.inc();
         }
-        Arc::new(Mutex::new(
-            UnitGraph::new(Node::Osc(
-                Arc::new(Mutex::new(
-                    WaveTable {
-                        table: table,
-                        ph: ph,
-                    }
-                ))
-            ))
-        ))
+        Mut::amut(UnitGraph::new(Node::Osc(
+            Mut::amut(WaveTable {
+                table: table,
+                ph: ph,
+            })
+        )))
     }
 }
 
@@ -284,7 +268,7 @@ fn linear_interpol(v1: f64, v2: f64, r: f64) -> f64 {
 impl Unit for WaveTable {
     fn proc(&mut self, time: &Time) -> Signal {
         let len = self.table.len() as f64;
-        let p = self.ph.lock().unwrap().proc(&time).0 * len;
+        let p = self.ph.0.lock().unwrap().proc(&time).0 * len;
         let pos1 = (p.floor() % len) as usize;
         let pos2 = (p.ceil() % len) as usize;
         let v = linear_interpol(self.table[pos1], self.table[pos2], p.fract());
@@ -294,15 +278,15 @@ impl Unit for WaveTable {
     fn dump(&self) -> Dump {
         let mut vec = Vec::new();
         vec.push(Box::new(self.table.dump()));
-        vec.push(Box::new(self.ph.lock().unwrap().dump()));
+        vec.push(Box::new(self.ph.0.lock().unwrap().dump()));
         Dump::Op("wavetable".to_string(), vec)
     }
 }
 
 impl Osc for WaveTable {
     fn set_freq(&mut self, freq: AUnit) {
-        if let Node::Osc(osc) = &self.ph.lock().unwrap().node {
-            osc.lock().unwrap().set_freq(freq);
+        if let Node::Osc(osc) = &self.ph.0.lock().unwrap().node {
+            osc.0.lock().unwrap().set_freq(freq);
         }
     }
 }

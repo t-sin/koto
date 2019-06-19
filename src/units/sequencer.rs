@@ -1,10 +1,9 @@
 use std::collections::VecDeque;
-use std::sync::{Arc, Mutex};
 
 use super::super::time::{Time, PosOps};
 use super::super::event::Event;
 
-use super::unit::{Signal, AUnit};
+use super::unit::{Signal, Mut, AUnit};
 use super::unit::{Dump, Unit, Node, UnitGraph, ADSR, Eg, Pattern};
 
 pub struct AdsrEg {
@@ -18,13 +17,13 @@ pub struct AdsrEg {
 
 impl AdsrEg {
     pub fn new(a: AUnit, d: AUnit, s: AUnit, r: AUnit) -> AUnit {
-        Arc::new(Mutex::new(UnitGraph::new(Node::Eg(
-            Arc::new(Mutex::new(AdsrEg {
+        Mut::amut(UnitGraph::new(Node::Eg(
+            Mut::amut(AdsrEg {
                 a: a, d: d, s: s, r: r,
                 state: ADSR::None,
                 eplaced: 0,
-            }))
-        ))))
+            })
+        )))
     }
 }
 
@@ -34,10 +33,10 @@ fn sec_to_sample_num(sec: f64, time: &Time) -> u64 {
 
 impl Unit for AdsrEg {
     fn proc(&mut self, time: &Time) -> Signal {
-        let a = sec_to_sample_num(self.a.lock().unwrap().proc(time).0, time);
-        let d = sec_to_sample_num(self.d.lock().unwrap().proc(time).0, time);
-        let s = self.s.lock().unwrap().proc(time).0;
-        let r = sec_to_sample_num(self.r.lock().unwrap().proc(time).0, time);
+        let a = sec_to_sample_num(self.a.0.lock().unwrap().proc(time).0, time);
+        let d = sec_to_sample_num(self.d.0.lock().unwrap().proc(time).0, time);
+        let s = self.s.0.lock().unwrap().proc(time).0;
+        let r = sec_to_sample_num(self.r.0.lock().unwrap().proc(time).0, time);
         let state = &self.state;
         let eplaced = self.eplaced;
         let v;
@@ -86,10 +85,10 @@ impl Unit for AdsrEg {
 
     fn dump(&self) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.a.lock().unwrap().dump()));
-        vec.push(Box::new(self.d.lock().unwrap().dump()));
-        vec.push(Box::new(self.s.lock().unwrap().dump()));
-        vec.push(Box::new(self.r.lock().unwrap().dump()));
+        vec.push(Box::new(self.a.0.lock().unwrap().dump()));
+        vec.push(Box::new(self.d.0.lock().unwrap().dump()));
+        vec.push(Box::new(self.s.0.lock().unwrap().dump()));
+        vec.push(Box::new(self.r.0.lock().unwrap().dump()));
         Dump::Op("adsr".to_string(), vec)
     }
 }
@@ -114,44 +113,39 @@ impl Seq {
         for e in pat.as_slice().iter() {
             queue.push_back(Box::new(*e.clone()))
         }
-        Arc::new(Mutex::new(
-            UnitGraph::new(Node::Sig(
-                Arc::new(Mutex::new(
-                    Seq {
-                        pattern: pat,
-                        queue: queue,
-                        osc: osc,
-                        eg: eg,
-                    }
-                ))
-            ))
-        ))
+        Mut::amut(UnitGraph::new(Node::Sig(
+            Mut::amut(Seq {
+                pattern: pat,
+                queue: queue,
+                osc: osc,
+                eg: eg,
+            })
+        )))
     }
 }
 
 impl Unit for Seq {
     fn proc(&mut self, time: &Time) -> Signal {
-        let (ol, or) = self.osc.lock().unwrap().proc(&time);
-        let (el, er) = self.eg.lock().unwrap().proc(&time);
+        let (ol, or) = self.osc.0.lock().unwrap().proc(&time);
+        let (el, er) = self.eg.0.lock().unwrap().proc(&time);
         let mut q = self.queue.iter().peekable();
         match q.peek() {
             Some(e) => match &***e {
                 Event::On(pos, _freq) => if pos <= &time.pos {
                     if let Event::On(_pos, freq) = *self.queue.pop_front().unwrap() {
-                        if let Node::Osc(osc) = &self.osc.lock().unwrap().node {
-                            osc.lock().unwrap().set_freq(
-                                Arc::new(Mutex::new(UnitGraph::new(Node::Val(freq))))
-                            );
+                        if let Node::Osc(osc) = &self.osc.0.lock().unwrap().node {
+                            osc.0.lock().unwrap().set_freq(
+                                Mut::amut(UnitGraph::new(Node::Val(freq))));
                         }
-                        if let Node::Eg(eg) = &self.eg.lock().unwrap().node {
-                            eg.lock().unwrap().set_state(ADSR::Attack, 0);
+                        if let Node::Eg(eg) = &self.eg.0.lock().unwrap().node {
+                            eg.0.lock().unwrap().set_state(ADSR::Attack, 0);
                         }
                     }
                 },
                 Event::Off(pos) => if pos <= &time.pos {
                     if let Event::Off(_pos) = *self.queue.pop_front().unwrap() {
-                        if let Node::Eg(eg) = &self.eg.lock().unwrap().node {
-                            eg.lock().unwrap().set_state(ADSR::Release, 0);
+                        if let Node::Eg(eg) = &self.eg.0.lock().unwrap().node {
+                            eg.0.lock().unwrap().set_state(ADSR::Release, 0);
                         }
                     }
                 },
@@ -182,8 +176,8 @@ impl Unit for Seq {
     fn dump(&self) -> Dump {
         let mut vec = Vec::new();
         vec.push(Box::new(self.pattern.dump()));
-        vec.push(Box::new(self.osc.lock().unwrap().dump()));
-        vec.push(Box::new(self.eg.lock().unwrap().dump()));
+        vec.push(Box::new(self.osc.0.lock().unwrap().dump()));
+        vec.push(Box::new(self.eg.0.lock().unwrap().dump()));
         Dump::Op("seq".to_string(), vec)
     }
 }
