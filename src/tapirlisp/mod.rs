@@ -1,6 +1,5 @@
 pub mod types;
 pub mod rp;
-pub mod make;
 pub mod eval;
 pub mod dump;
 
