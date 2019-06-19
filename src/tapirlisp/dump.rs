@@ -23,6 +23,13 @@ pub fn dump_one(dump: &Dump) -> String {
     }
 }
 
+pub fn search_shared_unit(ug: AUnit, searched: &mut Vec<AUnit>, shared: &mut Vec<AUnit>) {
+    ()
+}
+
 pub fn dump(ug: AUnit) -> String {
-    format!("{}", dump_one(&ug.0.lock().unwrap().dump()))
+    let mut searched_units = Vec::new();
+    let mut shared_units = Vec::new();
+    search_shared_unit(ug, &mut searched_units, &mut shared_units);
+    format!("searched are {}, shared are {}.", searched_units.len(), shared_units.len())
 }

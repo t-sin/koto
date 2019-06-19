@@ -28,7 +28,7 @@ pub enum Dump {
 
 pub type Signal = (f64, f64);
 
-pub trait Unit: Send {
+pub trait Unit {
     fn proc(&mut self, time: &Time) -> Signal;
     fn dump(&self) -> Dump;
 }
@@ -86,6 +86,8 @@ pub struct UnitGraph {
     pub node: Node,
 }
 
+pub type AUnit = Amut<UnitGraph>;
+
 impl PartialEq for UnitGraph {
     fn eq(&self, other: &Self) -> bool {
         self.node == other.node
@@ -102,8 +104,6 @@ impl UnitGraph {
         }
     }
 }
-
-pub type AUnit = Amut<UnitGraph>;
 
 impl Unit for Node {
     fn proc(&mut self, time: &Time) -> Signal {
