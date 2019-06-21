@@ -291,7 +291,7 @@ impl Phase {
 
 impl Walk for Phase {
     fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
-        if f(&self.root) { self.root.0.lock().unwrap().walk(f); }
+        if f(&self.osc) { self.osc.0.lock().unwrap().walk(f); }
     }
 }
 

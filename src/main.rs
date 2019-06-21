@@ -26,7 +26,8 @@ fn main() {
                 (g 2) (r 2) (a 1) (r 1) (r 1) (r 0) (a 0)
                 (b 2) (r 2) (c5 2) (r 2)
                 loop)))
-(def $osc1 (wavetable (saw 0 1) (phase (saw 0 440))))
+(def $osc-phase (saw 0 440))
+(def $osc1 (wavetable (saw 0 1) (phase $osc-phase)))
 (def $eg1 (adsr 0 (gain 0.2 (offset 1 (saw 0 0.25))) 0.0 0.1))
 
 (def $pat2 (pat ((c 2) (r 2) (c 2) (r 2) (c 2) (r 2) (c 2) (r 2) loop)))
@@ -34,7 +35,8 @@ fn main() {
 (def $eg2 (adsr 0 0.1 0.005 0))
 
 (+ (gain 0.3 (seq $pat1 $osc1 $eg1))
-   (gain 0.25 (seq $pat2 $osc2 $eg2)))
+   (gain 0.25 (seq $pat2 $osc2 $eg2))
+   (* $eg2 $osc-phase))
 ".to_string();
     let unit_graph = match tlisp::eval_all(tlisp::read(s).unwrap(), &mut env) {
         Ok(Value::Unit(ug)) => ug,
