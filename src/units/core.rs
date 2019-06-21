@@ -3,7 +3,7 @@ extern crate num;
 use super::super::time::Time;
 
 use super::unit::Signal;
-use super::unit::{Mut, Dump, Unit, Node, UnitGraph, AUnit};
+use super::unit::{Mut, Dump, Walk, Unit, Node, UnitGraph, AUnit};
 
 pub struct Pan {
     pub v: AUnit,
@@ -15,6 +15,13 @@ impl Pan {
         Mut::amut(UnitGraph::new(Node::Sig(
             Mut::amut(Pan { v: v, src: src })
         )))
+    }
+}
+
+impl Walk for Pan {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        if f(&self.v) { self.v.0.lock().unwrap().walk(f); }
+        if f(&self.src) { self.src.0.lock().unwrap().walk(f); }
     }
 }
 
@@ -54,6 +61,12 @@ impl Clip {
     }
 }
 
+impl Walk for Clip {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        if f(&self.src) { self.src.0.lock().unwrap().walk(f); }
+    }
+}
+
 impl Unit for Clip {
     fn proc(&mut self, time: &Time) -> Signal {
         let (l, r) = self.src.0.lock().unwrap().proc(&time);
@@ -79,6 +92,12 @@ impl Offset {
         Mut::amut(UnitGraph::new(Node::Sig(
             Mut::amut(Offset { v: v, src: src })
         )))
+    }
+}
+
+impl Walk for Offset {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        if f(&self.src) { self.src.0.lock().unwrap().walk(f); }
     }
 }
 
@@ -109,6 +128,12 @@ impl Gain {
     }
 }
 
+impl Walk for Gain {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        if f(&self.src) { self.src.0.lock().unwrap().walk(f); }
+    }
+}
+
 impl Unit for Gain {
     fn proc(&mut self, time: &Time) -> Signal {
         let (l, r) = self.src.0.lock().unwrap().proc(&time);
@@ -132,6 +157,14 @@ impl Add {
         Mut::amut(UnitGraph::new(Node::Sig(
             Mut::amut(Add { sources: sources })
         )))
+    }
+}
+
+impl Walk for Add {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        for s in self.sources.iter() {
+            if f(s) { s.0.lock().unwrap().walk(f); }
+        }
     }
 }
 
@@ -165,6 +198,14 @@ impl Multiply {
         Mut::amut(UnitGraph::new(Node::Sig(
             Mut::amut(Multiply { sources: sources })
         )))
+    }
+}
+
+impl Walk for Multiply {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        for s in self.sources.iter() {
+            if f(s) { s.0.lock().unwrap().walk(f); }
+        }
     }
 }
 

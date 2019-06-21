@@ -28,7 +28,11 @@ pub enum Dump {
 
 pub type Signal = (f64, f64);
 
-pub trait Unit {
+pub trait Walk {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool);
+}
+
+pub trait Unit: Walk {
     fn proc(&mut self, time: &Time) -> Signal;
     fn dump(&self) -> Dump;
 }
@@ -105,6 +109,17 @@ impl UnitGraph {
     }
 }
 
+impl Walk for Node {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        match self {
+            Node::Val(_) => (),
+            Node::Sig(u) => u.0.lock().unwrap().walk(f),
+            Node::Osc(u) => u.0.lock().unwrap().walk(f),
+            Node::Eg(u) => u.0.lock().unwrap().walk(f),
+        }
+    }
+}
+
 impl Unit for Node {
     fn proc(&mut self, time: &Time) -> Signal {
         match self {
@@ -159,7 +174,17 @@ impl Unit for UnitGraph {
     }
 }
 
+impl Walk for UnitGraph {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        self.node.walk(f);
+    }
+}
+
 pub type Table = Vec<f64>;
+
+impl Walk for Table {
+    fn walk(&self, _f: &mut FnMut(&AUnit) -> bool) {}
+}
 
 impl Unit for Table {
     fn proc(&mut self, _time: &Time) -> Signal {  // dummy
@@ -175,6 +200,10 @@ impl Unit for Table {
     }
 }
 
+impl Walk for Event {
+    fn walk(&self, _f: &mut FnMut(&AUnit) -> bool) {}
+}
+
 impl Unit for Event {
     fn proc(&mut self, _time: &Time) -> Signal {  // dummy
         (0.0, 0.0)
@@ -186,6 +215,10 @@ impl Unit for Event {
 }
 
 pub type Pattern = Vec<Box<Event>>;
+
+impl Walk for Pattern {
+    fn walk(&self, _f: &mut FnMut(&AUnit) -> bool) {}
+}
 
 impl Unit for Pattern {
     fn proc(&mut self, _time: &Time) -> Signal {  // dummy

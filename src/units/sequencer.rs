@@ -4,7 +4,7 @@ use super::super::time::{Time, PosOps};
 use super::super::event::Event;
 
 use super::unit::{Signal, Mut, AUnit};
-use super::unit::{Dump, Unit, Node, UnitGraph, ADSR, Eg, Pattern};
+use super::unit::{Walk, Dump, Unit, Node, UnitGraph, ADSR, Eg, Pattern};
 
 pub struct AdsrEg {
     a: AUnit,
@@ -29,6 +29,15 @@ impl AdsrEg {
 
 fn sec_to_sample_num(sec: f64, time: &Time) -> u64 {
     (time.sample_rate as f64 * sec) as u64
+}
+
+impl Walk for AdsrEg {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        if f(&self.a) { self.a.0.lock().unwrap().walk(f); }
+        if f(&self.d) { self.d.0.lock().unwrap().walk(f); }
+        if f(&self.s) { self.s.0.lock().unwrap().walk(f); }
+        if f(&self.r) { self.r.0.lock().unwrap().walk(f); }
+    }
 }
 
 impl Unit for AdsrEg {
@@ -121,6 +130,13 @@ impl Seq {
                 eg: eg,
             })
         )))
+    }
+}
+
+impl Walk for Seq {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        if f(&self.osc) { self.osc.0.lock().unwrap().walk(f); }
+        if f(&self.eg) {  self.eg.0.lock().unwrap().walk(f); }
     }
 }
 

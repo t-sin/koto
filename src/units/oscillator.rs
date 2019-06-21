@@ -5,7 +5,7 @@ use super::super::time::Time;
 use super::super::time::Clock;
 
 use super::unit::{Signal, Mut, AUnit};
-use super::unit::{Dump, Unit, Node, UnitGraph, Osc, Table};
+use super::unit::{Walk, Dump, Unit, Node, UnitGraph, Osc, Table};
 
 use super::core::{Clip, Gain, Offset};
 
@@ -23,6 +23,10 @@ impl Rand {
             })
         )))
     }
+}
+
+impl Walk for Rand {
+    fn walk(&self, _f: &mut FnMut(&AUnit) -> bool) {}
 }
 
 impl Unit for Rand {
@@ -51,6 +55,17 @@ impl Sine {
         Mut::amut(UnitGraph::new(Node::Osc(
             Mut::amut(Sine { init_ph: init_ph, ph: 0.0, freq: freq })
         )))
+    }
+}
+
+impl Walk for Sine {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        if f(&self.init_ph) {
+            self.init_ph.0.lock().unwrap().walk(f);
+        }
+        if f(&self.freq){
+            self.freq.0.lock().unwrap().walk(f);
+        }
     }
 }
 
@@ -89,6 +104,17 @@ impl Tri {
         Mut::amut(UnitGraph::new(Node::Osc(
             Mut::amut(Tri { init_ph: init_ph, ph: 0.0, freq: freq })
         )))
+    }
+}
+
+impl Walk for Tri {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        if f(&self.init_ph) {
+            self.init_ph.0.lock().unwrap().walk(f);
+        }
+        if f(&self.freq) {
+            self.freq.0.lock().unwrap().walk(f);
+        }
     }
 }
 
@@ -139,6 +165,17 @@ impl Saw {
     }
 }
 
+impl Walk for Saw {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        if f(&self.init_ph) {
+            self.init_ph.0.lock().unwrap().walk(f);
+        }
+        if f(&self.freq) {
+            self.freq.0.lock().unwrap().walk(f);
+        }
+    }
+}
+
 impl Unit for Saw {
     fn proc(&mut self, time: &Time) -> Signal {
         let ph = self.init_ph.0.lock().unwrap().proc(&time).0 + self.ph;
@@ -181,6 +218,14 @@ impl Pulse {
         Mut::amut(UnitGraph::new(Node::Osc(
             Mut::amut(Pulse { init_ph: init_ph, ph: 0.0, freq: freq, duty: duty})
         )))
+    }
+}
+
+impl Walk for Pulse {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        if f(&self.init_ph) { self.init_ph.0.lock().unwrap().walk(f); }
+        if f(&self.freq) { self.freq.0.lock().unwrap().walk(f); }
+        if f(&self.duty) { self.duty.0.lock().unwrap().walk(f); }
     }
 }
 
@@ -244,6 +289,12 @@ impl Phase {
     }
 }
 
+impl Walk for Phase {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        if f(&self.root) { self.root.0.lock().unwrap().walk(f); }
+    }
+}
+
 impl Unit for Phase {
     fn proc(&mut self, time: &Time) -> Signal {
         let v = self.root.0.lock().unwrap().proc(time);
@@ -295,6 +346,12 @@ impl WaveTable {
 fn linear_interpol(v1: f64, v2: f64, r: f64) -> f64 {
     let r = r % 1.0;
     v1 * r + v2 * (1.0 - r)
+}
+
+impl Walk for WaveTable {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        if f(&self.ph) { self.ph.0.lock().unwrap().walk(f); }
+    }
 }
 
 impl Unit for WaveTable {
