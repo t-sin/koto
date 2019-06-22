@@ -43,7 +43,7 @@ fn read_number(chars: &mut Peekable<Chars>) -> Result<Cons, ReadError> {
         let ch = chars.peek();
         match ch {
             Some(c) => {
-                if *c == '.' || c.is_digit(10) {
+                if *c == '.' || *c == '-' || c.is_digit(10) {
                     num.push(chars.next().unwrap());
                 } else {
                     break;
@@ -91,7 +91,7 @@ fn read_exp(chars: &mut Peekable<Chars>) -> Result<Cons, ReadError> {
         Some(')') => Err(ReadError::UnexpectedCloseParen),
         Some('(') => read_list(chars),
         Some(c) => {
-            if c.is_digit(10) {
+            if *c == '-' || c.is_digit(10) {
                 read_number(chars)
             } else {
                 read_symbol(chars)
