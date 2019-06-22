@@ -121,6 +121,7 @@ impl Unit for Offset {
 
     fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
+        vec.push(Box::new(Dump::Str(self.v.to_string())));
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.src)) {
             Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
             None => vec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
