@@ -12,8 +12,9 @@ pub fn dump_unit(dump: &Dump) -> String {
             s.push_str(&name[..]);
             s.push_str(" ");
             for (i, d) in vec.iter().enumerate() {
-                s.push_str(&dump_unit(&**d)[..]);
-                if i != vec.len() - 1 {
+                let dump = dump_unit(&**d);
+                s.push_str(&dump[..]);
+                if dump.len() != 0 && i != vec.len() - 1 {
                     s.push_str(" ");
                 }
             }
@@ -49,7 +50,6 @@ pub fn dump(ug: AUnit) -> String {
     // TODO: dump env
     tlisp_str.push_str(";; environment\n");
 
-    // dump shared units
     tlisp_str.push_str("\n;; shared units\n");
     for (idx, su) in shared_units.iter().enumerate() {
         let dumped = dump_unit(&su.0.lock().unwrap().dump(&shared_units, &shared_unit_map));
