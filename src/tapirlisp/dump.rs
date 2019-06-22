@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use super::super::units::unit::{Walk, Dump, Unit, Osc, Eg, AUnit, Node, UnitGraph};
@@ -28,9 +29,15 @@ pub fn dump_unit(dump: &Dump) -> String {
 pub fn dump(ug: AUnit) -> String {
     let mut searched_units: Vec<AUnit> = Vec::new();
     let mut shared_units: Vec<AUnit> = Vec::new();
+    let mut shared_unit_map = HashMap::new();
+    let mut shared_id = 0;
+
     (*ug.0.lock().unwrap()).walk(&mut |u: &AUnit| {
-        match searched_units.iter_mut().find(|e| Arc::ptr_eq(e, &u)) {
-            Some(u) => {
+        match searched_units.iter().position(|e| Arc::ptr_eq(e, u)) {
+            Some(idx) => {
+                let u = searched_units[idx].clone();
+                shared_unit_map.insert(shared_units.len(), format!("$shared{}", shared_id));
+                shared_id += 1;
                 shared_units.push(u.clone());
                 false
             },
@@ -40,17 +47,20 @@ pub fn dump(ug: AUnit) -> String {
             },
         }
     });
+
     let mut tlisp_str = String::new();
     // TODO: dump env
     tlisp_str.push_str(";; environment\n");
     // dump shared units
     tlisp_str.push_str("\n;; shared units\n");
-    for su in shared_units.iter() {
-        // TODO: definition name
-        tlisp_str.push_str(&format!("(def $hoge {})\n", dump_unit(&su.0.lock().unwrap().dump())));
+    for (idx, su) in shared_units.iter().enumerate() {
+        let dumped = dump_unit(&su.0.lock().unwrap().dump(&shared_units, &shared_unit_map));
+        let name = shared_unit_map.get(&idx).unwrap().to_string();
+        tlisp_str.push_str(&format!("(def {} {})\n", name, dumped));
     }
     // TOOD: dump unit graph
     tlisp_str.push_str("\n;; unit graph\n");
-    tlisp_str.push_str(&format!("{}\n", dump_unit(&ug.0.lock().unwrap().dump())));
+    let dumped = dump_unit(&ug.0.lock().unwrap().dump(&shared_units, &shared_unit_map));
+    tlisp_str.push_str(&format!("{}\n", dumped));
     format!("{}", tlisp_str)
 }

@@ -1,5 +1,8 @@
 extern crate num;
 
+use std::collections::HashMap;
+use std::sync::Arc;
+
 use super::super::time::Time;
 
 use super::unit::Signal;
@@ -39,10 +42,16 @@ impl Unit for Pan {
         }
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.v.0.lock().unwrap().dump()));
-        vec.push(Box::new(self.src.0.lock().unwrap().dump()));
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.v)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.src)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
         Dump::Op("pan".to_string(), vec)
     }
 }
@@ -73,11 +82,14 @@ impl Unit for Clip {
         (num::clamp(l, self.min, self.max), num::clamp(r, self.min, self.max))
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
         vec.push(Box::new(Dump::Str(self.min.to_string())));
         vec.push(Box::new(Dump::Str(self.max.to_string())));
-        vec.push(Box::new(self.src.0.lock().unwrap().dump()));
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.src)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
         Dump::Op("clip".to_string(), vec)
     }
 }
@@ -107,10 +119,12 @@ impl Unit for Offset {
         (l + self.v, r + self.v)
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(Dump::Str(self.v.to_string())));
-        vec.push(Box::new(self.src.0.lock().unwrap().dump()));
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.src)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
         Dump::Op("offset".to_string(), vec)
     }
 }
@@ -140,10 +154,13 @@ impl Unit for Gain {
         (l * self.v, r * self.v)
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
         vec.push(Box::new(Dump::Str(self.v.to_string())));
-        vec.push(Box::new(self.src.0.lock().unwrap().dump()));
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.src)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
         Dump::Op("gain".to_string(), vec)
     }
 }
@@ -180,10 +197,13 @@ impl Unit for Add {
         (l, r)
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
         for u in self.sources.iter() {
-            vec.push(Box::new(u.0.lock().unwrap().dump()));
+            match shared_vec.iter().position(|e| e == u) {
+                Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+                None => vec.push(Box::new(u.0.lock().unwrap().dump(shared_vec, shared_map))),
+            };
         }
         Dump::Op("+".to_string(), vec)
     }
@@ -221,10 +241,13 @@ impl Unit for Multiply {
         (l, r)
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
         for u in self.sources.iter() {
-            vec.push(Box::new(u.0.lock().unwrap().dump()));
+            match shared_vec.iter().position(|e| e == u) {
+                Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+                None => vec.push(Box::new(u.0.lock().unwrap().dump(shared_vec, shared_map))),
+            };
         }
         Dump::Op("*".to_string(), vec)
     }

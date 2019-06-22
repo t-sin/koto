@@ -1,4 +1,6 @@
+use std::collections::HashMap;
 use std::collections::VecDeque;
+use std::sync::Arc;
 
 use super::super::time::{Time, PosOps};
 use super::super::event::Event;
@@ -92,12 +94,24 @@ impl Unit for AdsrEg {
         (v, v)
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.a.0.lock().unwrap().dump()));
-        vec.push(Box::new(self.d.0.lock().unwrap().dump()));
-        vec.push(Box::new(self.s.0.lock().unwrap().dump()));
-        vec.push(Box::new(self.r.0.lock().unwrap().dump()));
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.a)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.a.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.d)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.d.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.s)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.s.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.r)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.r.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
         Dump::Op("adsr".to_string(), vec)
     }
 }
@@ -189,11 +203,17 @@ impl Unit for Seq {
         ((ol * el), (or * er))
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.pattern.dump()));
-        vec.push(Box::new(self.osc.0.lock().unwrap().dump()));
-        vec.push(Box::new(self.eg.0.lock().unwrap().dump()));
+        vec.push(Box::new(self.pattern.dump(shared_vec, shared_map)));
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.osc)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.osc.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.eg)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.eg.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
         Dump::Op("seq".to_string(), vec)
     }
 }

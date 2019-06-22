@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use std::sync::Arc;
+
 use rand::{Rng, SeedableRng};
 use rand::rngs::SmallRng;
 
@@ -35,7 +38,7 @@ impl Unit for Rand {
         (self.v, self.v)
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         Dump::Op("rand".to_string(), vec![Box::new(Dump::Str(self.v.to_string()))])
     }
 }
@@ -79,10 +82,16 @@ impl Unit for Sine {
         (v, v)
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.init_ph.0.lock().unwrap().dump()));
-        vec.push(Box::new(self.freq.0.lock().unwrap().dump()));
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.init_ph)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.init_ph.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.freq)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.freq.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
         Dump::Op("sine".to_string(), vec)
     }
 }
@@ -137,10 +146,16 @@ impl Unit for Tri {
         (v, v)
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.init_ph.0.lock().unwrap().dump()));
-        vec.push(Box::new(self.freq.0.lock().unwrap().dump()));
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.init_ph)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.init_ph.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.freq)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.freq.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
         Dump::Op("tri".to_string(), vec)
     }
 }
@@ -192,10 +207,16 @@ impl Unit for Saw {
         (v, v)
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.init_ph.0.lock().unwrap().dump()));
-        vec.push(Box::new(self.freq.0.lock().unwrap().dump()));
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.init_ph)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.init_ph.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.freq)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.freq.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
         Dump::Op("saw".to_string(), vec)
     }
 }
@@ -246,11 +267,20 @@ impl Unit for Pulse {
         (v, v)
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.init_ph.0.lock().unwrap().dump()));
-        vec.push(Box::new(self.freq.0.lock().unwrap().dump()));
-        vec.push(Box::new(self.duty.0.lock().unwrap().dump()));
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.init_ph)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.init_ph.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.freq)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.freq.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.duty)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.duty.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
         Dump::Op("pulse".to_string(), vec)
     }
 }
@@ -301,10 +331,16 @@ impl Unit for Phase {
         v
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.root.0.lock().unwrap().dump()));
-        vec.push(Box::new(self.osc.0.lock().unwrap().dump()));
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.root)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.root.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.osc)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.osc.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
         Dump::Op("phase".to_string(), vec)
     }
 }
@@ -364,10 +400,13 @@ impl Unit for WaveTable {
         (v, v)
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.table.dump()));
-        vec.push(Box::new(self.ph.0.lock().unwrap().dump()));
+        vec.push(Box::new(self.table.dump(shared_vec, shared_map)));
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.ph)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.ph.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
         Dump::Op("wavetable".to_string(), vec)
     }
 }

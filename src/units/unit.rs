@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::cmp::{PartialEq, Eq};
 use std::sync::{Arc, Mutex};
 
@@ -34,7 +35,7 @@ pub trait Walk {
 
 pub trait Unit: Walk {
     fn proc(&mut self, time: &Time) -> Signal;
-    fn dump(&self) -> Dump;
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump;
 }
 
 pub trait Osc: Unit {
@@ -130,13 +131,13 @@ impl Unit for Node {
         }
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         match self {
             Node::Val(v) => Dump::Str(v.to_string()),
-            Node::Sig(u) => u.0.lock().unwrap().dump(),
-            Node::Osc(u) => u.0.lock().unwrap().dump(),
-            Node::Eg(u) => u.0.lock().unwrap().dump(),
-        }
+            Node::Sig(u) => u.0.lock().unwrap().dump(shared_vec, shared_map),
+            Node::Osc(u) => u.0.lock().unwrap().dump(shared_vec, shared_map),
+            Node::Eg(u) => u.0.lock().unwrap().dump(shared_vec, shared_map),
+         }
     }
 }
 
@@ -169,8 +170,8 @@ impl Unit for UnitGraph {
         }
     }
 
-    fn dump(&self) -> Dump {
-        self.node.dump()
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
+        self.node.dump(shared_vec, shared_map)
     }
 }
 
@@ -191,7 +192,7 @@ impl Unit for Table {
         (0.0, 0.0)
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
         for v in self.iter() {
             vec.push(Box::new(Dump::Str(v.to_string())));
@@ -208,7 +209,7 @@ impl Unit for Event {
     fn proc(&mut self, _time: &Time) -> Signal {  // dummy
         (0.0, 0.0)
     }
-    fn dump(&self) -> Dump {
+    fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> Dump {
         // TODO: dump event
         Dump::Str("event".to_string())
     }
@@ -225,10 +226,10 @@ impl Unit for Pattern {
         (0.0, 0.0)
     }
 
-    fn dump(&self) -> Dump {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
         for ev in self.iter() {
-            vec.push(Box::new(ev.dump()));
+            vec.push(Box::new(ev.dump(shared_vec, shared_map)));
         }
         Dump::Op("pat".to_string(), vec)
     }
