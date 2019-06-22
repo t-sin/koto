@@ -38,7 +38,7 @@ impl Unit for Rand {
         (self.v, self.v)
     }
 
-    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
+    fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> Dump {
         Dump::Op("rand".to_string(), vec![Box::new(Dump::Str(self.v.to_string()))])
     }
 }
