@@ -112,3 +112,8 @@ pub fn to_pos(len: u32) -> Pos {
     };
     Pos { bar: 0, beat: 0, pos: pos }
 }
+
+pub fn to_len(pos: &Pos) -> String {
+    let Pos { bar: bar, beat: beat, pos: pos } = pos;
+    "1".to_string()
+}
