@@ -165,7 +165,7 @@ fn make_saw(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
             Err(err) => Err(err),
         }
     } else {
-        Err(EvalError::FnWrongParams(String::from("tri"), args))
+        Err(EvalError::FnWrongParams(String::from("saw"), args))
     }
  }
 
