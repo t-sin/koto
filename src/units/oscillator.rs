@@ -333,10 +333,6 @@ impl Unit for Phase {
 
     fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
-        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.root)) {
-            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
-            None => vec.push(Box::new(self.root.0.lock().unwrap().dump(shared_vec, shared_map))),
-        }
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.osc)) {
             Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
             None => vec.push(Box::new(self.osc.0.lock().unwrap().dump(shared_vec, shared_map))),
