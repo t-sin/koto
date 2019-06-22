@@ -369,13 +369,9 @@ fn eval_call(name: &Cons, args: &Cons, env: &mut Env) -> Result<Value, EvalError
     match name {
         Cons::Symbol(name) if &name[..] == "pat" => {
             let vec = to_vec(&args);
-            if vec.len() == 1 {
-                match eval_events(to_vec(&vec[0]), env) {
-                    Ok(ev) => Ok(Value::Pattern(ev)),
-                    Err(err) => Err(err),
-                }
-            } else {
-                Err(EvalError::FnWrongParams("pat".to_string(), vec))
+            match eval_events(vec, env) {
+                Ok(ev) => Ok(Value::Pattern(ev)),
+                Err(err) => Err(err),
             }
         },
         Cons::Symbol(name) if &name[..] == "table" => {
