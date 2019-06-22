@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 
 use super::super::time::{Time, PosOps};
-use super::super::event::Event;
+use super::super::event::{Event, to_freq};
 
 use super::unit::{Signal, Mut, AUnit};
 use super::unit::{Walk, Dump, Unit, Node, UnitGraph, ADSR, Eg, Pattern};
@@ -161,11 +161,11 @@ impl Unit for Seq {
         let mut q = self.queue.iter().peekable();
         match q.peek() {
             Some(e) => match &***e {
-                Event::On(pos, _freq) => if pos <= &time.pos {
-                    if let Event::On(_pos, freq) = *self.queue.pop_front().unwrap() {
+                Event::On(pos, _note) => if pos <= &time.pos {
+                    if let Event::On(_pos, note) = *self.queue.pop_front().unwrap() {
                         if let Node::Osc(osc) = &self.osc.0.lock().unwrap().node {
                             osc.0.lock().unwrap().set_freq(
-                                Mut::amut(UnitGraph::new(Node::Val(freq))));
+                                Mut::amut(UnitGraph::new(Node::Val(to_freq(&note)))));
                         }
                         if let Node::Eg(eg) = &self.eg.0.lock().unwrap().node {
                             eg.0.lock().unwrap().set_state(ADSR::Attack, 0);
@@ -184,8 +184,8 @@ impl Unit for Seq {
                         let q = &mut self.queue;
                         self.pattern.iter().for_each(|ev| {
                             q.push_back(match &**ev {
-                                Event::On(pos, freq) => {
-                                    Box::new(Event::On(pos.add((time.pos.bar, 0, 0.0), &time.measure), *freq))
+                                Event::On(pos, note) => {
+                                    Box::new(Event::On(pos.add((time.pos.bar, 0, 0.0), &time.measure), note.clone()))
                                 },
                                 Event::Off(pos) => {
                                     Box::new(Event::Off(pos.add((time.pos.bar, 0, 0.0), &time.measure)))

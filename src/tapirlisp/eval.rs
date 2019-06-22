@@ -309,7 +309,7 @@ pub fn make_event(e: &Cons, pos: &mut Pos, env: &mut Env) -> Result<Vec<Box<Even
                             *pos = pos.add(len, &env.time.measure);
                         },
                         n => {
-                            ev.push(Box::new(Event::On(pos.clone(), to_freq(&n))));
+                            ev.push(Box::new(Event::On(pos.clone(), n)));
                             *pos = pos.add(len, &env.time.measure);
                             ev.push(Box::new(Event::Off(pos.clone())));
                         },

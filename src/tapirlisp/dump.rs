@@ -48,6 +48,7 @@ pub fn dump(ug: AUnit) -> String {
     let mut tlisp_str = String::new();
     // TODO: dump env
     tlisp_str.push_str(";; environment\n");
+
     // dump shared units
     tlisp_str.push_str("\n;; shared units\n");
     for (idx, su) in shared_units.iter().enumerate() {
@@ -55,7 +56,7 @@ pub fn dump(ug: AUnit) -> String {
         let name = shared_unit_map.get(&idx).unwrap().to_string();
         tlisp_str.push_str(&format!("(def {} {})\n", name, dumped));
     }
-    // TOOD: dump unit graph
+
     tlisp_str.push_str("\n;; unit graph\n");
     let dumped = dump_unit(&ug.0.lock().unwrap().dump(&shared_units, &shared_unit_map));
     tlisp_str.push_str(&format!("{}\n", dumped));

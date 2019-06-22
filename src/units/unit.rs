@@ -3,7 +3,7 @@ use std::cmp::{PartialEq, Eq};
 use std::sync::{Arc, Mutex};
 
 use super::super::time::Time;
-use super::super::event::Event;
+use super::super::event::{Event, to_str};
 
 pub struct Mut<T: ?Sized> (pub Mutex<T>);
 type Amut<T> = Arc<Mut<T>>;
@@ -210,8 +210,11 @@ impl Unit for Event {
         (0.0, 0.0)
     }
     fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> Dump {
-        // TODO: dump event
-        Dump::Str("event".to_string())
+        match self {
+            Event::On(_pos, note) => Dump::Str(to_str(note)),
+            Event::Off(_pos) => Dump::Str("".to_string()),
+            Event::Loop(_pos) => Dump::Str("loop".to_string()),
+        }
     }
 }
 

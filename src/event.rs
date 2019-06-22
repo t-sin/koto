@@ -4,7 +4,7 @@ pub type Freq = f64;
 
 #[derive(Debug)]
 pub enum Event {
-    On(Pos, Freq),
+    On(Pos, Note),
     Off(Pos),
     Loop(Pos),
 }
@@ -12,7 +12,7 @@ pub enum Event {
 impl Clone for Event {
     fn clone(&self) -> Self {
         match self {
-            Event::On(pos, freq) => Event::On(pos.clone(), *freq),
+            Event::On(pos, note) => Event::On(pos.clone(), note.clone()),
             Event::Off(pos) => Event::Off(pos.clone()),
             Event::Loop(pos) => Event::Loop(pos.clone()),
         }
@@ -22,6 +22,7 @@ impl Clone for Event {
 pub type NoteNum = u32;
 pub type Octave = u32;
 
+#[derive(Debug, Clone)]
 pub enum Note {
     Note(NoteNum, Octave),
     Rest,
@@ -65,6 +66,32 @@ pub fn to_note(name: &str) -> Note {
             _ => note,
         }
     }
+}
+
+pub fn to_str(note: &Note) -> String {
+    let mut s = String::new();
+    match note {
+        Note::Note(0, _) => s.push_str("a"),
+        Note::Note(1, _) => s.push_str("a+"),
+        Note::Note(2, _) => s.push_str("b"),
+        Note::Note(3, _) => s.push_str("c"),
+        Note::Note(4, _) => s.push_str("c+"),
+        Note::Note(5, _) => s.push_str("d"),
+        Note::Note(6, _) => s.push_str("d+"),
+        Note::Note(7, _) => s.push_str("e"),
+        Note::Note(8, _) => s.push_str("f"),
+        Note::Note(9, _) => s.push_str("f+"),
+        Note::Note(10, _) => s.push_str("g"),
+        Note::Note(11, _) => s.push_str("g+"),
+        Note::Note(n, _) => panic!("invalid note number: {:?}", n),
+        Note::Rest => s.push_str("r"),
+    }
+    match note {
+        Note::Note(_, o) if *o >= 0 && *o < 8 => s.push_str(&o.to_string()),
+        Note::Note(_, o) => panic!("invalid octave: {:?}", o),
+        Note::Rest => (),
+    }
+    s
 }
 
 pub fn to_freq(note: &Note) -> Freq {
