@@ -206,8 +206,13 @@ fn make_phase(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
 fn make_wavetable(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     if args.len() == 2 {
         match eval(&args[0], env) {
-            Ok(Value::Unit(table)) => match eval(&args[1], env) {
-                Ok(Value::Unit(osc)) => Ok(WaveTable::new(table, osc)),
+            Ok(Value::Unit(osc)) => match eval(&args[1], env) {
+                Ok(Value::Unit(ph)) => Ok(WaveTable::from_osc(osc, ph)),
+                Ok(_v) => Err(EvalError::NotAUnit),
+                Err(err) => Err(err),
+            },
+            Ok(Value::Table(table)) => match eval(&args[1], env) {
+                Ok(Value::Unit(ph)) => Ok(WaveTable::from_table(table, ph)),
                 Ok(_v) => Err(EvalError::NotAUnit),
                 Err(err) => Err(err),
             },
@@ -371,6 +376,21 @@ fn eval_call(name: &Cons, args: &Cons, env: &mut Env) -> Result<Value, EvalError
                 }
             } else {
                 Err(EvalError::FnWrongParams("pat".to_string(), vec))
+            }
+        },
+        Cons::Symbol(name) if &name[..] == "table" => {
+            let vec = to_vec(&args);
+            let mut table = Vec::new();
+            if vec.len() > 0 {
+                for s in vec.iter() {
+                    match **s {
+                        Cons::Number(n) => table.push(n),
+                        _ => return Err(EvalError::NotANumber(print(s))),
+                    }
+                }
+                Ok(Value::Table(table))
+            } else {
+                Err(EvalError::FnWrongParams("table".to_string(), vec))
             }
         },
         Cons::Symbol(name) if &name[..] == "def" => {

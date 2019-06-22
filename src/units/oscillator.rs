@@ -361,15 +361,24 @@ pub struct WaveTable {
 }
 
 impl WaveTable {
-    pub fn new(wave: AUnit, ph: AUnit) -> AUnit {
+    pub fn from_osc(osc: AUnit, ph: AUnit) -> AUnit {
         let mut table = Vec::new();
         let table_len = 256;
         let mut time = Time::new(table_len / 2, 120.0);
         for _i in 0..table_len {
-            let v = wave.0.lock().unwrap().proc(&time).0;
+            let v = osc.0.lock().unwrap().proc(&time).0;
             table.push(v);
             time.inc();
         }
+        Mut::amut(UnitGraph::new(Node::Osc(
+            Mut::amut(WaveTable {
+                table: table,
+                ph: ph,
+            })
+        )))
+    }
+
+    pub fn from_table(table: Table, ph: AUnit) -> AUnit {
         Mut::amut(UnitGraph::new(Node::Osc(
             Mut::amut(WaveTable {
                 table: table,
