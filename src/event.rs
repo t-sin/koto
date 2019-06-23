@@ -70,26 +70,28 @@ pub fn to_note(name: &str) -> Note {
 
 pub fn to_str(note: &Note) -> String {
     let mut s = String::new();
+    let mut oct_fn = |o: u32, s: &mut String| {
+        if o >= 0 && o < 8 {
+            s.push_str(&o.to_string());
+        } else {
+            panic!("invalid octave: {:?}", o);
+        };
+    };
     match note {
-        Note::Note(0, _) => s.push_str("a"),
-        Note::Note(1, _) => s.push_str("a+"),
-        Note::Note(2, _) => s.push_str("b"),
-        Note::Note(3, _) => s.push_str("c"),
-        Note::Note(4, _) => s.push_str("c+"),
-        Note::Note(5, _) => s.push_str("d"),
-        Note::Note(6, _) => s.push_str("d+"),
-        Note::Note(7, _) => s.push_str("e"),
-        Note::Note(8, _) => s.push_str("f"),
-        Note::Note(9, _) => s.push_str("f+"),
-        Note::Note(10, _) => s.push_str("g"),
-        Note::Note(11, _) => s.push_str("g+"),
+        Note::Note(0, o) => { s.push_str("a"); oct_fn(*o - 1, &mut s) },
+        Note::Note(1, o) => { s.push_str("a+"); oct_fn(*o - 1, &mut s) }
+        Note::Note(2, o) => { s.push_str("b"); oct_fn(*o - 1, &mut s) }
+        Note::Note(3, o) => { s.push_str("c"); oct_fn(*o, &mut s) }
+        Note::Note(4, o) => { s.push_str("c+"); oct_fn(*o, &mut s) }
+        Note::Note(5, o) => { s.push_str("d"); oct_fn(*o, &mut s) }
+        Note::Note(6, o) => { s.push_str("d+"); oct_fn(*o, &mut s) }
+        Note::Note(7, o) => { s.push_str("e"); oct_fn(*o, &mut s) }
+        Note::Note(8, o) => { s.push_str("f"); oct_fn(*o, &mut s) }
+        Note::Note(9, o) => { s.push_str("f+"); oct_fn(*o, &mut s) }
+        Note::Note(10, o) => { s.push_str("g"); oct_fn(*o, &mut s) }
+        Note::Note(11, o) => { s.push_str("g+"); oct_fn(*o, &mut s) }
         Note::Note(n, _) => panic!("invalid note number: {:?}", n),
         Note::Rest => s.push_str("r"),
-    }
-    match note {
-        Note::Note(_, o) if *o >= 0 && *o < 8 => s.push_str(&o.to_string()),
-        Note::Note(_, o) => panic!("invalid octave: {:?}", o),
-        Note::Rest => (),
     }
     s
 }
