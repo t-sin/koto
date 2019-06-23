@@ -1,5 +1,5 @@
 use super::super::time::{Pos, PosOps};
-use super::super::event::{Event, Note, to_note, to_freq, to_pos};
+use super::super::event::{Event, Note, to_note, to_pos};
 
 use super::super::units::unit::{Mut, AUnit, Node, UnitGraph};
 use super::super::units::core::{Pan, Clip, Offset, Gain, Add, Multiply};
