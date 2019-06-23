@@ -1,4 +1,4 @@
-use super::time::{Pos};
+use super::time::{Pos, Measure};
 
 pub type Freq = f64;
 
@@ -115,7 +115,13 @@ pub fn to_pos(len: u32) -> Pos {
     Pos { bar: 0, beat: 0, pos: pos }
 }
 
-pub fn to_len(pos: &Pos) -> String {
-    let Pos { bar: bar, beat: beat, pos: pos } = pos;
-    "1".to_string()
+pub fn to_len(p: &Pos, measure: &Measure) -> String {
+    let Pos { bar: bar, beat: beat, pos: pos } = p;
+
+    let bar_beat = bar * measure.beat;
+    let beat_pos = ((bar_beat + beat) * measure.note) as f64 + pos;
+
+    println!("(pos, beat_pos) = ({:?}, {})", p, beat_pos);
+
+    beat_pos.to_string()
 }

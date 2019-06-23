@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::cmp::{PartialEq, Eq};
 use std::sync::{Arc, Mutex};
 
-use super::super::time::Time;
-use super::super::event::{Event, to_str, to_len};
+use super::super::time::{Time, Pos};
+use super::super::event::{Event, Note, to_str, to_len};
 
 pub struct Mut<T: ?Sized> (pub Mutex<T>);
 type Amut<T> = Arc<Mut<T>>;
@@ -205,19 +205,6 @@ impl Walk for Event {
     fn walk(&self, _f: &mut FnMut(&AUnit) -> bool) {}
 }
 
-impl Unit for Event {
-    fn proc(&mut self, _time: &Time) -> Signal {  // dummy
-        (0.0, 0.0)
-    }
-    fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> Dump {
-        match self {
-            Event::On(pos, note) => Dump::Str(format!("({} {})", to_str(note), to_len(pos))),
-            Event::Off(_pos) => Dump::Str("".to_string()),
-            Event::Loop(_pos) => Dump::Str("loop".to_string()),
-        }
-    }
-}
-
 pub type Pattern = Vec<Box<Event>>;
 
 impl Walk for Pattern {
@@ -229,10 +216,28 @@ impl Unit for Pattern {
         (0.0, 0.0)
     }
 
-    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
+    fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
+        let m = super::super::time::Measure { beat: 4, note: 4 };
+        let mut prev_pos = Pos { bar: 0, beat: 0, pos: 0.0 };
+        let mut prev_note = Note::Note(0, 0);
+
+        println!("hey");
         for ev in self.iter() {
-            vec.push(Box::new(ev.dump(shared_vec, shared_map)));
+            match &**ev {
+                Event::On(pos, note) => {
+                    // WIP
+                    // match prev_note {
+                    //     Note::Re(_, _) => 
+                    // }
+                    prev_pos = pos.clone();
+                    prev_note = note.clone();
+                },
+                Event::Off(pos) => {
+                    vec.push(Box::new(Dump::Str(format!("({} {})", to_str(&note), to_len(&pos, &m)))));
+                },
+                Event::Loop(_) => vec.push(Box::new(Dump::Str("loop".to_string()))),
+            }
         }
         Dump::Op("pat".to_string(), vec)
     }
