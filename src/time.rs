@@ -34,6 +34,7 @@ pub struct Time {
 
 pub trait PosOps<T> {
     fn add(&self, other: T, measure: &Measure) -> Pos;
+    fn sub(&self, other: T, measure: &Measure) -> Pos;
 }
 
 impl PosOps<Pos> for Pos {
@@ -47,6 +48,18 @@ impl PosOps<Pos> for Pos {
 
         Pos { bar: new_bar, beat: new_beat, pos: new_pos }
     }
+
+    fn sub(&self, other: Pos, measure: &Measure) -> Pos {
+        let spos = ((self.bar * measure.beat + self.beat) * measure.note) as f64 + self.pos;
+        let opos = ((other.bar * measure.beat + other.beat) * measure.note) as f64 + other.pos;
+        let pos_diff = spos - opos;
+
+        let new_pos = pos_diff.fract();
+        let new_beat = pos_diff.trunc() as u64 / measure.note % measure.beat;
+        let new_bar = pos_diff.trunc() as u64 / measure.note / measure.beat;
+
+        Pos { bar: new_bar, beat: new_beat, pos: new_pos }
+    }
 }
 
 impl PosOps<(u64, u64, f64)> for Pos {
@@ -54,11 +67,20 @@ impl PosOps<(u64, u64, f64)> for Pos {
         let t = Pos { bar: other.0, beat: other.1, pos: other.2 };
         self.add(t, &measure)
     }
+
+    fn sub(&self, other: (u64, u64, f64), measure: &Measure) -> Pos {
+        let t = Pos { bar: other.0, beat: other.1, pos: other.2 };
+        self.sub(t, &measure)
+    }
 }
 
 impl PosOps<f64> for Pos {
     fn add(&self, other: f64, measure: &Measure) -> Pos {
         self.add((0, 0, other), &measure)
+    }
+
+    fn sub(&self, other: f64, measure: &Measure) -> Pos {
+        self.sub((0, 0, other), &measure)
     }
 }
 
