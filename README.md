@@ -21,12 +21,11 @@
     - [x] Events (notes, fx values)
     - [x] Sequencers
     - [x] MML-like score description
-- [ ] SAVE the graph
+- [x] SAVE the graph
     - [x] Lisp reader/printer
     - [x] Construct unit graph (with cheap `eval`)
-    - [ ] Value and simple calculation
     - [x] Global binding and `def` (with unit sharing)
-    - [ ] SAVE the graph
+    - [x] SAVE the graph
 - [ ] FUSE interfaces
     - [ ] Map unit graph into filesystem (read only)
     - [ ] Unit manipulation
