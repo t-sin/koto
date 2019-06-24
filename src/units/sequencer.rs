@@ -198,9 +198,7 @@ impl Unit for Seq {
                     }
                 },
                 Event::Loop(pos) => if pos <= &time.pos {
-                    let base = pos.clone().add(
-                        Pos { bar: time.pos.bar, beat: 0, pos: 0.0 }, &time.measure
-                    );
+                    let base = Pos { bar: time.pos.bar, beat: 0, pos: 0.0 };
                     self.queue.pop_front().unwrap();
                     self.fill_queue(&base, &time.measure);
                 },
