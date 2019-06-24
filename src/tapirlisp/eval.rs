@@ -1,5 +1,5 @@
 use super::super::time::{Pos, PosOps};
-use super::super::event::{Event, Note, to_note, to_pos};
+use super::super::event::{Message, Pitch, to_note, to_pos};
 
 use super::super::units::unit::{Mut, AUnit, Node, UnitGraph};
 use super::super::units::core::{Pan, Clip, Offset, Gain, Add, Multiply};
@@ -255,7 +255,7 @@ fn make_seq(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
         match eval(&args[0], env) {
             Ok(Value::Pattern(pat)) => match eval(&args[1], env) {
                 Ok(Value::Unit(osc)) => match eval(&args[2], env) {
-                    Ok(Value::Unit(eg)) => Ok(Seq::new(pat, osc, eg)),
+                    Ok(Value::Unit(eg)) => Ok(Seq::new(pat, osc, eg, &env.time)),
                     Ok(_v) => Err(EvalError::NotAUnit),
                     Err(err) => Err(err),
                 },
@@ -294,26 +294,17 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUni
     }
 }
 
-pub fn make_event(e: &Cons, pos: &mut Pos, env: &mut Env) -> Result<Vec<Box<Event>>, EvalError> {
+pub fn make_msg(e: &Cons, env: &mut Env) -> Result<Vec<Box<Message>>, EvalError> {
     let mut ev = Vec::new();
     match e {
         Cons::Cons(name, cdr) => {
-            if let Cons::Symbol(n) = &**name {
+            if let Cons::Symbol(pitch) = &**name {
                 if let Cons::Cons(len, _) = &**cdr {
                     let len = match &**len {
                         Cons::Number(l) => to_pos(*l as u32),
                         _ => to_pos(4),
                     };
-                    match to_note(&n) {
-                        Note::Rest => {
-                            *pos = pos.add(len, &env.time.measure);
-                        },
-                        n => {
-                            ev.push(Box::new(Event::On(pos.clone(), n)));
-                            *pos = pos.add(len, &env.time.measure);
-                            ev.push(Box::new(Event::Off(pos.clone())));
-                        },
-                    }
+                    ev.push(Box::new(Message::Note(to_note(pitch), len)));
                 } else {
                     // without length
                 }
@@ -323,7 +314,7 @@ pub fn make_event(e: &Cons, pos: &mut Pos, env: &mut Env) -> Result<Vec<Box<Even
         },
         Cons::Symbol(name) => {
             match &name[..] {
-                "loop" => ev.push(Box::new(Event::Loop(pos.clone()))),
+                "loop" => ev.push(Box::new(Message::Loop)),
                 name => return Err(EvalError::EvUnknown(name.to_string())),
             }
         },
@@ -334,11 +325,10 @@ pub fn make_event(e: &Cons, pos: &mut Pos, env: &mut Env) -> Result<Vec<Box<Even
     Ok(ev)
 }
 
-fn eval_events(events: Vec<Box<Cons>>, env: &mut Env) -> Result<Vec<Box<Event>>, EvalError> {
-    let mut ev: Vec<Box<Event>> = Vec::new();
-    let mut pos = Pos { bar: 0, beat: 0, pos: 0.0 };
+fn eval_msgs(events: Vec<Box<Cons>>, env: &mut Env) -> Result<Vec<Box<Message>>, EvalError> {
+    let mut ev: Vec<Box<Message>> = Vec::new();
     for e in events.iter() {
-        match &mut make_event(e, &mut pos, env) {
+        match &mut make_msg(e, env) {
             Ok(vec) => ev.append(vec),
             Err(err) => return Err(err.clone()),
         }
@@ -369,8 +359,8 @@ fn eval_call(name: &Cons, args: &Cons, env: &mut Env) -> Result<Value, EvalError
     match name {
         Cons::Symbol(name) if &name[..] == "pat" => {
             let vec = to_vec(&args);
-            match eval_events(vec, env) {
-                Ok(ev) => Ok(Value::Pattern(ev)),
+            match eval_msgs(vec, env) {
+                Ok(msgs) => Ok(Value::Pattern(msgs)),
                 Err(err) => Err(err),
             }
         },

@@ -17,13 +17,13 @@ impl Clone for Pos {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Measure {
     pub beat: u64,
     pub note: u64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Time {
     pub sample_rate: u32,
     pub tick: u64,

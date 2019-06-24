@@ -3,7 +3,7 @@ use std::error::Error;
 use std::fmt;
 
 use super::super::time::Time;
-use super::super::event::Event;
+use super::super::event::Message;
 use super::super::units::unit::AUnit;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -18,7 +18,7 @@ pub type Name = String;
 
 #[derive(Clone)]
 pub enum Value {
-    Pattern(Vec<Box<Event>>),
+    Pattern(Vec<Box<Message>>),
     Table(Vec<f64>),
     Unit(AUnit),
     Nil,

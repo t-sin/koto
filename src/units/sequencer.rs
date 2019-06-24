@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::collections::VecDeque;
 use std::sync::Arc;
 
-use super::super::time::{Time, PosOps};
-use super::super::event::{Event, to_freq};
+use super::super::time::{Time, Pos, PosOps, Measure};
+use super::super::event::{Event, Message, Pitch, to_freq};
 
 use super::unit::{Signal, Mut, AUnit};
 use super::unit::{Walk, Dump, Unit, Node, UnitGraph, ADSR, Eg, Pattern};
@@ -131,19 +131,38 @@ pub struct Seq {
 }
 
 impl Seq {
-    pub fn new(pat: Vec<Box<Event>>, osc: AUnit, eg: AUnit) -> AUnit {
-        let mut queue: VecDeque<Box<Event>> = VecDeque::new();
-        for e in pat.as_slice().iter() {
-            queue.push_back(Box::new(*e.clone()))
-        }
-        Mut::amut(UnitGraph::new(Node::Sig(
-            Mut::amut(Seq {
+    pub fn new(pat: Pattern, osc: AUnit, eg: AUnit, time: &Time) -> AUnit {
+        let mut seq = Seq {
                 pattern: pat,
-                queue: queue,
+                queue: VecDeque::new(),
                 osc: osc,
                 eg: eg,
-            })
-        )))
+        };
+        seq.fill_queue(&time.pos, &time.measure);
+        Mut::amut(UnitGraph::new(Node::Sig(Mut::amut(seq))))
+    }
+
+    pub fn fill_queue(&mut self, base: &Pos, measure: &Measure) {
+        let mut pos = base.clone();
+        for m in self.pattern.iter() {
+            match &**m {
+                Message::Note(pitch, len) => {
+                    match pitch {
+                        Pitch::Pitch(_, _) => {
+                            self.queue.push_back(Box::new(Event::On(pos.clone(), to_freq(pitch))));
+                            pos = pos.clone().add(len.clone(), &measure);
+                            self.queue.push_back(Box::new(Event::Off(pos.clone())));
+                        },
+                        Pitch::Rest => {
+                            pos = pos.clone().add(len.clone(), &measure);
+                        },
+                    }
+                },
+                Message::Loop => {
+                    self.queue.push_back(Box::new(Event::Loop(pos.clone())));
+                },
+            }
+        }
     }
 }
 
@@ -161,11 +180,10 @@ impl Unit for Seq {
         let mut q = self.queue.iter().peekable();
         match q.peek() {
             Some(e) => match &***e {
-                Event::On(pos, _note) => if pos <= &time.pos {
-                    if let Event::On(_pos, note) = *self.queue.pop_front().unwrap() {
+                Event::On(pos, _freq) => if pos <= &time.pos {
+                    if let Event::On(_pos, freq) = *self.queue.pop_front().unwrap() {
                         if let Node::Osc(osc) = &self.osc.0.lock().unwrap().node {
-                            osc.0.lock().unwrap().set_freq(
-                                Mut::amut(UnitGraph::new(Node::Val(to_freq(&note)))));
+                            osc.0.lock().unwrap().set_freq(Mut::amut(UnitGraph::new(Node::Val(freq))));
                         }
                         if let Node::Eg(eg) = &self.eg.0.lock().unwrap().node {
                             eg.0.lock().unwrap().set_state(ADSR::Attack, 0);
@@ -180,22 +198,11 @@ impl Unit for Seq {
                     }
                 },
                 Event::Loop(pos) => if pos <= &time.pos {
-                    if let Event::Loop(_pos) = *self.queue.pop_front().unwrap() {
-                        let q = &mut self.queue;
-                        self.pattern.iter().for_each(|ev| {
-                            q.push_back(match &**ev {
-                                Event::On(pos, note) => {
-                                    Box::new(Event::On(pos.add((time.pos.bar, 0, 0.0), &time.measure), note.clone()))
-                                },
-                                Event::Off(pos) => {
-                                    Box::new(Event::Off(pos.add((time.pos.bar, 0, 0.0), &time.measure)))
-                                },
-                                Event::Loop(pos) => {
-                                    Box::new(Event::Loop(pos.add((time.pos.bar, 0, 0.0), &time.measure)))
-                                },
-                            });
-                        });
-                    }
+                    let base = pos.clone().add(
+                        Pos { bar: time.pos.bar, beat: 0, pos: 0.0 }, &time.measure
+                    );
+                    self.queue.pop_front().unwrap();
+                    self.fill_queue(&base, &time.measure);
                 },
             },
             None => (),

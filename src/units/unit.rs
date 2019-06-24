@@ -3,7 +3,7 @@ use std::cmp::{PartialEq, Eq};
 use std::sync::{Arc, Mutex};
 
 use super::super::time::{Time, Pos};
-use super::super::event::{Event, Note, to_str, to_len};
+use super::super::event::{Message, Pitch, to_str, to_len};
 
 pub struct Mut<T: ?Sized> (pub Mutex<T>);
 type Amut<T> = Arc<Mut<T>>;
@@ -201,11 +201,7 @@ impl Unit for Table {
     }
 }
 
-impl Walk for Event {
-    fn walk(&self, _f: &mut FnMut(&AUnit) -> bool) {}
-}
-
-pub type Pattern = Vec<Box<Event>>;
+pub type Pattern = Vec<Box<Message>>;
 
 impl Walk for Pattern {
     fn walk(&self, _f: &mut FnMut(&AUnit) -> bool) {}
@@ -219,24 +215,15 @@ impl Unit for Pattern {
     fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
         let m = super::super::time::Measure { beat: 4, note: 4 };
-        let mut prev_pos = Pos { bar: 0, beat: 0, pos: 0.0 };
-        let mut prev_note = Note::Note(0, 0);
 
-        println!("hey");
         for ev in self.iter() {
             match &**ev {
-                Event::On(pos, note) => {
-                    // WIP
-                    // match prev_note {
-                    //     Note::Re(_, _) => 
-                    // }
-                    prev_pos = pos.clone();
-                    prev_note = note.clone();
+                Message::Note(pitch, len) => {
+                    let pitch_s = to_str(&pitch);
+                    let len_s = to_len(&len, &m);
+                    vec.push(Box::new(Dump::Str(format!("({} {})",  pitch_s, len_s))));
                 },
-                Event::Off(pos) => {
-                    vec.push(Box::new(Dump::Str(format!("({} {})", to_str(&note), to_len(&pos, &m)))));
-                },
-                Event::Loop(_) => vec.push(Box::new(Dump::Str("loop".to_string()))),
+                Message::Loop => vec.push(Box::new(Dump::Str("loop".to_string()))),
             }
         }
         Dump::Op("pat".to_string(), vec)
