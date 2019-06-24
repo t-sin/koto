@@ -31,8 +31,13 @@ fn main() {
 (def $osc2 (rand 0))
 (def $eg2 (adsr 0 0.1 0.005 0))
 
+(def $pat3 (pat (c4 0) (r 0) (d 0) (r 0) (e 0) (r 0) (f 0) (r 0)
+                (g 0) (r 0) (a 0) (r 0) (b 0) (r 0) (c5 0) (r 0) (r 5)
+                 loop))
+
 (+ (gain 0.3 (seq $pat1 $osc1 $eg1))
-   (gain 0.25 (seq $pat2 $osc2 $eg2)))
+   (gain 0.25 (seq $pat2 $osc2 $eg2))
+   (seq $pat3 (tri 0 440) (adsr 0.01 0.01 1 0)))
 ".to_string();
     let unit_graph = match tlisp::eval_all(tlisp::read(s).unwrap(), &mut env) {
         Ok(Value::Unit(ug)) => ug,

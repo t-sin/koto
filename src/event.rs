@@ -126,8 +126,6 @@ pub fn to_len(p: &Pos, measure: &Measure) -> String {
 
     let bar_beat = bar * measure.beat;
     let beat_pos = ((bar_beat + beat) * measure.note) as f64 + pos;
-
-    println!("(pos, beat_pos) = ({:?}, {})", p, beat_pos);
-
-    beat_pos.to_string()
+    let len = (beat_pos / 0.125).log(4.0) * 2.0;  // 若干buggy
+    len.to_string()
 }
