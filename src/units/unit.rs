@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::cmp::{PartialEq, Eq};
 use std::sync::{Arc, Mutex};
 
-use super::super::time::{Time, Pos};
-use super::super::event::{Message, Pitch, to_str, to_len};
+use super::super::time::Time;
+use super::super::event::{Message, to_str, to_len};
 
 pub struct Mut<T: ?Sized> (pub Mutex<T>);
 type Amut<T> = Arc<Mut<T>>;

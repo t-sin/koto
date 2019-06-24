@@ -76,8 +76,8 @@ pub fn to_note(name: &str) -> Pitch {
 
 pub fn to_str(pitch: &Pitch) -> String {
     let mut s = String::new();
-    let mut oct_fn = |o: u32, s: &mut String| {
-        if o >= 0 && o < 8 {
+    let oct_fn = |o: u32, s: &mut String| {
+        if o < 8 {
             s.push_str(&o.to_string());
         } else {
             panic!("invalid octave: {:?}", o);
@@ -122,7 +122,7 @@ pub fn to_pos(len: u32) -> Pos {
 }
 
 pub fn to_len(p: &Pos, measure: &Measure) -> String {
-    let Pos { bar: bar, beat: beat, pos: pos } = p;
+    let Pos { bar, beat, pos } = p;
 
     let bar_beat = bar * measure.beat;
     let beat_pos = ((bar_beat + beat) * measure.note) as f64 + pos;

@@ -1,5 +1,4 @@
-use super::super::time::{Pos, PosOps};
-use super::super::event::{Message, Pitch, to_note, to_pos};
+use super::super::event::{Message, to_note, to_pos};
 
 use super::super::units::unit::{Mut, AUnit, Node, UnitGraph};
 use super::super::units::core::{Pan, Clip, Offset, Gain, Add, Multiply};
@@ -294,7 +293,7 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUni
     }
 }
 
-pub fn make_msg(e: &Cons, env: &mut Env) -> Result<Vec<Box<Message>>, EvalError> {
+pub fn make_msg(e: &Cons, _env: &mut Env) -> Result<Vec<Box<Message>>, EvalError> {
     let mut ev = Vec::new();
     match e {
         Cons::Cons(name, cdr) => {
