@@ -2,6 +2,7 @@ use super::super::event::{Message, to_note, to_pos};
 
 use super::super::units::unit::{Mut, AUnit, Node, UnitGraph};
 use super::super::units::core::{Pan, Clip, Offset, Gain, Add, Multiply};
+use super::super::units::effect::{Delay};
 use super::super::units::oscillator::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
 use super::super::units::sequencer::{AdsrEg, Seq};
 
@@ -269,6 +270,30 @@ fn make_seq(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     }
 }
 
+fn make_delay(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
+    if args.len() == 4 {
+        match eval(&args[0], env) {
+            Ok(Value::Unit(time)) => match eval(&args[1], env) {
+                Ok(Value::Unit(feedback)) => match eval(&args[2], env) {
+                    Ok(Value::Unit(mix)) => match eval(&args[3], env) {
+                        Ok(Value::Unit(src)) => Ok(Delay::new(time, feedback, mix, src, env)),
+                        Ok(_v) => Err(EvalError::NotAUnit),
+                        Err(err) => Err(EvalError::NotAUnit),
+                    }
+                    Ok(_v) => Err(EvalError::NotAUnit),
+                    Err(err) => Err(err),
+                },
+                Ok(_v) => Err(EvalError::NotAUnit),
+                Err(err) => Err(err),
+            },
+            Ok(_v) => Err(EvalError::NotAUnit),
+            Err(err) => Err(err),
+        }
+    } else {
+        Err(EvalError::FnWrongParams(String::from("delay"), args))
+    }
+}
+
 pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     match &name[..] {
         // core
@@ -289,6 +314,8 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUni
         // sequencer
         "adsr" => make_adsr_eg(args, env),
         "seq" => make_seq(args, env),
+        // fx
+        "delay" => make_delay(args, env),
         _ => Err(EvalError::FnUnknown(String::from(name))),
     }
 }
