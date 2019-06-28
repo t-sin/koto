@@ -352,7 +352,7 @@ impl Osc for Phase {
 }
 
 pub struct WaveTable {
-    pub table: Table,
+    pub table: AUnit,
     pub ph: AUnit,
 }
 
@@ -368,7 +368,7 @@ impl WaveTable {
         }
         Mut::amut(UnitGraph::new(Node::Osc(
             Mut::amut(WaveTable {
-                table: table,
+                table: Mut::amut(UnitGraph::new(Node::Tab(Mut::amut(table)))),
                 ph: ph,
             })
         )))
@@ -377,7 +377,7 @@ impl WaveTable {
     pub fn from_table(table: Table, ph: AUnit) -> AUnit {
         Mut::amut(UnitGraph::new(Node::Osc(
             Mut::amut(WaveTable {
-                table: table,
+                table: Mut::amut(UnitGraph::new(Node::Tab(Mut::amut(table)))),
                 ph: ph,
             })
         )))
@@ -397,17 +397,25 @@ impl Walk for WaveTable {
 
 impl Unit for WaveTable {
     fn proc(&mut self, time: &Time) -> Signal {
-        let len = self.table.len() as f64;
-        let p = self.ph.0.lock().unwrap().proc(&time).0 * len;
-        let pos1 = (p.floor() % len) as usize;
-        let pos2 = (p.ceil() % len) as usize;
-        let v = linear_interpol(self.table[pos1], self.table[pos2], p.fract());
-        (v, v)
+        if let Node::Tab(t) = &self.table.0.lock().unwrap().node {
+            let table = t.0.lock().unwrap();
+            let len = table.len() as f64;
+            let p = self.ph.0.lock().unwrap().proc(&time).0 * len;
+            let pos1 = (p.floor() % len) as usize;
+            let pos2 = (p.ceil() % len) as usize;
+            let v = linear_interpol(table[pos1], table[pos2], p.fract());
+            (v, v)
+        } else {
+            panic!("it's not a table!!")
+        }
     }
 
     fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.table.dump(shared_vec, shared_map)));
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.table)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.table.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.ph)) {
             Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
             None => vec.push(Box::new(self.ph.0.lock().unwrap().dump(shared_vec, shared_map))),
