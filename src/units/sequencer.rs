@@ -124,14 +124,14 @@ impl Eg for AdsrEg {
 }
 
 pub struct Seq {
-    pattern: Pattern,
+    pattern: AUnit,
     queue: VecDeque<Box<Event>>,
     osc: AUnit,
     eg: AUnit,
 }
 
 impl Seq {
-    pub fn new(pat: Pattern, osc: AUnit, eg: AUnit, time: &Time) -> AUnit {
+    pub fn new(pat: AUnit, osc: AUnit, eg: AUnit, time: &Time) -> AUnit {
         let mut seq = Seq {
                 pattern: pat,
                 queue: VecDeque::new(),
@@ -144,30 +144,35 @@ impl Seq {
 
     pub fn fill_queue(&mut self, base: &Pos, measure: &Measure) {
         let mut pos = base.clone();
-        for m in self.pattern.iter() {
-            match &**m {
-                Message::Note(pitch, len) => {
-                    match pitch {
-                        Pitch::Pitch(_, _) => {
-                            self.queue.push_back(Box::new(Event::On(pos.clone(), to_freq(pitch))));
-                            pos = pos.clone().add(len.clone(), &measure);
-                            self.queue.push_back(Box::new(Event::Off(pos.clone())));
-                        },
-                        Pitch::Rest => {
-                            pos = pos.clone().add(len.clone(), &measure);
-                        },
-                    }
-                },
-                Message::Loop => {
-                    self.queue.push_back(Box::new(Event::Loop(pos.clone())));
-                },
+        if let Node::Pat(pat) = &self.pattern.0.lock().unwrap().node {
+            for m in pat.0.lock().unwrap().0.iter() {
+                match &**m {
+                    Message::Note(pitch, len) => {
+                        match pitch {
+                            Pitch::Pitch(_, _) => {
+                                self.queue.push_back(Box::new(Event::On(pos.clone(), to_freq(pitch))));
+                                pos = pos.clone().add(len.clone(), &measure);
+                                self.queue.push_back(Box::new(Event::Off(pos.clone())));
+                            },
+                            Pitch::Rest => {
+                                pos = pos.clone().add(len.clone(), &measure);
+                            },
+                        }
+                    },
+                    Message::Loop => {
+                        self.queue.push_back(Box::new(Event::Loop(pos.clone())));
+                    },
+                }
             }
+        } else {
+            panic!("not a pattern!!");
         }
     }
 }
 
 impl Walk for Seq {
     fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        if f(&self.pattern) { self.pattern.0.lock().unwrap().walk(f); }
         if f(&self.osc) { self.osc.0.lock().unwrap().walk(f); }
         if f(&self.eg) {  self.eg.0.lock().unwrap().walk(f); }
     }
@@ -210,7 +215,10 @@ impl Unit for Seq {
 
     fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
         let mut vec = Vec::new();
-        vec.push(Box::new(self.pattern.dump(shared_vec, shared_map)));
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.pattern)) {
+            Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.pattern.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.osc)) {
             Some(idx) => vec.push(Box::new(Dump::Str(shared_map.get(&idx).unwrap().to_string()))),
             None => vec.push(Box::new(self.osc.0.lock().unwrap().dump(shared_vec, shared_map))),

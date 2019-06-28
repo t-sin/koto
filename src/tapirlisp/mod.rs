@@ -36,4 +36,5 @@ pub fn eval_all(sexp_vec: Vec<Box<Cons>>, env: &mut Env) -> Result<Value, EvalEr
         0 => Ok(Value::Nil),
         _ => Ok(q.pop_back().unwrap()),
     }
+
 }

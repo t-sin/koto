@@ -1,6 +1,6 @@
 use super::super::event::{Message, to_note, to_pos};
 
-use super::super::units::unit::{Mut, AUnit, Node, UnitGraph, Table};
+use super::super::units::unit::{Mut, AUnit, Node, UnitGraph, Table, Pattern};
 use super::super::units::core::{Pan, Clip, Offset, Gain, Add, Multiply};
 use super::super::units::effect::{Delay};
 use super::super::units::oscillator::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
@@ -241,6 +241,55 @@ fn make_wavetable(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalErro
 
 // sequencer
 
+pub fn make_msg(e: &Cons, _env: &mut Env) -> Result<Vec<Box<Message>>, EvalError> {
+    let mut ev = Vec::new();
+    match e {
+        Cons::Cons(name, cdr) => {
+            if let Cons::Symbol(pitch) = &**name {
+                if let Cons::Cons(len, _) = &**cdr {
+                    let len = match &**len {
+                        Cons::Number(l) => to_pos(*l as u32),
+                        _ => to_pos(4),
+                    };
+                    ev.push(Box::new(Message::Note(to_note(pitch), len)));
+                } else {
+                    // without length
+                }
+            } else {
+                return Err(EvalError::EvWrongParams(print(e)))
+            }
+        },
+        Cons::Symbol(name) => {
+            match &name[..] {
+                "loop" => ev.push(Box::new(Message::Loop)),
+                name => return Err(EvalError::EvUnknown(name.to_string())),
+            }
+        },
+        sexp => {
+            return Err(EvalError::EvMalformedEvent(print(sexp)))
+        },
+    }
+    Ok(ev)
+}
+
+fn eval_msgs(events: Vec<Box<Cons>>, env: &mut Env) -> Result<Vec<Box<Message>>, EvalError> {
+    let mut ev: Vec<Box<Message>> = Vec::new();
+    for e in events.iter() {
+        match &mut make_msg(e, env) {
+            Ok(vec) => ev.append(vec),
+            Err(err) => return Err(err.clone()),
+        }
+    }
+    Ok(ev)
+}
+
+fn make_pat(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
+    match eval_msgs(args, env) {
+        Ok(msgs) => Ok(Pattern::new(msgs)),
+        Err(err) => Err(err),
+    }
+}
+
 fn make_adsr_eg(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     if args.len() == 4 {
         match eval(&args[0], env) {
@@ -267,17 +316,16 @@ fn make_adsr_eg(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError>
 
 fn make_seq(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     if args.len() == 3 {
-        match eval(&args[0], env) {
-            Ok(Value::Pattern(pat)) => match eval(&args[1], env) {
-                Ok(Value::Unit(osc)) => match eval(&args[2], env) {
-                    Ok(Value::Unit(eg)) => Ok(Seq::new(pat, osc, eg, &env.time)),
-                    Ok(_v) => Err(EvalError::NotAUnit),
-                    Err(err) => Err(err),
+        match eval(&args[1], env) {
+            Ok(Value::Unit(osc)) => match eval(&args[2], env) {
+                Ok(Value::Unit(eg)) => match eval(&args[0], env) {
+                    Ok(Value::Unit(pat)) => Ok(Seq::new(pat, osc, eg, &env.time)),
+                    _ => Err(EvalError::NotAUnit),
                 },
                 Ok(_v) => Err(EvalError::NotAUnit),
                 Err(err) => Err(err),
             },
-            Ok(_v) => Err(EvalError::NotAPattern),
+            Ok(_v) => Err(EvalError::NotAUnit),
             Err(err) => Err(err),
         }
     } else {
@@ -328,54 +376,13 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUni
         "phase" => make_phase(args, env),
         "wavetable" => make_wavetable(args, env),
         // sequencer
+        "pat" => make_pat(args, env),
         "adsr" => make_adsr_eg(args, env),
         "seq" => make_seq(args, env),
         // fx
         "delay" => make_delay(args, env),
         _ => Err(EvalError::FnUnknown(String::from(name))),
     }
-}
-
-pub fn make_msg(e: &Cons, _env: &mut Env) -> Result<Vec<Box<Message>>, EvalError> {
-    let mut ev = Vec::new();
-    match e {
-        Cons::Cons(name, cdr) => {
-            if let Cons::Symbol(pitch) = &**name {
-                if let Cons::Cons(len, _) = &**cdr {
-                    let len = match &**len {
-                        Cons::Number(l) => to_pos(*l as u32),
-                        _ => to_pos(4),
-                    };
-                    ev.push(Box::new(Message::Note(to_note(pitch), len)));
-                } else {
-                    // without length
-                }
-            } else {
-                return Err(EvalError::EvWrongParams(print(e)))
-            }
-        },
-        Cons::Symbol(name) => {
-            match &name[..] {
-                "loop" => ev.push(Box::new(Message::Loop)),
-                name => return Err(EvalError::EvUnknown(name.to_string())),
-            }
-        },
-        sexp => {
-            return Err(EvalError::EvMalformedEvent(print(sexp)))
-        },
-    }
-    Ok(ev)
-}
-
-fn eval_msgs(events: Vec<Box<Cons>>, env: &mut Env) -> Result<Vec<Box<Message>>, EvalError> {
-    let mut ev: Vec<Box<Message>> = Vec::new();
-    for e in events.iter() {
-        match &mut make_msg(e, env) {
-            Ok(vec) => ev.append(vec),
-            Err(err) => return Err(err.clone()),
-        }
-    }
-    Ok(ev)
 }
 
 fn eval_def(name: &Cons, sexp: &Cons, env: &mut Env) -> Result<Value, EvalError> {
@@ -399,13 +406,6 @@ fn eval_def(name: &Cons, sexp: &Cons, env: &mut Env) -> Result<Value, EvalError>
 
 fn eval_call(name: &Cons, args: &Cons, env: &mut Env) -> Result<Value, EvalError> {
     match name {
-        Cons::Symbol(name) if &name[..] == "pat" => {
-            let vec = to_vec(&args);
-            match eval_msgs(vec, env) {
-                Ok(msgs) => Ok(Value::Pattern(msgs)),
-                Err(err) => Err(err),
-            }
-        },
         Cons::Symbol(name) if &name[..] == "def" => {
             let vec = to_vec(&args);
             if vec.len() == 2 {

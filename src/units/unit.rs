@@ -80,7 +80,40 @@ impl Unit for Table {
     }
 }
 
-pub type Pattern = Vec<Box<Message>>;
+pub struct Pattern(pub Vec<Box<Message>>);
+
+impl Pattern {
+    pub fn new(vec: Vec<Box<Message>>) -> AUnit {
+        Mut::amut(UnitGraph::new(Node::Pat(Mut::amut(Pattern(vec)))))
+    }
+}
+
+impl Walk for Pattern {
+    fn walk(&self, _f: &mut FnMut(&AUnit) -> bool) {}
+}
+
+impl Unit for Pattern {
+    fn proc(&mut self, _time: &Time) -> Signal {  // dummy
+        (0.0, 0.0)
+    }
+
+    fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> Dump {
+        let mut vec = Vec::new();
+        let m = super::super::time::Measure { beat: 4, note: 4 };
+
+        for ev in self.0.iter() {
+            match &**ev {
+                Message::Note(pitch, len) => {
+                    let pitch_s = to_str(&pitch);
+                    let len_s = to_len(&len, &m);
+                    vec.push(Box::new(Dump::Str(format!("({} {})",  pitch_s, len_s))));
+                },
+                Message::Loop => vec.push(Box::new(Dump::Str("loop".to_string()))),
+            }
+        }
+        Dump::Op("pat".to_string(), vec)
+    }
+}
 
 pub enum Node {
     Val(f64),
@@ -222,32 +255,5 @@ impl Unit for UnitGraph {
 impl Walk for UnitGraph {
     fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
         self.node.walk(f);
-    }
-}
-
-impl Walk for Pattern {
-    fn walk(&self, _f: &mut FnMut(&AUnit) -> bool) {}
-}
-
-impl Unit for Pattern {
-    fn proc(&mut self, _time: &Time) -> Signal {  // dummy
-        (0.0, 0.0)
-    }
-
-    fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> Dump {
-        let mut vec = Vec::new();
-        let m = super::super::time::Measure { beat: 4, note: 4 };
-
-        for ev in self.iter() {
-            match &**ev {
-                Message::Note(pitch, len) => {
-                    let pitch_s = to_str(&pitch);
-                    let len_s = to_len(&len, &m);
-                    vec.push(Box::new(Dump::Str(format!("({} {})",  pitch_s, len_s))));
-                },
-                Message::Loop => vec.push(Box::new(Dump::Str("loop".to_string()))),
-            }
-        }
-        Dump::Op("pat".to_string(), vec)
     }
 }

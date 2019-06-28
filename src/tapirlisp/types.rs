@@ -18,7 +18,6 @@ pub type Name = String;
 
 #[derive(Clone)]
 pub enum Value {
-    Pattern(Vec<Box<Message>>),
     Unit(AUnit),
     Nil,
 }
