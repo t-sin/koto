@@ -54,11 +54,16 @@ pub trait Eg: Unit {
     fn set_state(&mut self, state: ADSR, eplaced: u64);
 }
 
+pub type Table = Vec<f64>;
+pub type Pattern = Vec<Box<Message>>;
+
 pub enum Node {
     Val(f64),
     Sig(Amut<Unit + Send>),
     Osc(Amut<Osc + Send>),
     Eg(Amut<Eg + Send>),
+    Tab(Amut<Table>),
+    Pat(Amut<Pattern>),
 }
 
 impl PartialEq for Node {
@@ -78,6 +83,14 @@ impl PartialEq for Node {
             },
             Node::Eg(s) => match other {
                 Node::Eg(o) => Arc::ptr_eq(&s, &o),
+                _ => false,
+            },
+            Node::Tab(s) => match other {
+                Node::Tab(o) => Arc::ptr_eq(&s, &o),
+                _ => false,
+            },
+            Node::Pat(s) => match other {
+                Node::Pat(o) => Arc::ptr_eq(&s, &o),
                 _ => false,
             },
         }
@@ -117,6 +130,8 @@ impl Walk for Node {
             Node::Sig(u) => u.0.lock().unwrap().walk(f),
             Node::Osc(u) => u.0.lock().unwrap().walk(f),
             Node::Eg(u) => u.0.lock().unwrap().walk(f),
+            Node::Tab(_) => (),
+            Node::Pat(_) => (),
         }
     }
 }
@@ -128,6 +143,8 @@ impl Unit for Node {
             Node::Sig(u) => u.0.lock().unwrap().proc(time),
             Node::Osc(u) => u.0.lock().unwrap().proc(time),
             Node::Eg(u) => u.0.lock().unwrap().proc(time),
+            Node::Tab(_) => (0.0, 0.0),
+            Node::Pat(_) => (0.0, 0.0),
         }
     }
 
@@ -137,6 +154,8 @@ impl Unit for Node {
             Node::Sig(u) => u.0.lock().unwrap().dump(shared_vec, shared_map),
             Node::Osc(u) => u.0.lock().unwrap().dump(shared_vec, shared_map),
             Node::Eg(u) => u.0.lock().unwrap().dump(shared_vec, shared_map),
+            Node::Tab(t) => t.0.lock().unwrap().dump(shared_vec, shared_map),
+            Node::Pat(p) => p.0.lock().unwrap().dump(shared_vec, shared_map),
          }
     }
 }
@@ -181,8 +200,6 @@ impl Walk for UnitGraph {
     }
 }
 
-pub type Table = Vec<f64>;
-
 impl Walk for Table {
     fn walk(&self, _f: &mut FnMut(&AUnit) -> bool) {}
 }
@@ -200,8 +217,6 @@ impl Unit for Table {
         Dump::Op("table".to_string(), vec)
     }
 }
-
-pub type Pattern = Vec<Box<Message>>;
 
 impl Walk for Pattern {
     fn walk(&self, _f: &mut FnMut(&AUnit) -> bool) {}
