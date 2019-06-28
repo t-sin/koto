@@ -37,7 +37,7 @@ fn main() {
 
 (+ (gain 0.3 (seq $pat1 $osc1 $eg1))
    (gain 0.25 (seq $pat2 $osc2 $eg2))
-   (delay 0 0 0.4 (seq $pat3 (tri 0 440) (adsr 0.01 0.01 1 0))))
+   (seq $pat3 (wavetable $table (phase (saw 0 220))) $eg1))
 ".to_string();
     let unit_graph = match tlisp::eval_all(tlisp::read(s).unwrap(), &mut env) {
         Ok(Value::Unit(ug)) => ug,

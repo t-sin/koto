@@ -1,6 +1,6 @@
 use super::super::event::{Message, to_note, to_pos};
 
-use super::super::units::unit::{Mut, AUnit, Node, UnitGraph};
+use super::super::units::unit::{Mut, AUnit, Node, UnitGraph, Table};
 use super::super::units::core::{Pan, Clip, Offset, Gain, Add, Multiply};
 use super::super::units::effect::{Delay};
 use super::super::units::oscillator::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
@@ -191,6 +191,22 @@ fn make_pulse(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
 
 // wavetable oscillator
 
+fn make_table(args: Vec<Box<Cons>>, _env: &mut Env) -> Result<AUnit, EvalError> {
+    let mut table = Vec::new();
+    if args.len() > 0 {
+        for s in args.iter() {
+            match **s {
+                Cons::Number(n) => table.push(n),
+                _ => return Err(EvalError::NotANumber(print(s))),
+            }
+        }
+        Ok(Table::new(table))
+    } else {
+        Err(EvalError::FnWrongParams("table".to_string(), args))
+    }
+
+}
+
 fn make_phase(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     if args.len() == 1 {
         match eval(&args[0], env) {
@@ -205,14 +221,13 @@ fn make_phase(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
 
 fn make_wavetable(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     if args.len() == 2 {
-        match eval(&args[0], env) {
-            Ok(Value::Unit(osc)) => match eval(&args[1], env) {
-                Ok(Value::Unit(ph)) => Ok(WaveTable::from_osc(osc, ph)),
-                Ok(_v) => Err(EvalError::NotAUnit),
-                Err(err) => Err(err),
-            },
-            Ok(Value::Table(table)) => match eval(&args[1], env) {
-                Ok(Value::Unit(ph)) => Ok(WaveTable::from_table(table, ph)),
+        match eval(&args[1], env) {
+            Ok(Value::Unit(ph)) => match eval(&args[0], env) {
+                Ok(Value::Unit(table)) => match table.0.lock().unwrap().node {
+                    Node::Osc(_) => Ok(WaveTable::from_osc(table.clone(), ph)),
+                    Node::Tab(_) => Ok(WaveTable::from_table(table.clone(), ph)),
+                    _ => Err(EvalError::NotAUnit),
+                },
                 Ok(_v) => Err(EvalError::NotAUnit),
                 Err(err) => Err(err),
             },
@@ -309,6 +324,7 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUni
         "tri" => make_tri(args, env),
         "saw" => make_saw(args, env),
         "pulse" => make_pulse(args, env),
+        "table" => make_table(args, env),
         "phase" => make_phase(args, env),
         "wavetable" => make_wavetable(args, env),
         // sequencer
@@ -388,21 +404,6 @@ fn eval_call(name: &Cons, args: &Cons, env: &mut Env) -> Result<Value, EvalError
             match eval_msgs(vec, env) {
                 Ok(msgs) => Ok(Value::Pattern(msgs)),
                 Err(err) => Err(err),
-            }
-        },
-        Cons::Symbol(name) if &name[..] == "table" => {
-            let vec = to_vec(&args);
-            let mut table = Vec::new();
-            if vec.len() > 0 {
-                for s in vec.iter() {
-                    match **s {
-                        Cons::Number(n) => table.push(n),
-                        _ => return Err(EvalError::NotANumber(print(s))),
-                    }
-                }
-                Ok(Value::Table(table))
-            } else {
-                Err(EvalError::FnWrongParams("table".to_string(), vec))
             }
         },
         Cons::Symbol(name) if &name[..] == "def" => {

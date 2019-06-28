@@ -368,16 +368,16 @@ impl WaveTable {
         }
         Mut::amut(UnitGraph::new(Node::Osc(
             Mut::amut(WaveTable {
-                table: Mut::amut(UnitGraph::new(Node::Tab(Mut::amut(table)))),
+                table: Table::new(table),
                 ph: ph,
             })
         )))
     }
 
-    pub fn from_table(table: Table, ph: AUnit) -> AUnit {
+    pub fn from_table(table: AUnit, ph: AUnit) -> AUnit {
         Mut::amut(UnitGraph::new(Node::Osc(
             Mut::amut(WaveTable {
-                table: Mut::amut(UnitGraph::new(Node::Tab(Mut::amut(table)))),
+                table: table,
                 ph: ph,
             })
         )))
@@ -391,6 +391,7 @@ fn linear_interpol(v1: f64, v2: f64, r: f64) -> f64 {
 
 impl Walk for WaveTable {
     fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        if f(&self.table) { self.table.0.lock().unwrap().walk(f); }
         if f(&self.ph) { self.ph.0.lock().unwrap().walk(f); }
     }
 }
@@ -398,7 +399,7 @@ impl Walk for WaveTable {
 impl Unit for WaveTable {
     fn proc(&mut self, time: &Time) -> Signal {
         if let Node::Tab(t) = &self.table.0.lock().unwrap().node {
-            let table = t.0.lock().unwrap();
+            let table = &t.0.lock().unwrap().0;
             let len = table.len() as f64;
             let p = self.ph.0.lock().unwrap().proc(&time).0 * len;
             let pos1 = (p.floor() % len) as usize;

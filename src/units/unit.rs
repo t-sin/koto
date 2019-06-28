@@ -54,7 +54,32 @@ pub trait Eg: Unit {
     fn set_state(&mut self, state: ADSR, eplaced: u64);
 }
 
-pub type Table = Vec<f64>;
+pub struct Table(pub Vec<f64>);
+
+impl Table {
+    pub fn new(vec: Vec<f64>) -> AUnit {
+        Mut::amut(UnitGraph::new(Node::Tab(Mut::amut(Table(vec)))))
+    }
+}
+
+impl Walk for Table {
+    fn walk(&self, _f: &mut FnMut(&AUnit) -> bool) {}
+}
+
+impl Unit for Table {
+    fn proc(&mut self, _time: &Time) -> Signal {  // dummy
+        (0.0, 0.0)
+    }
+
+    fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> Dump {
+        let mut vec = Vec::new();
+        for v in self.0.iter() {
+            vec.push(Box::new(Dump::Str(v.to_string())));
+        }
+        Dump::Op("table".to_string(), vec)
+    }
+}
+
 pub type Pattern = Vec<Box<Message>>;
 
 pub enum Node {
@@ -197,24 +222,6 @@ impl Unit for UnitGraph {
 impl Walk for UnitGraph {
     fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
         self.node.walk(f);
-    }
-}
-
-impl Walk for Table {
-    fn walk(&self, _f: &mut FnMut(&AUnit) -> bool) {}
-}
-
-impl Unit for Table {
-    fn proc(&mut self, _time: &Time) -> Signal {  // dummy
-        (0.0, 0.0)
-    }
-
-    fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> Dump {
-        let mut vec = Vec::new();
-        for v in self.iter() {
-            vec.push(Box::new(Dump::Str(v.to_string())));
-        }
-        Dump::Op("table".to_string(), vec)
     }
 }
 
