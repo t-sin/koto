@@ -34,9 +34,14 @@ pub fn dump(ug: AUnit) -> String {
         match searched_units.iter().position(|e| Arc::ptr_eq(e, u)) {
             Some(idx) => {
                 let u = searched_units[idx].clone();
-                shared_unit_map.insert(shared_units.len(), format!("$shared{}", shared_id));
-                shared_id += 1;
-                shared_units.push(u.clone());
+                match shared_units.iter().position(|e| Arc::ptr_eq(e, &u)) {
+                    Some(_idx) => (),
+                    None => {
+                        shared_unit_map.insert(shared_units.len(), format!("$shared{}", shared_id));
+                        shared_id += 1;
+                        shared_units.push(u);
+                    },
+                }
                 false
             },
             None => {
