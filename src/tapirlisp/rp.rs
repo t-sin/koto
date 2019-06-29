@@ -19,13 +19,24 @@ fn skip_whitespaces(chars: &mut Peekable<Chars>) {
     }
 }
 
+fn skip_comment(chars: &mut Peekable<Chars>) {
+    loop {
+        let ch = chars.peek();
+        match ch {
+            Some('\n') => break,
+            None => break,
+            _ => chars.next(),
+        };
+    }
+}
+
 fn read_symbol(chars: &mut Peekable<Chars>) -> Result<Cons, ReadError> {
     let mut name = String::new();
     loop {
         let ch = chars.peek();
         match ch {
             Some(c) => {
-                if *c == ')' || c.is_whitespace() {
+                if *c == ')' || *c == ';' || c.is_whitespace() {
                     break;
                 } else {
                     name.push(chars.next().unwrap());
@@ -88,6 +99,10 @@ fn read_exp(chars: &mut Peekable<Chars>) -> Result<Cons, ReadError> {
     let ch = chars.peek();
     match ch {
         None => Ok(Cons::Nil),
+        Some(';') => {
+            skip_comment(chars);
+            Ok(Cons::Nil)
+        },
         Some(')') => Err(ReadError::UnexpectedCloseParen),
         Some('(') => read_list(chars),
         Some(c) => {
