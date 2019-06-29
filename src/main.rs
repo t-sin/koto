@@ -21,7 +21,7 @@ fn main() {
     let mut env = Env::init(time);
 
     let s = r"
-(def $pat1 (pat (c4 1) (d 1) (e 1) (f 1) (g 1) (a 1) (b 1) (c5 1) (r 5)
+(def $pat1 (pat (c4 1) (d 1) (e 1) (f 1) (g 1) (a 1) (b 1) (c5 1) (r 4)
                  loop))
 (def $table (table 0 1 0 -1.0))
 (def $osc1 (wavetable $table (phase (saw 0 440))))

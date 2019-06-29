@@ -113,8 +113,8 @@ pub fn to_freq(pitch: &Pitch) -> Freq {
 pub fn to_pos(len: u32) -> Pos {
     let pos = if len == 0 {
         0.125
-    } else if len > 4 {
-        2.0f64.powf(len as f64 - 4.0)
+    } else if len >= 3 {
+        2.0f64.powf(len as f64 - 3.0)
     } else {
         (len as f64 / 4.0)
     };
@@ -126,6 +126,6 @@ pub fn to_len(p: &Pos, measure: &Measure) -> String {
 
     let bar_beat = bar * measure.beat;
     let beat_pos = ((bar_beat + beat) * measure.note) as f64 + pos;
-    let len = (beat_pos / 0.125).log(4.0) * 2.0;  // 若干buggy
+    let len = (beat_pos / 0.125).log(4.0) * 2.0;
     len.to_string()
 }
