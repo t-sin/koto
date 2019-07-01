@@ -4,7 +4,7 @@ use std::sync::Arc;
 use rand::{Rng, SeedableRng};
 use rand::rngs::SmallRng;
 
-use super::super::time::Time;
+use super::super::time::{Pos, Time};
 use super::super::time::Clock;
 
 use super::unit::{Signal, Mut, AUnit};
@@ -357,10 +357,16 @@ pub struct WaveTable {
 }
 
 impl WaveTable {
-    pub fn from_osc(osc: AUnit, ph: AUnit) -> AUnit {
+    pub fn from_osc(osc: AUnit, ph: AUnit, time: &Time) -> AUnit {
         let mut table = Vec::new();
         let table_len = 256;
-        let mut time = Time::new(table_len / 2, 120.0);
+        let mut time = Time {
+            sample_rate: (table_len as f64 / 2.0) as u32,
+            tick: 0,
+            bpm: time.bpm,
+            measure: time.measure.clone(),
+            pos: Pos { bar: 0, beat: 0, pos: 0.0 },
+        };
         for _i in 0..table_len {
             let v = osc.0.lock().unwrap().proc(&time).0;
             table.push(v);

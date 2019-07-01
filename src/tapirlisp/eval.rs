@@ -231,7 +231,7 @@ fn make_wavetable(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalErro
                         _ => (),
                     };
                     match node_type {
-                        1 => Ok(WaveTable::from_osc(table.clone(), ph)),
+                        1 => Ok(WaveTable::from_osc(table.clone(), ph, &env.time)),
                         2 => Ok(WaveTable::from_table(table.clone(), ph)),
                         _ => return Err(EvalError::NotAUnit),
                     }
