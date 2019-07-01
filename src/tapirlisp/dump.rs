@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use super::super::units::unit::{Walk, Dump, Unit, AUnit};
+use super::super::units::unit::{Walk, UDump, Dump, Unit, AUnit};
 
-pub fn dump_unit(dump: &Dump) -> String {
+pub fn dump_unit(dump: &UDump) -> String {
     match dump {
-        Dump::Str(s) => s.to_string(),
-        Dump::Op(name, vec) => {
+        UDump::Str(s) => s.to_string(),
+        UDump::Op(name, vec) => {
             let mut s = String::new();
             s.push_str("(");
             s.push_str(&name[..]);

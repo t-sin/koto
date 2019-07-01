@@ -21,21 +21,24 @@ impl<T: PartialEq> PartialEq for Mut<T> {
 }
 impl<T: Eq> Eq for Mut<T> {}
 
-#[derive(Debug)]
-pub enum Dump {
-    Str(String),
-    Op(String, Vec<Box<Dump>>),
-}
-
-pub type Signal = (f64, f64);
-
 pub trait Walk {
     fn walk(&self, f: &mut FnMut(&AUnit) -> bool);
 }
 
-pub trait Unit: Walk {
+#[derive(Debug)]
+pub enum UDump {
+    Str(String),
+    Op(String, Vec<Box<UDump>>),
+}
+
+pub trait Dump: Walk {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump;
+}
+
+pub type Signal = (f64, f64);
+
+pub trait Unit: Dump {
     fn proc(&mut self, time: &Time) -> Signal;
-    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump;
 }
 
 pub trait Osc: Unit {
@@ -66,17 +69,19 @@ impl Walk for Table {
     fn walk(&self, _f: &mut FnMut(&AUnit) -> bool) {}
 }
 
+impl Dump for Table {
+    fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> UDump {
+        let mut vec = Vec::new();
+        for v in self.0.iter() {
+            vec.push(Box::new(UDump::Str(v.to_string())));
+        }
+        UDump::Op("table".to_string(), vec)
+    }
+}
+
 impl Unit for Table {
     fn proc(&mut self, _time: &Time) -> Signal {  // dummy
         (0.0, 0.0)
-    }
-
-    fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> Dump {
-        let mut vec = Vec::new();
-        for v in self.0.iter() {
-            vec.push(Box::new(Dump::Str(v.to_string())));
-        }
-        Dump::Op("table".to_string(), vec)
     }
 }
 
@@ -92,12 +97,8 @@ impl Walk for Pattern {
     fn walk(&self, _f: &mut FnMut(&AUnit) -> bool) {}
 }
 
-impl Unit for Pattern {
-    fn proc(&mut self, _time: &Time) -> Signal {  // dummy
-        (0.0, 0.0)
-    }
-
-    fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> Dump {
+impl Dump for Pattern {
+    fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> UDump {
         let mut vec = Vec::new();
         let m = super::super::time::Measure { beat: 4, note: 4 };
 
@@ -106,12 +107,18 @@ impl Unit for Pattern {
                 Message::Note(pitch, len) => {
                     let pitch_s = to_str(&pitch);
                     let len_s = to_len(&len, &m);
-                    vec.push(Box::new(Dump::Str(format!("({} {})",  pitch_s, len_s))));
+                    vec.push(Box::new(UDump::Str(format!("({} {})",  pitch_s, len_s))));
                 },
-                Message::Loop => vec.push(Box::new(Dump::Str("loop".to_string()))),
+                Message::Loop => vec.push(Box::new(UDump::Str("loop".to_string()))),
             }
         }
-        Dump::Op("pat".to_string(), vec)
+        UDump::Op("pat".to_string(), vec)
+    }
+}
+
+impl Unit for Pattern {
+    fn proc(&mut self, _time: &Time) -> Signal {  // dummy
+        (0.0, 0.0)
     }
 }
 
@@ -194,6 +201,19 @@ impl Walk for Node {
     }
 }
 
+impl Dump for Node {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump {
+        match self {
+            Node::Val(v) => UDump::Str(v.to_string()),
+            Node::Sig(u) => u.0.lock().unwrap().dump(shared_vec, shared_map),
+            Node::Osc(u) => u.0.lock().unwrap().dump(shared_vec, shared_map),
+            Node::Eg(u) => u.0.lock().unwrap().dump(shared_vec, shared_map),
+            Node::Tab(t) => t.0.lock().unwrap().dump(shared_vec, shared_map),
+            Node::Pat(p) => p.0.lock().unwrap().dump(shared_vec, shared_map),
+         }
+    }
+}
+
 impl Unit for Node {
     fn proc(&mut self, time: &Time) -> Signal {
         match self {
@@ -204,17 +224,6 @@ impl Unit for Node {
             Node::Tab(_) => (0.0, 0.0),
             Node::Pat(_) => (0.0, 0.0),
         }
-    }
-
-    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
-        match self {
-            Node::Val(v) => Dump::Str(v.to_string()),
-            Node::Sig(u) => u.0.lock().unwrap().dump(shared_vec, shared_map),
-            Node::Osc(u) => u.0.lock().unwrap().dump(shared_vec, shared_map),
-            Node::Eg(u) => u.0.lock().unwrap().dump(shared_vec, shared_map),
-            Node::Tab(t) => t.0.lock().unwrap().dump(shared_vec, shared_map),
-            Node::Pat(p) => p.0.lock().unwrap().dump(shared_vec, shared_map),
-         }
     }
 }
 
@@ -246,14 +255,16 @@ impl Unit for UnitGraph {
             self.last_sig
         }
     }
-
-    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> Dump {
-        self.node.dump(shared_vec, shared_map)
-    }
 }
 
 impl Walk for UnitGraph {
     fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
         self.node.walk(f);
+    }
+}
+
+impl Dump for UnitGraph {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump {
+        self.node.dump(shared_vec, shared_map)
     }
 }
