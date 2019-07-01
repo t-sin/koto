@@ -13,9 +13,8 @@ use tapirlisp::types::{Value, Env};
 use tapirlisp as tlisp;
 
 fn main() {
-    let channels = 1;
     let sample_rate = 44100u32;
-    let audio_device = AudioDevice::open(channels, sample_rate);
+    let audio_device = AudioDevice::open(sample_rate);
 
     let time = Time::new(sample_rate, 120.0);
     let mut env = Env::init(time);
@@ -46,9 +45,19 @@ fn main() {
     };
     println!("{}", tlisp::dump(unit_graph.clone()));
 
+
     audio_device.run(|mut buffer| {
-        for elem in buffer.iter_mut() {
-            *elem = unit_graph.0.lock().unwrap().proc(&env.time).0 as f32;
+        let mut iter = buffer.iter_mut();
+        loop {
+            let (l, r) = unit_graph.0.lock().unwrap().proc(&env.time);
+            match iter.next() {
+                Some(lref) => *lref = l as f32,
+                None => break,
+            }
+            match iter.next() {
+                Some(rref) => *rref = r as f32,
+                None => break,
+            }
             env.time.inc();
         }
     });

@@ -11,10 +11,10 @@ pub struct AudioDevice {
 }
 
 impl AudioDevice {
-    pub fn open(channels: u16, sample_rate: u32) -> AudioDevice {
+    pub fn open(sample_rate: u32) -> AudioDevice {
         let device = cpal::default_output_device().unwrap();
         let format = cpal::Format {
-            channels: channels,
+            channels: 2,
             sample_rate: SampleRate(sample_rate as u32),
             data_type: SampleFormat::F32,
         };
@@ -30,7 +30,6 @@ impl AudioDevice {
         audio_device
     }
 
-    // TODO: multi channels
     pub fn run<F: FnMut(OutputBuffer<f32>) + Send>(&self, mut callback: F) {
         self.event_loop.run(move |_stream_id, stream_data| {
             match stream_data {
