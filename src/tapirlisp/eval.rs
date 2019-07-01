@@ -223,10 +223,18 @@ fn make_wavetable(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalErro
     if args.len() == 2 {
         match eval(&args[1], env) {
             Ok(Value::Unit(ph)) => match eval(&args[0], env) {
-                Ok(Value::Unit(table)) => match table.0.lock().unwrap().node {
-                    Node::Osc(_) => Ok(WaveTable::from_osc(table.clone(), ph)),
-                    Node::Tab(_) => Ok(WaveTable::from_table(table.clone(), ph)),
-                    _ => Err(EvalError::NotAUnit),
+                Ok(Value::Unit(table)) => {
+                    let mut node_type = 0;
+                    match &table.0.lock().unwrap().node {
+                        Node::Osc(_) => node_type = 1,
+                        Node::Tab(_) => node_type = 2,
+                        _ => (),
+                    };
+                    match node_type {
+                        1 => Ok(WaveTable::from_osc(table.clone(), ph)),
+                        2 => Ok(WaveTable::from_table(table.clone(), ph)),
+                        _ => return Err(EvalError::NotAUnit),
+                    }
                 },
                 Ok(_v) => Err(EvalError::NotAUnit),
                 Err(err) => Err(err),
