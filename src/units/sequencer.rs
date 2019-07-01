@@ -6,7 +6,7 @@ use super::super::time::{Time, Pos, PosOps, Measure};
 use super::super::event::{Event, Message, Pitch, to_freq};
 
 use super::unit::{Signal, Mut, AUnit};
-use super::unit::{Walk, Dump, Unit, Node, UnitGraph, ADSR, Eg, Pattern};
+use super::unit::{Walk, Dump, Unit, Node, UnitGraph, ADSR, Eg};
 
 pub struct AdsrEg {
     a: AUnit,

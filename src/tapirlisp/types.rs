@@ -3,7 +3,6 @@ use std::error::Error;
 use std::fmt;
 
 use super::super::time::Time;
-use super::super::event::Message;
 use super::super::units::unit::AUnit;
 
 #[derive(Debug, PartialEq, Clone)]

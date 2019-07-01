@@ -328,7 +328,7 @@ fn make_seq(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
             Ok(Value::Unit(osc)) => match eval(&args[2], env) {
                 Ok(Value::Unit(eg)) => match eval(&args[0], env) {
                     Ok(Value::Unit(pat)) => Ok(Seq::new(pat, osc, eg, &env.time)),
-                    _ => Err(EvalError::NotAUnit),
+                    _ => Err(EvalError::NotAPattern),
                 },
                 Ok(_v) => Err(EvalError::NotAUnit),
                 Err(err) => Err(err),
@@ -349,7 +349,7 @@ fn make_delay(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
                     Ok(Value::Unit(mix)) => match eval(&args[3], env) {
                         Ok(Value::Unit(src)) => Ok(Delay::new(time, feedback, mix, src, env)),
                         Ok(_v) => Err(EvalError::NotAUnit),
-                        Err(err) => Err(EvalError::NotAUnit),
+                        Err(_err) => Err(EvalError::NotAUnit),
                     }
                     Ok(_v) => Err(EvalError::NotAUnit),
                     Err(err) => Err(err),
