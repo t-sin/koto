@@ -307,7 +307,7 @@ impl Phase {
                             v: 0.5,
                             src: Mut::amut(UnitGraph::new(Node::Sig(
                                 Mut::amut(Clip {
-                                    min: 0.0, max: 1.0, src: u.clone(),
+                                    min: -1.0, max: 1.0, src: u.clone(),
                                 })
                             ))),
                         })
