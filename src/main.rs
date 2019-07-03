@@ -64,7 +64,7 @@ fn main() {
                 (g 0) (r 0) (a 0) (r 0) (b 0) (r 0) (c5 0) (r 0) (r 5)
                  loop))
 
-(+ (gain 0.3 (seq $pat1 $osc1 $eg1))
+(+ (gain 0.3 (delay 0.3 0.5 1 (seq $pat1 $osc1 $eg1)))
    (gain 0.25 (seq $pat2 $osc2 $eg2)))".to_string();
     let unit_graph = match tlisp::eval_all(tlisp::read(s).unwrap(), &mut env) {
         Ok(Value::Unit(ug)) => ug,

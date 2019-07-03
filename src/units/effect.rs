@@ -20,9 +20,14 @@ pub struct Delay {
 
 impl Delay {
     pub fn new(time: AUnit, feedback: AUnit, mix: AUnit, src: AUnit, env: &Env) -> AUnit {
+        let len = (env.time.sample_rate * 6) as usize;
+        let mut buffer = VecDeque::with_capacity(len);
+        for _n in 0..len {
+            buffer.push_back(Box::new((0.0, 0.0)));
+        }
         Mut::amut(UnitGraph::new(Node::Sig(
             Mut::amut(Delay {
-                buffer: VecDeque::with_capacity((env.time.sample_rate * 6) as usize),
+                buffer: buffer,
                 time: time,
                 feedback: feedback,
                 mix: mix,
@@ -64,11 +69,31 @@ impl Dump for Delay {
     }
 }
 
+// TODO: factor out; same function is in `sequencer.rs`
+fn sec_to_sample_num(sec: f64, time: &Time) -> u64 {
+    (time.sample_rate as f64 * sec) as u64
+}
+
 impl Unit for Delay {
     fn proc(&mut self, time: &Time) -> Signal {
-        let (sl, sr) = self.src.0.lock().unwrap().proc(time);
-        let mix = self.src.0.lock().unwrap().proc(time).0;
-        let (l, r) = (sl * mix, sr * mix);
-        (l, r)
+        self.buffer.pop_back();
+        let sig = self.src.0.lock().unwrap().proc(time);
+        self.buffer.push_front(Box::new(sig));
+        let dtime = self.time.0.lock().unwrap().proc(time).0;
+        let dt = sec_to_sample_num(dtime, time);
+        let fb = self.feedback.0.lock().unwrap().proc(time).0;
+        let mix = self.mix.0.lock().unwrap().proc(time).0;
+
+        let (mut dl, mut dr) = (0.0, 0.0);
+        let mut n = 1;
+        while n * dt < self.buffer.len() as u64 {
+            let (l, r) = **self.buffer.get((n * dt) as usize).unwrap();
+            let fbr = fb.powi(n as i32);
+            dl += l * fbr;
+            dr += r * fbr;
+            n += 1;
+        }
+
+        (sig.0 + dl * mix, sig.1 + dr * mix)
     }
 }
