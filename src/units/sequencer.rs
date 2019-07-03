@@ -8,6 +8,59 @@ use super::super::event::{Event, Message, Pitch, to_freq};
 use super::unit::{Signal, Mut, AUnit};
 use super::unit::{Walk, UDump, Dump, Unit, Node, UnitGraph, ADSR, Eg};
 
+pub struct Trigger {
+    eg: AUnit,
+    egs: Vec<AUnit>,
+}
+
+impl Trigger {
+    pub fn new(eg: AUnit, egs: Vec<AUnit>) -> AUnit {
+        Mut::amut(UnitGraph::new(Node::Eg(
+            Mut::amut(Trigger { eg: eg, egs: egs })
+        )))
+    }
+}
+
+impl Walk for Trigger {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        if f(&self.eg) { self.eg.0.lock().unwrap().walk(f); }
+        for eg in &self.egs {
+            if f(eg) { eg.0.lock().unwrap().walk(f); }
+        }
+    }
+}
+
+impl Dump for Trigger {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump {
+        let mut vec = Vec::new();
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.eg)) {
+            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.eg.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
+        // TODO: dumping egs
+        UDump::Op("trig".to_string(), vec)
+    }
+}
+
+impl Unit for Trigger {
+    fn proc(&mut self, time: &Time) -> Signal {
+        self.eg.0.lock().unwrap().proc(&time)
+    }
+}
+
+impl Eg for Trigger {
+    fn set_state(&mut self, state: ADSR, eplaced: u64) {
+        if let Node::Eg(eg) = &self.eg.0.lock().unwrap().node {
+            eg.0.lock().unwrap().set_state(state.clone(), eplaced);
+        }
+        for eg in &self.egs {
+            if let Node::Eg(eg) = &eg.0.lock().unwrap().node {
+                eg.0.lock().unwrap().set_state(state.clone(), eplaced);
+            }
+        }
+    }
+}
+
 pub struct AdsrEg {
     a: AUnit,
     d: AUnit,

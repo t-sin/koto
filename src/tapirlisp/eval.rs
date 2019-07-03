@@ -4,7 +4,7 @@ use super::super::units::unit::{Mut, AUnit, Node, UnitGraph, Table, Pattern};
 use super::super::units::core::{Pan, Clip, Offset, Gain, Add, Multiply};
 use super::super::units::effect::{Delay};
 use super::super::units::oscillator::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
-use super::super::units::sequencer::{AdsrEg, Seq};
+use super::super::units::sequencer::{Trigger, AdsrEg, Seq};
 
 use super::super::tapirlisp::types::{Cons, Value, Env, EvalError};
 use super::super::tapirlisp::rp::print;
@@ -298,6 +298,15 @@ fn make_pat(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     }
 }
 
+fn make_trig(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
+    if args.len() > 1 {
+        // TODO: implement `(trig $eg $egs1 $egs2 ...)`
+        Err(EvalError::FnWrongParams(String::from("trig"), args))
+    } else {
+        Err(EvalError::FnWrongParams(String::from("trig"), args))
+    }
+}
+
 fn make_adsr_eg(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     if args.len() == 4 {
         match eval(&args[0], env) {
@@ -385,6 +394,7 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUni
         "wavetable" => make_wavetable(args, env),
         // sequencer
         "pat" => make_pat(args, env),
+        "trig" => make_trig(args, env),
         "adsr" => make_adsr_eg(args, env),
         "seq" => make_seq(args, env),
         // fx

@@ -45,6 +45,7 @@ pub trait Osc: Unit {
     fn set_freq(&mut self, freq: AUnit);
 }
 
+#[derive(Clone)]
 pub enum ADSR {
     Attack,
     Decay,
