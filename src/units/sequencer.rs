@@ -13,6 +13,7 @@ pub struct Trigger {
     egs: Vec<AUnit>,
 }
 
+// TODO: it seems does not works...?
 impl Trigger {
     pub fn new(eg: AUnit, egs: Vec<AUnit>) -> AUnit {
         Mut::amut(UnitGraph::new(Node::Eg(
@@ -44,6 +45,9 @@ impl Dump for Trigger {
 
 impl Unit for Trigger {
     fn proc(&mut self, time: &Time) -> Signal {
+        for eg in &self.egs {
+            eg.0.lock().unwrap().proc(&time);
+        }
         self.eg.0.lock().unwrap().proc(&time)
     }
 }

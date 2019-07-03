@@ -299,9 +299,21 @@ fn make_pat(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
 }
 
 fn make_trig(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
-    if args.len() > 1 {
+    if args.len() > 0 {
         // TODO: implement `(trig $eg $egs1 $egs2 ...)`
-        Err(EvalError::FnWrongParams(String::from("trig"), args))
+        let mut egs = Vec::<AUnit>::new();
+        for exp in &args[1..] {
+            match eval(exp, env) {
+                Ok(Value::Unit(eg)) => egs.push(eg),
+                Ok(_v) => return Err(EvalError::NotAUnit),
+                _err => return Err(EvalError::FnWrongParams(String::from("trig"), args)),
+            }
+        }
+        match eval(&args[0], env) {
+            Ok(Value::Unit(eg)) => Ok(Trigger::new(eg, egs)),
+            Ok(_v) => Err(EvalError::NotAUnit),
+            _err => Err(EvalError::FnWrongParams(String::from("trig"), args)),
+        }
     } else {
         Err(EvalError::FnWrongParams(String::from("trig"), args))
     }
@@ -318,7 +330,7 @@ fn make_adsr_eg(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError>
                         _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
                     },
                     Ok(_v) => Err(EvalError::NotAUnit),
-                    _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
+                    _err => Err(EvalError::FnWrongParams(String::from("adsr"), args))
                 },
                 Ok(_v) => Err(EvalError::NotAUnit),
                 _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
