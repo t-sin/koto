@@ -68,7 +68,7 @@ impl Unit for Delay {
     fn proc(&mut self, time: &Time) -> Signal {
         let (sl, sr) = self.src.0.lock().unwrap().proc(time);
         let mix = self.src.0.lock().unwrap().proc(time).0;
-        let (l, r) = (sl * mix, sl * mix);
+        let (l, r) = (sl * mix, sr * mix);
         (l, r)
     }
 }
