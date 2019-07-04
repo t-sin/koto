@@ -15,7 +15,7 @@
     - [x] Wavetable
 - [ ] Effects
     - [ ] Filters
-    - [ ] Delay
+    - [x] Delay
 - [x] Sequencers
     - [x] Envelope
     - [x] Events (notes, fx values)
