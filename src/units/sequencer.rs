@@ -13,7 +13,6 @@ pub struct Trigger {
     egs: Vec<AUnit>,
 }
 
-// TODO: it seems does not works...?
 impl Trigger {
     pub fn new(eg: AUnit, egs: Vec<AUnit>) -> AUnit {
         Mut::amut(UnitGraph::new(Node::Eg(

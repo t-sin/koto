@@ -255,8 +255,8 @@ impl Dump for Multiply {
 
 impl Unit for Multiply {
     fn proc(&mut self, time: &Time) -> Signal {
-        let mut l = 0.0;
-        let mut r = 0.0;
+        let mut l = 1.0;
+        let mut r = 1.0;
         for u in self.sources.iter_mut() {
             let (l2, r2) = u.0.lock().unwrap().proc(&time);
             l *= l2;
