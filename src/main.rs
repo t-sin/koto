@@ -60,12 +60,14 @@ fn main() {
 (def $osc2 (rand 0))
 (def $eg2 (adsr 0 0.1 0.005 0))
 
-(def $pat3 (pat (c4 0) (r 0) (d 0) (r 0) (e 0) (r 0) (f 0) (r 0)
-                (g 0) (r 0) (a 0) (r 0) (b 0) (r 0) (c5 0) (r 0) (r 5)
-                 loop))
+(def $pat3 (pat (c3 2) (c3 2) (r 1) (c3 2) (c3 2) (c3 2) (r 1) (a+5 1) (r 1) (f5 1) (r 1) loop))
+(def $osc3 (saw 0 440))
+(def $eg3 (adsr 0.02 0.15 0.6 0))
+(def $feg3 (adsr 0 0.1 0.3 0))
 
-(+ (gain 0.3 (delay 0.3 0.5 1 (seq $pat1 $osc1 $eg1)))
-   (gain 0.25 (seq $pat2 $osc2 $eg2)))".to_string();
+(+ (pan 0.2 (gain 0.15 (delay 0.3 0.5 1 (seq $pat1 $osc1 $eg1))))
+   (gain 0.25 (seq $pat2 $osc2 $eg2))
+   (gain 0.2 (lpf (+ 500 (+ 200 (* 200 (tri 0 0.5))) (* 1200 $feg3)) 10 (seq $pat3 $osc3 (trig $eg3 $feg3)))))".to_string();
     let unit_graph = match tlisp::eval_all(tlisp::read(s).unwrap(), &mut env) {
         Ok(Value::Unit(ug)) => ug,
         Ok(_v) => panic!("Oh, unit graph is not a unit!!"),
