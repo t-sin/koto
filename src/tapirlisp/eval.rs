@@ -470,6 +470,38 @@ fn eval_call(name: &Cons, args: &Cons, env: &mut Env) -> Result<Value, EvalError
                 Err(EvalError::FnWrongParams("def".to_string(), vec))
             }
         },
+        Cons::Symbol(name) if &name[..] == "bpm" => {
+            let vec = to_vec(&args);
+            if vec.len() == 1 {
+                match *vec[0] {
+                    Cons::Number(n) => {
+                        env.time.bpm = n;
+                        Ok(Value::Nil)
+                    },
+                    _ => Err(EvalError::NotANumber(print(&vec[0]))),
+                }
+            } else {
+                Err(EvalError::FnWrongParams("bpm".to_string(), vec))
+            }
+        },
+        Cons::Symbol(name) if &name[..] == "measure" => {
+            let vec = to_vec(&args);
+            if vec.len() == 2 {
+                match *vec[0] {
+                    Cons::Number(beat) => match *vec[1] {
+                        Cons::Number(note) => {
+                            env.time.measure.beat = beat as u64;
+                            env.time.measure.note = note as u64;
+                            Ok(Value::Nil)
+                        },
+                        _ => Err(EvalError::NotANumber(print(&vec[1]))),
+                    },
+                    _ => Err(EvalError::NotANumber(print(&vec[0]))),
+                }
+            } else {
+                Err(EvalError::FnWrongParams("measure".to_string(), vec))
+            }
+        },
         Cons::Symbol(name) => {
             match make_unit(&name, to_vec(&args), env) {
                 Ok(u) => Ok(Value::Unit(u)),

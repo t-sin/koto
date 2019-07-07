@@ -50,6 +50,9 @@ fn main() {
 
     let mut env = Env::init(time);
     let s = r"
+(bpm 120)
+(measure 4 4)
+
 (def $pat1 (pat (c4 1) (d 1) (e 1) (f 1) (g 1) (a 1) (b 1) (c5 1) (r 4)
                  loop))
 
