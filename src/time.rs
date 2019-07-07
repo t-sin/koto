@@ -116,11 +116,11 @@ impl PartialOrd for Pos {
 
 
 impl Time {
-    pub fn new(sample_rate: u32, bpm: f64) -> Time {
+    pub fn new(sample_rate: u32) -> Time {
         Time {
             sample_rate: sample_rate,
             tick: 0,
-            bpm: bpm,
+            bpm: 120.0,
             measure: Measure { beat: 4, note: 4 },
             pos: Pos { bar: 0, beat: 0, pos: 0.0 },
         }

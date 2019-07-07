@@ -46,7 +46,7 @@ impl SoundSystem {
 
 fn main() {
     let sample_rate = 44100u32;
-    let time = Time::new(sample_rate, 120.0);
+    let time = Time::new(sample_rate);
 
     let mut env = Env::init(time);
     let s = r"
