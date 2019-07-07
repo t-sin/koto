@@ -38,7 +38,12 @@ impl Dump for Trigger {
             Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
             None => vec.push(Box::new(self.eg.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
-        // TODO: dumping egs
+        for eg in &self.egs {
+            match shared_vec.iter().position(|e| Arc::ptr_eq(e, &eg)) {
+                Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+                None => vec.push(Box::new(eg.0.lock().unwrap().dump(shared_vec, shared_map))),
+            }
+        }
         UDump::Op("trig".to_string(), vec)
     }
 }
