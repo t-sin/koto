@@ -13,8 +13,8 @@
 - [x] Oscillators
     - [x] Sine, Triangle, Saw, Square
     - [x] Wavetable
-- [ ] Effects
-    - [ ] Filters
+- [x] Effects
+    - [x] Filters
     - [x] Delay
 - [x] Sequencers
     - [x] Envelope
