@@ -6,9 +6,80 @@ use super::unit::{Mut, Signal, Walk, UDump, Dump, Unit, Node, UnitGraph, AUnit};
 
 use super::super::tapirlisp::types::Env;
 
-// filters
+pub struct LPFilter {
+    inbuf: [Signal;2],
+    outbuf: [Signal;2],
+    freq: AUnit,
+    q: AUnit,
+    src: AUnit,
+}
 
-// delays
+impl LPFilter {
+    pub fn new(freq: AUnit, q: AUnit, src: AUnit) -> AUnit {
+        Mut::amut(UnitGraph::new(Node::Sig(
+            Mut::amut(LPFilter {
+                inbuf: [(0.0, 0.0), (0.0, 0.0)],
+                outbuf: [(0.0, 0.0), (0.0, 0.0)],
+                freq: freq, q: q, src: src,
+            })
+        )))
+    }
+}
+
+impl Walk for LPFilter {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        if f(&self.freq) { self.freq.0.lock().unwrap().walk(f); }
+        if f(&self.q) { self.q.0.lock().unwrap().walk(f); }
+        if f(&self.src) { self.src.0.lock().unwrap().walk(f); }
+    }
+}
+
+impl Dump for LPFilter {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump {
+        let mut vec = Vec::new();
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.freq)) {
+            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.freq.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.q)) {
+            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.q.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
+        match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.src)) {
+            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            None => vec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
+        }
+        UDump::Op("lpf".to_string(), vec)
+    }
+}
+
+impl Unit for LPFilter {
+    fn proc(&mut self, time: &Time) -> Signal {
+        let f = self.freq.0.lock().unwrap().proc(time).0;
+        let q = self.q.0.lock().unwrap().proc(time).0;
+        let (sl, sr) = self.src.0.lock().unwrap().proc(time);
+
+        let w = (2.0 * std::f64::consts::PI * f) / time.sample_rate as f64;
+        let (sw, cw) = (w.sin(), w.cos());
+        let a = sw / (2.0 * q);
+        let (b0, b1, b2) = ((1.0 - cw) / 2.0, 1.0 - cw, (1.0 - cw) / 2.0);
+        let (a0, a1, a2) = (1.0 + a, -2.0 * cw, 1.0 - a);
+
+        let filter = |v, in0, in1, out0, out1| {
+            (b0 / a0 * v) + (b1 / a0 * in0) + (b2 / a0 * in1) - (a1 / a0 * out0) - (a2 / a0 * out1)
+        };
+
+        let l = filter(sl, self.inbuf[0].0, self.inbuf[1].0, self.outbuf[0].0, self.outbuf[1].0);
+        let r = filter(sr, self.inbuf[0].1, self.inbuf[1].1, self.outbuf[0].1, self.outbuf[1].1);
+
+        self.inbuf[1] = self.inbuf[0];
+        self.inbuf[0] = (sl, sr);
+        self.outbuf[1] = self.outbuf[0];
+        self.outbuf[0] = (l, r);
+
+        (l, r)
+    }
+}
 
 pub struct Delay {
     buffer: VecDeque<Box<Signal>>,

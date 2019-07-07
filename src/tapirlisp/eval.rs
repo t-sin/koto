@@ -2,7 +2,7 @@ use super::super::event::{Message, to_note, to_pos};
 
 use super::super::units::unit::{Mut, AUnit, Node, UnitGraph, Table, Pattern};
 use super::super::units::core::{Pan, Clip, Offset, Gain, Add, Multiply};
-use super::super::units::effect::{Delay};
+use super::super::units::effect::{LPFilter, Delay};
 use super::super::units::oscillator::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
 use super::super::units::sequencer::{Trigger, AdsrEg, Seq};
 
@@ -362,6 +362,28 @@ fn make_seq(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     }
 }
 
+// effects
+
+fn make_lpf(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
+    if args.len() == 3 {
+        match eval(&args[0], env) {
+            Ok(Value::Unit(freq)) => match eval(&args[1], env) {
+                Ok(Value::Unit(q)) => match eval(&args[2], env) {
+                    Ok(Value::Unit(src)) => Ok(LPFilter::new(freq, q, src)),
+                    _ => Err(EvalError::NotAPattern),
+                },
+                Ok(_v) => Err(EvalError::NotAUnit),
+                Err(err) => Err(err),
+            },
+            Ok(_v) => Err(EvalError::NotAUnit),
+            Err(err) => Err(err),
+        }
+    } else {
+        Err(EvalError::FnWrongParams(String::from("lpf"), args))
+    }
+}
+
+
 fn make_delay(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     if args.len() == 4 {
         match eval(&args[0], env) {
@@ -410,6 +432,7 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUni
         "adsr" => make_adsr_eg(args, env),
         "seq" => make_seq(args, env),
         // fx
+        "lpf" => make_lpf(args, env),
         "delay" => make_delay(args, env),
         _ => Err(EvalError::FnUnknown(String::from(name))),
     }
