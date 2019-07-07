@@ -91,7 +91,7 @@ pub struct Delay {
 
 impl Delay {
     pub fn new(time: AUnit, feedback: AUnit, mix: AUnit, src: AUnit, env: &Env) -> AUnit {
-        let len = (env.time.sample_rate * 6) as usize;
+        let len = (env.time.sample_rate * 2) as usize;
         let mut buffer = VecDeque::with_capacity(len);
         for _n in 0..len {
             buffer.push_back(Box::new((0.0, 0.0)));
