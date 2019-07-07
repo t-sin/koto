@@ -33,7 +33,7 @@ impl Dump for Pan {
         let mut vec = Vec::new();
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.v)) {
             Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
-            None => vec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
+            None => vec.push(Box::new(self.v.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.src)) {
             Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
