@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use super::super::units::unit::{Walk, UDump, Dump, Unit, AUnit};
+use super::types::Env;
 
 pub fn dump_unit(dump: &UDump) -> String {
     match dump {
@@ -24,7 +25,7 @@ pub fn dump_unit(dump: &UDump) -> String {
     }
 }
 
-pub fn dump(ug: AUnit) -> String {
+pub fn dump(ug: AUnit, env: &Env) -> String {
     let mut searched_units: Vec<AUnit> = Vec::new();
     let mut shared_units: Vec<AUnit> = Vec::new();
     let mut shared_unit_map = HashMap::new();
@@ -52,8 +53,11 @@ pub fn dump(ug: AUnit) -> String {
     });
 
     let mut tlisp_str = String::new();
-    // TODO: dump env
     tlisp_str.push_str(";; environment\n");
+    let bpm_str = format!("(bpm {})\n", env.time.bpm);
+    tlisp_str.push_str(&bpm_str.to_string());
+    let mes_str = format!("(measure {} {})\n", env.time.measure.beat, env.time.measure.note);
+    tlisp_str.push_str(&mes_str.to_string());
 
     tlisp_str.push_str("\n;; shared units\n");
     for (idx, su) in shared_units.iter().enumerate() {

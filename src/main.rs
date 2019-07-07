@@ -73,7 +73,7 @@ fn main() {
         Ok(_v) => panic!("Oh, unit graph is not a unit!!"),
         Err(err) => panic!("Error!!! {:?}", err),
     };
-    println!("{}", tlisp::dump(unit_graph.clone()));
+    println!("{}", tlisp::dump(unit_graph.clone(), &env));
 
     let mut lcd = SoundSystem::new(env.time, unit_graph);
 
