@@ -14,7 +14,7 @@ It has some features below:
 Unit generators generate sound signal.
 The output signals may be depend on values from other unit generator's or not.
 
-For details, see `make_unit()` in `../tapirlisp/eval.rs`.
+For details, see `make_unit()` in `./eval.rs`.
 
 ## Special forms
 
