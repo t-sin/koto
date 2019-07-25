@@ -44,7 +44,7 @@ Upcomming...
 
 Tapir Lisp is a Lisp-like language for describing synthesizer signal flow.
 It's used to save and load synthesizer configuration that created interactively by a user.
-For details, see [src/tapirlisp/README.md].
+For details, see [Tapir Lisp's README](src/tapirlisp/README.md).
 
 ## Author
 
