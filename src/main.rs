@@ -3,6 +3,7 @@ mod time;
 mod event;
 mod units;
 mod tapirlisp;
+mod somnia;
 
 use audio_device::AudioDevice;
 use time::{Time, Clock};
@@ -11,6 +12,8 @@ use units::unit::{Unit, AUnit};
 
 use tapirlisp::types::{Value, Env};
 use tapirlisp as tlisp;
+
+use somnia::run_test;
 
 struct SoundSystem {
     time: Time,
@@ -80,6 +83,8 @@ fn main() {
 
     let mut lcd = SoundSystem::new(env.time, unit_graph);
 
-    let audio_device = AudioDevice::open(lcd.time.sample_rate);
-    lcd.run(&audio_device);
+    // let audio_device = AudioDevice::open(lcd.time.sample_rate);
+    // lcd.run(&audio_device);
+
+    run_test();
 }
