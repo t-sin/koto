@@ -21,10 +21,15 @@ pub enum Reg {
 #[derive(Debug, Clone)]
 pub enum Op {
     NOP,
+    // loading/storing
     LOADC(u32, Reg),
     LOAD(u32, Reg),
     STORE(Reg, u32),
+    // basic arithmatic
     ADD(Reg, Reg, Reg),
+    SUB(Reg, Reg, Reg),
+    MUL(Reg, Reg, Reg),
+    DIV(Reg, Reg, Reg),
 }
 
 pub struct VM {
@@ -71,6 +76,42 @@ fn exec_1(vm: &mut VM) {
             let v1 = op1.get(vm);
             let v2 = op2.get(vm);
             let val = (Wrapping(v1) + Wrapping(v2)).0;
+            match tr {
+                Reg::R1 => vm.reg.r1 = val,
+                Reg::R2 => vm.reg.r2 = val,
+                Reg::R3 => vm.reg.r3 = val,
+                Reg::R4 => vm.reg.r4 = val,
+                r => panic!("{:?} cannot store result of add"),
+            };
+        },
+        Op::SUB(op1, op2, tr) => {
+            let v1 = op1.get(vm);
+            let v2 = op2.get(vm);
+            let val = (Wrapping(v1) - Wrapping(v2)).0;
+            match tr {
+                Reg::R1 => vm.reg.r1 = val,
+                Reg::R2 => vm.reg.r2 = val,
+                Reg::R3 => vm.reg.r3 = val,
+                Reg::R4 => vm.reg.r4 = val,
+                r => panic!("{:?} cannot store result of add"),
+            };
+        },
+        Op::MUL(op1, op2, tr) => {
+            let v1 = op1.get(vm);
+            let v2 = op2.get(vm);
+            let val = (Wrapping(v1) * Wrapping(v2)).0;
+            match tr {
+                Reg::R1 => vm.reg.r1 = val,
+                Reg::R2 => vm.reg.r2 = val,
+                Reg::R3 => vm.reg.r3 = val,
+                Reg::R4 => vm.reg.r4 = val,
+                r => panic!("{:?} cannot store result of add"),
+            };
+        },
+        Op::DIV(op1, op2, tr) => {
+            let v1 = op1.get(vm);
+            let v2 = op2.get(vm);
+            let val = (Wrapping(v1) / Wrapping(v2)).0;
             match tr {
                 Reg::R1 => vm.reg.r1 = val,
                 Reg::R2 => vm.reg.r2 = val,
