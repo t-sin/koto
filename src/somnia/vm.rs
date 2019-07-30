@@ -30,6 +30,9 @@ pub enum Op {
     SUB(Reg, Reg, Reg),
     MUL(Reg, Reg, Reg),
     DIV(Reg, Reg, Reg),
+    // bit shift
+    SHL(Reg, Reg, Reg),
+    SHR(Reg, Reg, Reg),
 }
 
 pub struct VM {
@@ -93,7 +96,7 @@ fn exec_1(vm: &mut VM) {
                 Reg::R2 => vm.reg.r2 = val,
                 Reg::R3 => vm.reg.r3 = val,
                 Reg::R4 => vm.reg.r4 = val,
-                r => panic!("{:?} cannot store result of add"),
+                r => panic!("{:?} cannot store result of sub"),
             };
         },
         Op::MUL(op1, op2, tr) => {
@@ -105,7 +108,7 @@ fn exec_1(vm: &mut VM) {
                 Reg::R2 => vm.reg.r2 = val,
                 Reg::R3 => vm.reg.r3 = val,
                 Reg::R4 => vm.reg.r4 = val,
-                r => panic!("{:?} cannot store result of add"),
+                r => panic!("{:?} cannot store result of mul"),
             };
         },
         Op::DIV(op1, op2, tr) => {
@@ -117,7 +120,31 @@ fn exec_1(vm: &mut VM) {
                 Reg::R2 => vm.reg.r2 = val,
                 Reg::R3 => vm.reg.r3 = val,
                 Reg::R4 => vm.reg.r4 = val,
-                r => panic!("{:?} cannot store result of add"),
+                r => panic!("{:?} cannot store result of div"),
+            };
+        },
+        Op::SHL(op1, op2, tr) => {
+            let v1 = op1.get(vm);
+            let v2 = op2.get(vm);
+            let val = (Wrapping(v1) << v2 as usize).0;
+            match tr {
+                Reg::R1 => vm.reg.r1 = val,
+                Reg::R2 => vm.reg.r2 = val,
+                Reg::R3 => vm.reg.r3 = val,
+                Reg::R4 => vm.reg.r4 = val,
+                r => panic!("{:?} cannot store result of shl"),
+            };
+        },
+        Op::SHR(op1, op2, tr) => {
+            let v1 = op1.get(vm);
+            let v2 = op2.get(vm);
+            let val = (Wrapping(v1) >> v2 as usize).0;
+            match tr {
+                Reg::R1 => vm.reg.r1 = val,
+                Reg::R2 => vm.reg.r2 = val,
+                Reg::R3 => vm.reg.r3 = val,
+                Reg::R4 => vm.reg.r4 = val,
+                r => panic!("{:?} cannot store result of shr"),
             };
         },
     }
