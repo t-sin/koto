@@ -84,7 +84,7 @@ fn exec_1(vm: &mut VM) {
 }
 
 impl VM {
-    pub fn init(program: &[Op], memory: Vec<u32>) -> VM {
+    pub fn init(program: &[Op], memory: &[u32]) -> VM {
         let mut boxed_prog = Vec::new();
         for op in program.iter() {
             boxed_prog.push(Box::new(op.clone()));
@@ -97,7 +97,7 @@ impl VM {
                 ol: 0, or: 0
             },
             program: boxed_prog,
-            memory: memory,
+            memory: Vec::from(memory),
         };
         vm
     }
