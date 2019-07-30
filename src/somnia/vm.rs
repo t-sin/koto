@@ -19,6 +19,7 @@ pub enum Reg {
 #[derive(Debug, Clone)]
 pub enum Op {
     NOP,
+    LOADC(u32, Reg),
     LOAD(u32, Reg),
     STORE(Reg, u32),
     ADD(Reg, Reg, Reg),
@@ -61,12 +62,9 @@ fn exec_1(vm: &mut VM) {
     println!("exec1: {:?}", op);
     match **op {
         Op::NOP => (),
-        Op::LOAD(pos, reg) => {
-            reg.set(vm, vm.memory[pos as usize]);
-        },
-        Op::STORE(reg, pos) => {
-            vm.memory[pos as usize] = reg.get(vm);
-        },
+        Op::LOAD(pos, reg) => reg.set(vm, vm.memory[pos as usize]),
+        Op::LOADC(val, reg) => reg.set(vm, val),
+        Op::STORE(reg, pos) => vm.memory[pos as usize] = reg.get(vm),
         Op::ADD(op1, op2, tr) => {
             let v1 = op1.get(vm);
             let v2 = op2.get(vm);
