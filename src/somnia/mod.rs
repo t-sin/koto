@@ -2,12 +2,14 @@ pub mod vm;
 
 use std::collections::HashMap;
 
-use vm::{Primitive, Reg, Op, VM};
+use vm::{Cell, Reg, Op, VM};
 
 pub fn run_test() {
     println!("-- somnia test --");
     let memory = vec![2, 4, 8, 16];
-    let prog = [Op::NOP, Op::LOAD(3, Reg::R1)];
+    let prog = [
+        Op::NOP, Op::LOAD(0, Reg::R1), Op::LOAD(1, Reg::R2), Op::STORE(Reg::R1, 3),
+        Op::ADD(Reg::R1, Reg::R2, Reg::R3),];
     println!("prog: {:?}", prog);
     let mut vm = VM::init(&prog, memory);
     println!("register: {:?}", vm.reg);
