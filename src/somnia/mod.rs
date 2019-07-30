@@ -2,7 +2,7 @@ pub mod vm;
 
 use std::collections::HashMap;
 
-use vm::{Cell, Reg, Op, VM};
+use vm::{Reg, Op, VM};
 
 pub fn run_test() {
     println!("-- somnia test --");

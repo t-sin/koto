@@ -1,19 +1,12 @@
-
-#[derive(Debug, Clone)]
-pub enum Cell {
-    Byte(u8),
-    Arr(Vec<Box<u8>>),
-}
-
 #[derive(Debug)]
 pub struct Register {
     // instruction pointer
-    pub ip: usize,
+    pub ip: u32,
     // general purpose registers
-    pub r1: Cell,  pub r2: Cell,
-    pub r3: Cell,  pub r4: Cell,
+    pub r1: u32,  pub r2: u32,
+    pub r3: u32,  pub r4: u32,
     // output values
-    pub ol: Cell,  pub or: Cell,
+    pub ol: u32,  pub or: u32,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -26,40 +19,37 @@ pub enum Reg {
 #[derive(Debug, Clone)]
 pub enum Op {
     NOP,
-    LOAD(usize, Reg),
-    STORE(Reg, usize),
+    LOAD(u32, Reg),
+    STORE(Reg, u32),
     ADD(Reg, Reg, Reg),
 }
 
 pub struct VM {
     pub reg: Register,
     pub program: Vec<Box<Op>>,
-    pub memory: Vec<u8>,
+    pub memory: Vec<u32>,
 }
 
 impl Reg {
-    fn get(self, vm: &mut VM) -> Cell {
+    fn get(self, vm: &mut VM) -> u32 {
         match self {
-            Reg::R1 => vm.reg.r1.clone(),
-            Reg::R2 => vm.reg.r2.clone(),
-            Reg::R3 => vm.reg.r3.clone(),
-            Reg::R4 => vm.reg.r4.clone(),
-            Reg::IP => Cell::Byte(vm.reg.ip as u8),
-            Reg::OL => vm.reg.ol.clone(),
-            Reg::OR => vm.reg.or.clone(),
+            Reg::R1 => vm.reg.r1,
+            Reg::R2 => vm.reg.r2,
+            Reg::R3 => vm.reg.r3,
+            Reg::R4 => vm.reg.r4,
+            Reg::IP => vm.reg.ip,
+            Reg::OL => vm.reg.ol,
+            Reg::OR => vm.reg.or,
         }
     }
 
-    fn set(self, vm: &mut VM, val: Cell) {
+    fn set(self, vm: &mut VM, val: u32) {
         match self {
             Reg::R1 => vm.reg.r1 = val,
             Reg::R2 => vm.reg.r2 = val,
             Reg::R3 => vm.reg.r3 = val,
             Reg::R4 => vm.reg.r4 = val,
-            Reg::IP => vm.reg.ip = match val {
-                Cell::Byte(b) => b as usize,
-                Cell::Arr(_) => panic!(),
-            },
+            Reg::IP => vm.reg.ip = val,
             Reg::OL => vm.reg.ol = val,
             Reg::OR => vm.reg.or = val,
         };
@@ -67,35 +57,25 @@ impl Reg {
 }
 
 fn exec_1(vm: &mut VM) {
-    let op = &vm.program[vm.reg.ip];
+    let op = &vm.program[vm.reg.ip as usize];
     println!("exec1: {:?}", op);
     match **op {
         Op::NOP => (),
         Op::LOAD(pos, reg) => {
-            let val = Cell::Byte(vm.memory[pos]);
-            reg.set(vm, val);
+            reg.set(vm, vm.memory[pos as usize]);
         },
         Op::STORE(reg, pos) => {
-            let val = reg.get(vm);
-            match val {
-                Cell::Byte(u) => vm.memory[pos] = u,
-                Cell::Arr(_) => panic!("array!"),
-            };
+            vm.memory[pos as usize] = reg.get(vm);
         },
         Op::ADD(op1, op2, tr) => {
-            let v1 = match op1.get(vm) {
-                Cell::Byte(u) => u,
-                Cell::Arr(_) => panic!("wrong type op1"),
-            };
-            let v2 = match op2.get(vm) {
-                Cell::Byte(u) => u,
-                Cell::Arr(_) => panic!("wrong type op1"),
-            };
+            let v1 = op1.get(vm);
+            let v2 = op2.get(vm);
+            let val = v1 + v2;
             match tr {
-                Reg::R1 => vm.reg.r1 = Cell::Byte(v1 + v2),
-                Reg::R2 => vm.reg.r2 = Cell::Byte(v1 + v2),
-                Reg::R3 => vm.reg.r3 = Cell::Byte(v1 + v2),
-                Reg::R4 => vm.reg.r4 = Cell::Byte(v1 + v2),
+                Reg::R1 => vm.reg.r1 = val,
+                Reg::R2 => vm.reg.r2 = val,
+                Reg::R3 => vm.reg.r3 = val,
+                Reg::R4 => vm.reg.r4 = val,
                 r => panic!("{:?} cannot store result of add"),
             };
         },
@@ -104,7 +84,7 @@ fn exec_1(vm: &mut VM) {
 }
 
 impl VM {
-    pub fn init(program: &[Op], memory: Vec<u8>) -> VM {
+    pub fn init(program: &[Op], memory: Vec<u32>) -> VM {
         let mut boxed_prog = Vec::new();
         for op in program.iter() {
             boxed_prog.push(Box::new(op.clone()));
@@ -113,9 +93,8 @@ impl VM {
         let vm = VM {
             reg: Register {
                 ip: 0,
-                r1: Cell::Byte(0), r2: Cell::Byte(0),
-                r3: Cell::Byte(0), r4: Cell::Byte(0),
-                ol: Cell::Byte(0), or: Cell::Byte(0),
+                r1: 0, r2: 0, r3: 0, r4: 0,
+                ol: 0, or: 0
             },
             program: boxed_prog,
             memory: memory,
@@ -124,8 +103,7 @@ impl VM {
     }
 
     pub fn execute(&mut self) {
-        println!("fn execute()");
-        while (self.reg.ip < self.program.len()) {
+        while (self.reg.ip < self.program.len() as u32) {
             exec_1(self);
         }
     }
