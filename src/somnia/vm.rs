@@ -1,3 +1,5 @@
+use std::num::Wrapping;
+
 #[derive(Debug)]
 pub struct Register {
     // instruction pointer
@@ -68,7 +70,7 @@ fn exec_1(vm: &mut VM) {
         Op::ADD(op1, op2, tr) => {
             let v1 = op1.get(vm);
             let v2 = op2.get(vm);
-            let val = v1 + v2;
+            let val = (Wrapping(v1) + Wrapping(v2)).0;
             match tr {
                 Reg::R1 => vm.reg.r1 = val,
                 Reg::R2 => vm.reg.r2 = val,
