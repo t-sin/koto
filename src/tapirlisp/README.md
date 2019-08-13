@@ -9,6 +9,8 @@ It has some features below:
 - define global variables
     - for creating multiple signal output
 
+S-expression reader and printer are placed at [../sexp.rs](../sexp.rs).
+
 ## Unit generators
 
 Unit generators generate sound signal.
