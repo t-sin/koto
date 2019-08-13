@@ -25,6 +25,7 @@ pub enum Op {
     LOADC(u32, Reg),
     LOAD(u32, Reg),
     STORE(Reg, u32),
+    OUT(Reg),
     // basic arithmatic
     ADD(Reg, Reg, Reg),
     SUB(Reg, Reg, Reg),
@@ -75,6 +76,11 @@ fn exec_1(vm: &mut VM) {
         Op::LOAD(pos, reg) => reg.set(vm, vm.memory[pos as usize]),
         Op::LOADC(val, reg) => reg.set(vm, val),
         Op::STORE(reg, pos) => vm.memory[pos as usize] = reg.get(vm),
+        Op::OUT(reg) => {
+            let v = reg.get(vm);
+            Reg::OL.set(vm, v);
+            Reg::OR.set(vm, v);
+        }
         Op::ADD(op1, op2, tr) => {
             let v1 = op1.get(vm);
             let v2 = op2.get(vm);
