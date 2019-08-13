@@ -3,16 +3,16 @@ pub mod compile;
 
 use std::collections::HashMap;
 
+use super::sexp;
 use vm::{Reg, Op, VM};
 use compile::compile;
 
 pub fn run_test() {
     println!("-- somnia test --");
     let memory = &[2, 4, 8, 16];
-    let prog = compile(Vec::new());
-    // let prog = [
-    //     Op::NOP, Op::LOAD(0, Reg::R1), Op::LOAD(1, Reg::R2), Op::STORE(Reg::R1, 3),
-    //     Op::SHL(Reg::R1, Reg::R2, Reg::R3), Op::OUT(Reg::R3)];
+    let code = "42".to_string();
+    println!("code: {:?}", code);
+    let prog = compile(sexp::read(code).unwrap());
     println!("prog: {:?}", prog);
     let mut vm = VM::init(prog, memory);
     println!("register: {:?}", vm.reg);
