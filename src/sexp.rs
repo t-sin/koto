@@ -1,7 +1,39 @@
+use std::error::Error;
+use std::fmt;
 use std::iter::Peekable;
 use std::str::Chars;
 
-use super::types::{Cons, ReadError};
+#[derive(Debug, PartialEq, Clone)]
+pub enum Cons {
+    Cons(Box<Cons>, Box<Cons>),
+    Symbol(String),
+    Number(f64),
+    Nil,
+}
+
+#[derive(Debug)]
+pub enum ReadError {
+    InvalidNumber(String),
+    UnexpectedCloseParen,
+}
+
+impl fmt::Display for ReadError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ReadError::InvalidNumber(s) => write!(f, "Cannot parse '{}' as a number", s),
+            ReadError::UnexpectedCloseParen => write!(f, "Unexpected ')'"),
+        }
+    }
+}
+
+impl Error for ReadError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            ReadError::InvalidNumber(_s) => None,
+            ReadError::UnexpectedCloseParen => None,
+        }
+    }
+}
 
 fn skip_whitespaces(chars: &mut Peekable<Chars>) {
     loop {
@@ -162,4 +194,17 @@ pub fn print(exp: &Cons) -> String {
         },
      }
     s
+}
+
+pub fn to_vec(list: &Cons) -> Vec<Box<Cons>> {
+    match list {
+        Cons::Nil => Vec::new(),
+        Cons::Cons(elem, rest) => {
+            let mut v: Vec<Box<Cons>> = Vec::new();
+            v.push(Box::new((**elem).clone()));
+            v.append(&mut to_vec(rest));
+            v
+        },
+        _ => panic!("it's not proper list: {:?}", list),
+    }
 }

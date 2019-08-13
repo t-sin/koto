@@ -2,16 +2,9 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 
+use super::super::sexp::Cons;
 use super::super::time::Time;
 use super::super::units::unit::AUnit;
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum Cons {
-    Cons(Box<Cons>, Box<Cons>),
-    Symbol(String),
-    Number(f64),
-    Nil,
-}
 
 pub type Name = String;
 
@@ -29,30 +22,6 @@ pub struct Env {
 impl Env {
     pub fn init(time: Time) -> Env {
         Env { time: time, binding: HashMap::new() }
-    }
-}
-
-#[derive(Debug)]
-pub enum ReadError {
-    InvalidNumber(String),
-    UnexpectedCloseParen,
-}
-
-impl fmt::Display for ReadError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            ReadError::InvalidNumber(s) => write!(f, "Cannot parse '{}' as a number", s),
-            ReadError::UnexpectedCloseParen => write!(f, "Unexpected ')'"),
-        }
-    }
-}
-
-impl Error for ReadError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            ReadError::InvalidNumber(_s) => None,
-            ReadError::UnexpectedCloseParen => None,
-        }
     }
 }
 

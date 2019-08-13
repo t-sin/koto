@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use super::super::units::unit::{Walk, UDump, Dump, Unit, AUnit};
-use super::types::Env;
+use super::value::Env;
 
 pub fn dump_unit(dump: &UDump) -> String {
     match dump {

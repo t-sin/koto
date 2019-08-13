@@ -2,6 +2,7 @@ mod audio_device;
 mod time;
 mod event;
 mod units;
+mod sexp;
 mod tapirlisp;
 mod somnia;
 
@@ -10,8 +11,8 @@ use time::{Time, Clock};
 
 use units::unit::{Unit, AUnit};
 
-use tapirlisp::types::{Value, Env};
 use tapirlisp as tlisp;
+use tapirlisp::value::{Value, Env};
 
 use somnia::run_test;
 
@@ -74,7 +75,7 @@ fn main() {
 (+ (pan 0.2 (gain 0.15 (delay 0.3 0.5 1 (seq $pat1 $osc1 $eg1))))
    (gain 0.25 (seq $pat2 $osc2 $eg2))
    (gain 0.2 (lpf (+ 500 (+ 200 (* 200 (tri 0 0.5))) (* 1200 $feg3)) 10 (seq $pat3 $osc3 (trig $eg3 $feg3)))))".to_string();
-    let unit_graph = match tlisp::eval_all(tlisp::read(s).unwrap(), &mut env) {
+    let unit_graph = match tlisp::eval_all(sexp::read(s).unwrap(), &mut env) {
         Ok(Value::Unit(ug)) => ug,
         Ok(_v) => panic!("Oh, unit graph is not a unit!!"),
         Err(err) => panic!("Error!!! {:?}", err),

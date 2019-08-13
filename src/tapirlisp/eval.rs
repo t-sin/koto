@@ -1,3 +1,6 @@
+use std::collections::VecDeque;
+
+use super::super::sexp::{Cons, print, to_vec};
 use super::super::event::{Message, to_note, to_pos};
 
 use super::super::units::unit::{Mut, AUnit, Node, UnitGraph, Table, Pattern};
@@ -6,9 +9,7 @@ use super::super::units::effect::{LPFilter, Delay};
 use super::super::units::oscillator::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
 use super::super::units::sequencer::{Trigger, AdsrEg, Seq};
 
-use super::super::tapirlisp::types::{Cons, Value, Env, EvalError};
-use super::super::tapirlisp::rp::print;
-use super::super::tapirlisp::to_vec;
+use super::value::{Value, Env, EvalError};
 
 // core units
 
@@ -523,4 +524,19 @@ pub fn eval(sexp: &Cons, env: &mut Env) -> Result<Value, EvalError> {
             Mut::amut(UnitGraph::new(Node::Val(*num))))),
         Cons::Nil => Ok(Value::Nil),
     }
+}
+
+pub fn eval_all(sexp_vec: Vec<Box<Cons>>, env: &mut Env) -> Result<Value, EvalError> {
+    let mut q = VecDeque::new();
+    for sexp in sexp_vec.iter() {
+        match eval(sexp, env) {
+            Ok(v) => q.push_back(v),
+            Err(err) => return Err(err),
+        }
+    }
+    match q.len() {
+        0 => Ok(Value::Nil),
+        _ => Ok(q.pop_back().unwrap()),
+    }
+
 }
