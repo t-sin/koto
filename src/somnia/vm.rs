@@ -158,19 +158,14 @@ fn exec_1(vm: &mut VM) {
 }
 
 impl VM {
-    pub fn init(program: &[Op], memory: &[u32]) -> VM {
-        let mut boxed_prog = Vec::new();
-        for op in program.iter() {
-            boxed_prog.push(Box::new(op.clone()));
-        }
-
+    pub fn init(program: Vec<Box<Op>>, memory: &[u32]) -> VM {
         let vm = VM {
             reg: Register {
                 ip: 0,
                 r1: 0, r2: 0, r3: 0, r4: 0,
                 ol: 0, or: 0
             },
-            program: boxed_prog,
+            program: program,
             memory: Vec::from(memory),
         };
         vm
