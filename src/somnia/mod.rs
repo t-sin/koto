@@ -10,7 +10,7 @@ use compile::compile;
 pub fn run_test() {
     println!("-- somnia test --");
     let memory = &[2, 4, 8, 16];
-    let code = "42".to_string();
+    let code = "(+ 1 42)".to_string();
     println!("code: {:?}", code);
     let prog = compile(sexp::read(code).unwrap());
     println!("prog: {:?}", prog);
