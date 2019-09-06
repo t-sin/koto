@@ -30,6 +30,9 @@ pub enum Op {
     LOAD(u32, Reg),
     STORE(Reg, u32),
     OUT(Reg),
+    // stack manupilation
+    PUSH(Reg),
+    POP(Reg),
     // basic arithmatic
     ADD(Reg, Reg, Reg),
     SUB(Reg, Reg, Reg),
@@ -116,7 +119,21 @@ fn exec_1(vm: &mut VM) {
             let v = reg.get(vm);
             Reg::OL.set(vm, v);
             Reg::OR.set(vm, v);
-        }
+        },
+        Op::PUSH(op) => {
+            let len = vm.memory.len();
+            vm.memory[len - 1 - vm.reg.sp as usize] = op.get(vm);
+            vm.reg.sp += 1;
+        },
+        Op::POP(tr) => {
+            if vm.reg.sp <= 0 {
+                panic!("stack is empty");
+            } else {
+                vm.reg.sp -= 1;
+                let len = vm.memory.len();
+                tr.set(vm, vm.memory[len - 1 - vm.reg.sp as usize]);
+            }
+        },
         Op::ADD(op1, op2, tr) => {
             let v1 = op1.get(vm);
             let v2 = op2.get(vm);
