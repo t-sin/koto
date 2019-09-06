@@ -2,8 +2,12 @@ use std::num::Wrapping;
 
 #[derive(Debug)]
 pub struct Register {
+    // zero register
+    pub zr: u32,
     // instruction pointer
     pub ip: u32,
+    // stack pointer
+    pub sp: u32,
     // general purpose registers
     pub r1: u32,  pub r2: u32,
     pub r3: u32,  pub r4: u32,
@@ -13,7 +17,7 @@ pub struct Register {
 
 #[derive(Debug, Clone, Copy)]
 pub enum Reg {
-    IP,
+    ZR, IP, SP,
     R1, R2, R3, R4,
     OL, OR,
 }
@@ -43,13 +47,43 @@ pub struct VM {
 }
 
 impl Reg {
+    fn to_num(reg: Reg) -> u8 {
+        match reg {
+            Reg::ZR => 0,
+            Reg::R1 => 1,
+            Reg::R2 => 2,
+            Reg::R3 => 3,
+            Reg::R4 => 4,
+            Reg::IP => 32,
+            Reg::SP => 33,
+            Reg::OL => 34,
+            Reg::OR => 35,
+        }
+    }
+    fn to_reg(n: u8) -> Reg {
+        match n {
+            1 => Reg::R1,
+            2 => Reg::R2,
+            3 => Reg::R3,
+            4 => Reg::R4,
+            32 => Reg::IP,
+            33 => Reg::SP,
+            34 => Reg::OL,
+            35 => Reg::OR,
+            _ => Reg::ZR,
+        }
+    }
+
+
     fn get(self, vm: &mut VM) -> u32 {
         match self {
+            Reg::ZR => vm.reg.zr,
             Reg::R1 => vm.reg.r1,
             Reg::R2 => vm.reg.r2,
             Reg::R3 => vm.reg.r3,
             Reg::R4 => vm.reg.r4,
             Reg::IP => vm.reg.ip,
+            Reg::SP => vm.reg.sp,
             Reg::OL => vm.reg.ol,
             Reg::OR => vm.reg.or,
         }
@@ -57,11 +91,13 @@ impl Reg {
 
     fn set(self, vm: &mut VM, val: u32) {
         match self {
+            Reg::ZR => (),
             Reg::R1 => vm.reg.r1 = val,
             Reg::R2 => vm.reg.r2 = val,
             Reg::R3 => vm.reg.r3 = val,
             Reg::R4 => vm.reg.r4 = val,
             Reg::IP => vm.reg.ip = val,
+            Reg::SP => vm.reg.sp = val,
             Reg::OL => vm.reg.ol = val,
             Reg::OR => vm.reg.or = val,
         };
@@ -161,7 +197,7 @@ impl VM {
     pub fn init(program: Vec<Box<Op>>, memory: &[u32]) -> VM {
         let vm = VM {
             reg: Register {
-                ip: 0,
+                zr: 0, ip: 0, sp: 0,
                 r1: 0, r2: 0, r3: 0, r4: 0,
                 ol: 0, or: 0
             },
