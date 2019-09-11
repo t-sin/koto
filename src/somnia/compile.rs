@@ -32,56 +32,63 @@ fn set_reg(reg: Reg, flag: bool, cs: &mut CompileState) {
     }
 }
 
-fn compile_1(sexp: Box<Cons>, cs: &mut CompileState, toplevel: bool) -> Option<Reg> {
+fn compile_fn(name: &str, args: Vec<Box<Cons>>, ret: Reg, cs: &mut CompileState) {
+    match &name[..] {
+        "+" => {
+            if args.len() == 2 {
+                compile_1(args[0].clone(), cs, false);
+                compile_1(args[1].clone(), cs, false);
+                if let Some(reg1) = find_free_reg(cs) {
+                    set_reg(reg1, true, cs);
+                    if let Some(reg2) = find_free_reg(cs) {
+                        set_reg(reg2, true, cs);
+                        cs.program.push(Box::new(Op::POP(reg1)));
+                        cs.program.push(Box::new(Op::POP(reg2)));
+                        cs.program.push(Box::new(Op::ADD(reg1, reg2, ret)));
+                        set_reg(reg1, false, cs);
+                        set_reg(reg2, false, cs);
+                        set_reg(ret, true, cs);
+                    }
+                }
+            } else {
+                panic!("wrong number of args for '+': {:?}", args);
+            }
+        },
+        _ => panic!("unknown operator: {:?}", name),
+    }
+}
+
+fn compile_1(sexp: Box<Cons>, cs: &mut CompileState, toplevel: bool) {
     if let Some(target) = find_free_reg(&cs) {
         match *sexp {
             Cons::Cons(car, cdr) => {
                 let mut reg: Reg;
                 if let Cons::Symbol(name) = *car {
                     let args = to_vec(&*cdr);
-                    match &name[..] {
-                        "+" => {
-                            if args.len() == 2 {
-                                let reg1 = compile_1(args[0].clone(), cs, false).unwrap();
-                                let reg2 = compile_1(args[1].clone(), cs, false).unwrap();
-                                cs.program.push(Box::new(Op::ADD(reg1, reg2, target)));
-                                set_reg(target, true, cs);
-                                set_reg(reg1, false, cs);
-                                set_reg(reg2, false, cs);
-                            } else {
-                                panic!("wrong number of args for '+': {:?}", cdr);
-                            }
-                        },
-                        _ => panic!("unknown operator: {:?}", name),
-                    }
+                    compile_fn(&name, args, target, cs);
                 } else {
                     panic!("invalid form: {:?} {:?}", car, cdr);
                 }
-
                 if toplevel == true {
                     cs.program.push(Box::new(Op::OUT(target)));
-                    None
                 } else {
-                    Some(target)
+                    cs.program.push(Box::new(Op::PUSH(target)));
                 }
             },
-            Cons::Symbol(name) => None,
+            Cons::Symbol(name) => (),
             Cons::Number(n) => {
                 cs.program.push(Box::new(Op::LOADC(n as u32, target)));
-                set_reg(target, true, cs);
-
                 if toplevel == true {
                     cs.program.push(Box::new(Op::OUT(target)));
-                    None
                 } else {
-                    Some(target)
+                    cs.program.push(Box::new(Op::PUSH(target)));
                 }
             },
             Cons::Nil => {
                 cs.program.push(Box::new(Op::NOP));
-                None
             },
         }
+        set_reg(target, false, cs);
     } else {
         println!("state: {:?}", cs);
         panic!("there's no free register!!");

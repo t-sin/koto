@@ -109,7 +109,7 @@ impl Reg {
 
 fn exec_1(vm: &mut VM) {
     let op = &vm.program[vm.reg.ip as usize];
-    println!("exec1: {:?}", op);
+    //println!("exec1: {:?}", op);
     match **op {
         Op::NOP => (),
         Op::LOAD(pos, reg) => reg.set(vm, vm.memory[pos as usize]),
