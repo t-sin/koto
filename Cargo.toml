@@ -9,5 +9,7 @@ edition = "2018"
 [dependencies]
 cpal = "0.8.2"
 fuse = "0.3.1"
+libc = "0.2.62"
 num = "0.2"
 rand = "0.6"
+time = "0.1.42"
