@@ -19,8 +19,6 @@ use units::unit::{Unit, AUnit};
 use tapirlisp as tlisp;
 use tapirlisp::value::{Value, Env};
 
-use somnia::run_test;
-
 struct SoundSystem {
     time: Time,
     root_ug: AUnit,
@@ -93,4 +91,5 @@ fn main() {
     // lcd.run(&audio_device);
 
     run_test();
+    // somnia::run_test();
 }
