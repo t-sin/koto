@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::cmp::{PartialEq, Eq};
 use std::sync::{Arc, Mutex};
 
-use super::super::time::Time;
+use super::super::mtime::{Time, Measure};
 use super::super::event::{Message, to_str, to_len};
 
 pub struct Mut<T: ?Sized> (pub Mutex<T>);
@@ -101,7 +101,7 @@ impl Walk for Pattern {
 impl Dump for Pattern {
     fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> UDump {
         let mut vec = Vec::new();
-        let m = super::super::time::Measure { beat: 4, note: 4 };
+        let m = Measure { beat: 4, note: 4 };
 
         for ev in self.0.iter() {
             match &**ev {

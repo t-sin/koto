@@ -4,8 +4,7 @@ use std::sync::Arc;
 use rand::{Rng, SeedableRng};
 use rand::rngs::SmallRng;
 
-use super::super::time::{Pos, Time};
-use super::super::time::Clock;
+use super::super::mtime::{Pos, Time, Clock};
 
 use super::unit::{Signal, Mut, AUnit};
 use super::unit::{Walk, UDump, Dump, Unit, Node, UnitGraph, Osc, Table};

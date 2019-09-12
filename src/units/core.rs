@@ -3,7 +3,7 @@ extern crate num;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use super::super::time::Time;
+use super::super::mtime::Time;
 
 use super::unit::Signal;
 use super::unit::{Mut, UDump, Dump, Walk, Unit, Node, UnitGraph, AUnit};

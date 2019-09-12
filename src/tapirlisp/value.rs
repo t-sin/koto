@@ -3,7 +3,7 @@ use std::error::Error;
 use std::fmt;
 
 use super::super::sexp::Cons;
-use super::super::time::Time;
+use super::super::mtime::Time;
 use super::super::units::unit::AUnit;
 
 pub type Name = String;

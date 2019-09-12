@@ -1,4 +1,4 @@
-use super::time::{Pos, Measure};
+use super::mtime::{Pos, Measure};
 
 pub type Freq = f64;
 

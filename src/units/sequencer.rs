@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::collections::VecDeque;
 use std::sync::Arc;
 
-use super::super::time::{Time, Pos, PosOps, Measure};
+use super::super::mtime::{Time, Pos, PosOps, Measure};
 use super::super::event::{Event, Message, Pitch, to_freq};
 
 use super::unit::{Signal, Mut, AUnit};

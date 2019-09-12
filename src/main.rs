@@ -1,10 +1,11 @@
 extern crate cpal;
 extern crate fuse;
+extern crate libc;
 extern crate num;
 extern crate rand;
 
 mod audio_device;
-mod time;
+mod mtime;
 mod event;
 mod units;
 mod sexp;
@@ -15,7 +16,7 @@ mod kfs;
 use std::ffi::OsString;
 
 use audio_device::AudioDevice;
-use time::{Time, Clock};
+use mtime::{Time, Clock};
 
 use units::unit::{Unit, AUnit};
 
