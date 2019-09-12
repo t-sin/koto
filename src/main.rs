@@ -1,3 +1,8 @@
+extern crate cpal;
+extern crate fuse;
+extern crate num;
+extern crate rand;
+
 mod audio_device;
 mod time;
 mod event;
