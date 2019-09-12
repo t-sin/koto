@@ -10,6 +10,9 @@ mod units;
 mod sexp;
 mod tapirlisp;
 mod somnia;
+mod kfs;
+
+use std::ffi::OsString;
 
 use audio_device::AudioDevice;
 use time::{Time, Clock};
@@ -90,6 +93,8 @@ fn main() {
     // let audio_device = AudioDevice::open(lcd.time.sample_rate);
     // lcd.run(&audio_device);
 
-    run_test();
+    let fs = kfs::KotoFS::init();
+    fs.mount(OsString::from("test"));
+
     // somnia::run_test();
 }
