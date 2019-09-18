@@ -95,7 +95,7 @@ fn main() {
     // lcd.run(&audio_device);
 
     let fs = kfs::KotoFS::init();
-    fs.mount(OsString::from("test"));
+    fs.mount(OsString::from("koto.test"));
 
     // somnia::run_test();
 }
