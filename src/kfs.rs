@@ -7,7 +7,8 @@ use time::Timespec;
 
 use fuse::{
     Filesystem, FileType, Request, FileAttr,
-    ReplyAttr, ReplyDirectory, ReplyEntry, ReplyCreate, ReplyWrite, ReplyData,
+    ReplyAttr, ReplyDirectory, ReplyEntry, ReplyCreate,
+    ReplyWrite, ReplyData, ReplyEmpty
 };
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
@@ -175,6 +176,20 @@ impl Filesystem for KotoFS {
             self.inodes.insert(inode, node);
             reply.entry(&TTL, &attr, 0);
         }
+    }
+
+    fn rename(&mut self, _req: &Request, parent: u64, name: &OsStr, _newparent: u64, newname: &OsStr, reply: ReplyEmpty) {
+        println!("rename() {:?} to {:?}", name, newname);
+        if let Some(parent_node) = self.inodes.get(&parent) {
+            let children = parent_node.lock().unwrap().children;
+            let old_name = name.to_str().unwrap();
+            if let Some(node) = children.iter().find(|n| &n.lock().unwrap().name == old_name) {
+                node.lock().unwrap().name = newname.to_str().unwrap().to_string();
+                reply.ok();
+                return;
+            }
+        }
+        reply.error(ENOENT);
     }
 
     fn write(&mut self, _req: &Request, ino: u64, _fh: u64, _offset: i64, data: &[u8], _flags: u32, reply: ReplyWrite) {
