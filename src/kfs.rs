@@ -14,7 +14,7 @@ const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 
 #[derive(Debug, Clone)]
 pub enum NodeKind {
-    Root, Dir, File,
+    Dir, File,
 }
 
 #[derive(Debug, Clone)]
@@ -63,7 +63,7 @@ fn create_dir(ino: u64) -> FileAttr {
 impl KotoFS {
     pub fn init() -> KotoFS {
         let root = KotoNode {
-            inode: 1, kind: NodeKind::Root, children: [].to_vec(), name: "/".to_string(), data: [].to_vec(),
+            inode: 1, kind: NodeKind::Dir, children: [].to_vec(), name: "/".to_string(), data: [].to_vec(),
             parent: None, attr: create_file(1, 0, FileType::Directory),
         };
         let root_arc = Arc::new(Mutex::new(root));
