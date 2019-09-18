@@ -3,7 +3,10 @@ use std::ffi::{OsStr, OsString};
 use libc::{ENOENT, EACCES};
 use time::Timespec;
 
-use fuse::{Filesystem, FileType, Request, FileAttr, ReplyAttr, ReplyDirectory, ReplyEntry, ReplyCreate};
+use fuse::{
+    Filesystem, FileType, Request, FileAttr,
+    ReplyAttr, ReplyDirectory, ReplyEntry, ReplyCreate, ReplyWrite, ReplyData,
+};
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 
@@ -11,6 +14,7 @@ const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 pub struct KotoFS {
     // <ino, (parent_ino, pathname, fileattr)>
     pub inode_table: HashMap<u64, (u64, String, FileAttr)>,
+    pub data_table: HashMap<u64, Vec<u8>>,
 }
 
 fn create_file(ino: u64, size: u64, ftype: FileType) -> FileAttr {
@@ -31,6 +35,7 @@ impl KotoFS {
     pub fn init() -> KotoFS {
         let mut kfs = KotoFS {
             inode_table: HashMap::new(),
+            data_table: HashMap::new(),
         };
         kfs.inode_table.insert(1, (0, "/".to_string(), create_file(1, 0, FileType::Directory)));
         kfs
@@ -103,6 +108,25 @@ impl Filesystem for KotoFS {
         reply: ReplyAttr) {
         match self.inode_table.get(&ino) {
             Some(f) => reply.attr(&TTL, &f.2),
+            None => reply.error(EACCES),
+        }
+    }
+
+    fn write(&mut self, _req: &Request, ino: u64, _fh: u64, _offset: i64, data: &[u8], _flags: u32, reply: ReplyWrite) {
+        let length: usize = data.len();
+        let d = data.to_vec();
+        self.data_table.insert(ino, d);
+        if let Some(f) = self.inode_table.get_mut(&ino) {
+            let parent_ino = f.0;
+            let name = f.1.clone();
+            *f = (parent_ino, name, create_file(ino, length as u64, FileType::RegularFile));
+        }
+        reply.written(length as u32);
+    }
+
+    fn read(&mut self, _req: &Request, ino: u64, _fh: u64, _offset: i64, _size: u32, reply: ReplyData) {
+        match self.data_table.get(&ino) {
+            Some(d) => reply.data(d),
             None => reply.error(EACCES),
         }
     }
