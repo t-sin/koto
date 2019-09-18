@@ -50,17 +50,6 @@ fn create_file(ino: u64, size: u64, ftype: FileType) -> FileAttr {
     }
 }
 
-fn create_dir(ino: u64) -> FileAttr {
-    let t = time::now().to_timespec();
-    FileAttr {
-        ino: ino, size: 0, blocks: 0,
-        atime: t, mtime: t, ctime: t, crtime: t,
-        kind: FileType::Directory,
-        perm: 0o755,
-        nlink: 2, uid: 501, gid: 20, rdev: 0, flags: 0,
-    }
-}
-
 impl KotoFS {
     pub fn init() -> KotoFS {
         let root = KotoNode {
@@ -163,7 +152,7 @@ impl Filesystem for KotoFS {
         println!("mkdir() with {:?}", name);
         if let Some(parent_node) = self.inodes.get(&parent) {
             let inode = time::now().to_timespec().sec as u64;
-            let attr = create_dir(inode);
+            let attr = create_file(inode, 0, FileType::Directory);
             let node = KotoNode {
                 parent: Some(parent_node.clone()), inode: inode, kind: NodeKind::Dir, children: Vec::new(),
                 name: name.to_str().unwrap().to_string(), data: [].to_vec(), attr: attr,
