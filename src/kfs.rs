@@ -161,6 +161,22 @@ impl Filesystem for KotoFS {
         }
     }
 
+    fn mkdir(&mut self, _req: &Request, parent: u64, name: &OsStr, _mode: u32, reply: ReplyEntry) {
+        println!("mkdir() with {:?}", name);
+        if let Some(parent_node) = self.inodes.get(&parent) {
+            let inode = time::now().to_timespec().sec as u64;
+            let attr = create_dir(inode);
+            let node = KotoNode {
+                parent: Some(parent_node.clone()), inode: inode, kind: NodeKind::Dir, children: Vec::new(),
+                name: name.to_str().unwrap().to_string(), data: [].to_vec(), attr: attr,
+            };
+            let node = Arc::new(Mutex::new(node));
+            parent_node.lock().unwrap().children.push(node.clone());
+            self.inodes.insert(inode, node);
+            reply.entry(&TTL, &attr, 0);
+        }
+    }
+
     fn write(&mut self, _req: &Request, ino: u64, _fh: u64, _offset: i64, data: &[u8], _flags: u32, reply: ReplyWrite) {
         println!("write() to {:?}", ino);
         let length: usize = data.len();
