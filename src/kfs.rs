@@ -13,8 +13,6 @@ pub struct KotoFS {
     pub inode_table: HashMap<u64, (u64, String, FileAttr)>,
 }
 
-impl Filesystem for KotoFS {}
-
 fn create_file(ino: u64, size: u64, ftype: FileType) -> FileAttr {
     let t = time::now().to_timespec();
     FileAttr {
@@ -34,27 +32,28 @@ impl KotoFS {
         let mut kfs = KotoFS {
             inode_table: HashMap::new(),
         };
-        kfs.inode_table.insert(0, (1, "/".to_string(), create_file(1, 0, FileType::Directory)));
+        kfs.inode_table.insert(1, (0, "/".to_string(), create_file(1, 0, FileType::Directory)));
         kfs
     }
 
     pub fn mount(self, mountpoint: OsString) {
         println!("{:?}", self);
-        fuse::mount(self, &mountpoint, &[]).expect("fail mount()");
+        fuse::mount(self, &mountpoint, &[]).expect(&format!("fail mount() with {:?}", mountpoint));
     }
+}
 
-    pub fn getattr(&mut self, _req: &Request, ino: u64, reply: ReplyAttr) {
+impl Filesystem for KotoFS {
+    fn getattr(&mut self, _req: &Request, ino: u64, reply: ReplyAttr) {
         for (&inode, f) in self.inode_table.iter() {
             if ino == inode {
                 reply.attr(&TTL, &f.2);
                 return;
             }
         }
-
         reply.error(ENOENT);
     }
 
-    pub fn readdir(&mut self, _req: &Request, _ino: u64, _fh: u64, offset: i64, mut reply: ReplyDirectory) {
+    fn readdir(&mut self, _req: &Request, _ino: u64, _fh: u64, offset: i64, mut reply: ReplyDirectory) {
         if offset == 0 {
             reply.add(1, 0, FileType::Directory, ".");
             reply.add(2, 1, FileType::Directory, "..");
