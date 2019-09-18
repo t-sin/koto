@@ -87,11 +87,9 @@ impl Filesystem for KotoFS {
             return;
         }
 
-        for (_, n) in self.inodes.iter() {
-            if ino == n.lock().unwrap().inode {
-                reply.attr(&TTL, &n.lock().unwrap().attr);
-                return;
-            }
+        if let Some(node) = self.inodes.get(&ino) {
+            reply.attr(&TTL, &node.lock().unwrap().attr);
+            return;
         }
 
         reply.error(ENOENT);
@@ -106,14 +104,13 @@ impl Filesystem for KotoFS {
         reply.add(1, 0, FileType::Directory, ".");
         reply.add(2, 1, FileType::Directory, "..");
         let mut reply_add_offset = 2;
-        for (_, n) in self.inodes.iter() {
-            let attr = n.lock().unwrap().attr;
-            let name = n.lock().unwrap().name.to_string();
-            if let Some(parent_inode) = &n.lock().unwrap().parent {
-                if parent_inode.lock().unwrap().inode == ino {
-                    reply.add(attr.ino, reply_add_offset, attr.kind, name);
-                    reply_add_offset += 1;
-                }
+
+        if let Some(parent) = self.inodes.get(&ino) {
+            for n in parent.lock().unwrap().children.iter() {
+                let attr = n.lock().unwrap().attr;
+                let name = n.lock().unwrap().name.to_string();
+                reply.add(attr.ino, reply_add_offset, attr.kind, name);
+                reply_add_offset += 1;
             }
         }
         reply.ok();
