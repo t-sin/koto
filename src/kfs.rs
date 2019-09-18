@@ -157,11 +157,14 @@ impl Filesystem for KotoFS {
                 parent: Some(parent_node.clone()), inode: inode, kind: NodeKind::Dir, children: Vec::new(),
                 name: name.to_str().unwrap().to_string(), data: [].to_vec(), attr: attr,
             };
+
             let node = Arc::new(Mutex::new(node));
             parent_node.lock().unwrap().children.push(node.clone());
-            self.inodes.insert(inode, node);
-            reply.entry(&TTL, &attr, 0);
+            self.inodes.insert(inode, node.clone());
+            reply.entry(&TTL, &node.lock().unwrap().attr, 0);
+            return;
         }
+        reply.error(ENOENT);
     }
 
     fn rename(&mut self, _req: &Request, parent: u64, name: &OsStr, _newparent: u64, newname: &OsStr, reply: ReplyEmpty) {
