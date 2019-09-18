@@ -1,9 +1,9 @@
 use std::collections::HashMap;
-use std::ffi::OsString;
-use libc::ENOENT;
+use std::ffi::{OsStr, OsString};
+use libc::{ENOENT, EACCES};
 use time::Timespec;
 
-use fuse::{Filesystem, FileType, Request, FileAttr, ReplyAttr, ReplyDirectory};
+use fuse::{Filesystem, FileType, Request, FileAttr, ReplyAttr, ReplyDirectory, ReplyEntry, ReplyCreate};
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 
@@ -43,7 +43,9 @@ impl KotoFS {
 }
 
 impl Filesystem for KotoFS {
+    // get attribute for the entry identified by inode `ino`
     fn getattr(&mut self, _req: &Request, ino: u64, reply: ReplyAttr) {
+        println!("getattr() with {:?}", ino);
         for (&inode, f) in self.inode_table.iter() {
             if ino == inode {
                 reply.attr(&TTL, &f.2);
@@ -53,11 +55,55 @@ impl Filesystem for KotoFS {
         reply.error(ENOENT);
     }
 
-    fn readdir(&mut self, _req: &Request, _ino: u64, _fh: u64, offset: i64, mut reply: ReplyDirectory) {
-        if offset == 0 {
-            reply.add(1, 0, FileType::Directory, ".");
-            reply.add(2, 1, FileType::Directory, "..");
+    // get directory entries in `ino`
+    fn readdir(&mut self, _req: &Request, ino: u64, _fh: u64, offset: i64, mut reply: ReplyDirectory) {
+        if offset > 0 {
+            reply.ok();
+            return;
+        }
+        reply.add(1, 0, FileType::Directory, ".");
+        reply.add(2, 1, FileType::Directory, "..");
+        let mut reply_add_offset = 2;
+        for (_, f) in self.inode_table.iter() {
+            if ino == f.0 {
+                let attr = f.2;
+                let name = &f.1;
+                reply.add(attr.ino, reply_add_offset, attr.kind, name);
+                reply_add_offset += 1;
+            }
         }
         reply.ok();
+    }
+
+    // lookup() checks if the entry `name` exists
+    fn lookup(&mut self, _req: &Request, parent: u64, name: &OsStr, reply: ReplyEntry) {
+        println!("lookup() by {:?}", name);
+        for (_, f) in self.inode_table.iter() {
+            if f.0 == parent && name.to_str().unwrap() == f.1.as_str() {
+                reply.entry(&TTL, &f.2, 0);
+                return;
+            }
+        }
+        reply.error(ENOENT);
+    }
+
+    // create file as `name`
+    fn create(&mut self, _req: &Request, parent: u64, name: &OsStr, _mode: u32, _flag: u32, reply: ReplyCreate) {
+        println!("create() with {:?}", name);
+        let inode = time::now().to_timespec().sec as u64;
+        let f = create_file(inode, 0, FileType::RegularFile);
+        self.inode_table.insert(inode, (parent, name.to_str().unwrap().to_string(), f));
+        reply.created(&TTL, &f, 0, 0, 0,);
+    }
+
+    // set attribute to `ino`
+    fn setattr(&mut self, _req: &Request, ino: u64, _mode: Option<u32>, _uid: Option<u32>, _gid: Option<u32>,
+        _size: Option<u64>, _atime: Option<Timespec>, _mtime: Option<Timespec>, _fd: Option<u64>,
+        _crtime: Option<Timespec>, chgtime: Option<Timespec>, _bkuptime: Option<Timespec>, _flags: Option<u32>,
+        reply: ReplyAttr) {
+        match self.inode_table.get(&ino) {
+            Some(f) => reply.attr(&TTL, &f.2),
+            None => reply.error(EACCES),
+        }
     }
 }
