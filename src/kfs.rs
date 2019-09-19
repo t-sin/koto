@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::ffi::{OsStr, OsString};
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
 use libc::{ENOENT, EACCES};
@@ -15,7 +16,7 @@ const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 
 #[derive(Debug, Clone)]
 pub enum NodeKind {
-    Dir, File,
+    Dir, File, Link
 }
 
 #[derive(Debug, Clone)]
@@ -27,6 +28,7 @@ pub struct KotoNode {
     pub children: Vec<Arc<Mutex<KotoNode>>>,
     pub name: String,
     pub data: Vec<u8>,
+    pub link: PathBuf,
     pub attr: FileAttr,
 }
 
@@ -53,7 +55,8 @@ fn create_file(ino: u64, size: u64, ftype: FileType) -> FileAttr {
 impl KotoFS {
     pub fn init() -> KotoFS {
         let root = KotoNode {
-            inode: 1, kind: NodeKind::Dir, children: [].to_vec(), name: "/".to_string(), data: [].to_vec(),
+            inode: 1, kind: NodeKind::Dir, children: [].to_vec(),
+            name: "/".to_string(), data: [].to_vec(), link: Path::new("").to_path_buf(),
             parent: None, attr: create_file(1, 0, FileType::Directory),
         };
         let root_arc = Arc::new(Mutex::new(root));
@@ -124,12 +127,14 @@ impl Filesystem for KotoFS {
 
     fn create(&mut self, _req: &Request, parent: u64, name: &OsStr, _mode: u32, _flag: u32, reply: ReplyCreate) {
         println!("create() with {:?}", name);
-        let inode = time::now().to_timespec().sec as u64;
-        let f = create_file(inode, 0, FileType::RegularFile);
         if let Some(parent_node) = self.inodes.get(&parent) {
+            // TODO: check if exist a same filename
+
+            let inode = time::now().to_timespec().sec as u64;
+            let f = create_file(inode, 0, FileType::RegularFile);
             let node = KotoNode {
                 parent: Some(parent_node.clone()), inode: inode, kind: NodeKind::File, children: Vec::new(),
-                name: name.to_str().unwrap().to_string(), data: [].to_vec(), attr: f,
+                name: name.to_str().unwrap().to_string(), data: [].to_vec(), link: Path::new("").to_path_buf(), attr: f,
             };
             let node = Arc::new(Mutex::new(node));
             parent_node.lock().unwrap().children.push(node.clone());
@@ -156,7 +161,7 @@ impl Filesystem for KotoFS {
             let attr = create_file(inode, 0, FileType::Directory);
             let node = KotoNode {
                 parent: Some(parent_node.clone()), inode: inode, kind: NodeKind::Dir, children: Vec::new(),
-                name: name.to_str().unwrap().to_string(), data: [].to_vec(), attr: attr,
+                name: name.to_str().unwrap().to_string(), data: [].to_vec(), link: Path::new("").to_path_buf(), attr: attr,
             };
 
             let node = Arc::new(Mutex::new(node));
@@ -243,5 +248,47 @@ impl Filesystem for KotoFS {
         }
 
         reply.error(ENOENT);
+    }
+
+    fn readlink(&mut self, _req: &Request, ino: u64, reply: ReplyData) {
+        println!("readlink() from {:?}", ino);
+
+        if let Some(node) = self.inodes.get(&ino) {
+            let mut is_link = false;
+            match node.lock().unwrap().kind {
+                NodeKind::Link => is_link = true,
+                _ => (),
+            }
+
+            if is_link == true {
+                let path = &node.lock().unwrap().link;
+                reply.data(path.as_path().to_str().unwrap().as_bytes());
+                return;
+            }
+        }
+        reply.error(ENOENT);
+    }
+
+    fn symlink(&mut self, _req: &Request, parent: u64, name: &OsStr, link: &Path, reply: ReplyEntry) {
+        println!("symlink() with {:?}", name);
+
+        if let Some(parent_node) = self.inodes.get(&parent) {
+            // TODO: check if exist a same filename
+
+            let inode = time::now().to_timespec().sec as u64;
+            let attr = create_file(inode, 0, FileType::Symlink);
+            let path = Path::new(link.to_str().unwrap()).to_path_buf();
+            let node = KotoNode {
+                parent: Some(parent_node.clone()), inode: inode, kind: NodeKind::Link, children: Vec::new(),
+                name: name.to_str().unwrap().to_string(), data: [].to_vec(), link: path, attr: attr,
+            };
+
+            let node = Arc::new(Mutex::new(node));
+            parent_node.lock().unwrap().children.push(node.clone());
+            self.inodes.insert(inode, node);
+            reply.entry(&TTL, &attr, 0);
+            return;
+        }
+        reply.error(EACCES);
     }
 }
