@@ -107,17 +107,18 @@ impl Filesystem for KotoFS {
 
     fn lookup(&mut self, _req: &Request, parent: u64, name: &OsStr, reply: ReplyEntry) {
         println!("lookup() by {:?}", name);
-        for (_, n) in self.inodes.iter() {
-            let node_attr = n.lock().unwrap().attr;
-            let node_name = n.lock().unwrap().name.to_string();
-            if let Some(parent_node) = &n.lock().unwrap().parent {
-                let inode = parent_node.lock().unwrap().inode;
-                if inode == parent && name.to_str().unwrap() == node_name {
-                    reply.entry(&TTL, &node_attr, 0);
-                    return;
-                }
+
+        if let Some(parent_node) = self.inodes.get(&parent) {
+            let children = &mut parent_node.lock().unwrap().children;
+            let name = name.to_str().unwrap().to_string();
+
+            if let Some(node) = children.iter().find(|n| n.lock().unwrap().name == name) {
+                let attr = node.lock().unwrap().attr;
+                reply.entry(&TTL, &attr, 0);
+                return;
             }
         }
+
         reply.error(ENOENT);
     }
 
@@ -222,6 +223,7 @@ impl Filesystem for KotoFS {
 
     fn unlink(&mut self, _req: &Request, parent: u64, name: &OsStr, reply: ReplyEmpty) {
         println!("unlink() {:?}", name);
+        let mut inode = None;
 
         if let Some(parent_node) = self.inodes.get(&parent) {
             let children = &mut parent_node.lock().unwrap().children;
@@ -229,13 +231,17 @@ impl Filesystem for KotoFS {
 
             if let Some(pos) = children.iter().position(|n| n.lock().unwrap().name == name) {
                 let node = &children[pos];
-                self.inodes.remove(&node.lock().unwrap().inode);
+                inode = Some(node.lock().unwrap().inode);
                 children.remove(pos);
-
-                reply.ok();
-                return;
             }
         }
+
+        if let Some(inode) = inode {
+            self.inodes.remove(&inode);
+            reply.ok();
+            return;
+        }
+
         reply.error(ENOENT);
     }
 }
