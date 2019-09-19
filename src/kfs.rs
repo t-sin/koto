@@ -169,6 +169,15 @@ impl Filesystem for KotoFS {
 
     fn rename(&mut self, _req: &Request, parent: u64, name: &OsStr, _newparent: u64, newname: &OsStr, reply: ReplyEmpty) {
         println!("rename() {:?} to {:?}", name, newname);
+        let mut ext: String = "".to_string();
+        for c in newname.to_str().unwrap().to_string().chars() {
+            if c == '.' {
+                break;
+            }
+            ext.push(c);
+        }
+        println!("ext: {:?}", ext);
+
         if let Some(parent_node) = self.inodes.get(&parent) {
             let children = &parent_node.lock().unwrap().children;
             let old_name = name.to_str().unwrap();
