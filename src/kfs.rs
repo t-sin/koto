@@ -181,24 +181,31 @@ impl Filesystem for KotoFS {
         reply.error(ENOENT);
     }
 
-    fn write(&mut self, _req: &Request, ino: u64, _fh: u64, _offset: i64, data: &[u8], _flags: u32, reply: ReplyWrite) {
-        println!("write() to {:?}", ino);
+    fn write(&mut self, _req: &Request, ino: u64, _fh: u64, offset: i64, data: &[u8], _flags: u32, reply: ReplyWrite) {
+        println!("write() to {:?} with offset {:?}", ino, offset);
         let length: usize = data.len();
         if let Some(n) = self.inodes.get_mut(&ino) {
-            //let parent_ino = n.lock().unwrap().inode;
-            n.lock().unwrap().attr.size = data.len() as u64;
-            n.lock().unwrap().data = data.to_vec();
+            if offset == 0 {
+                n.lock().unwrap().attr.size = data.len() as u64;
+                n.lock().unwrap().data = data.to_vec();
+            } else {
+                n.lock().unwrap().attr.size += data.len() as u64;
+                n.lock().unwrap().data.append(&mut data.to_vec());
+            }
         }
         reply.written(length as u32);
     }
 
-    fn read(&mut self, _req: &Request, ino: u64, _fh: u64, _offset: i64, _size: u32, reply: ReplyData) {
+    fn read(&mut self, _req: &Request, ino: u64, _fh: u64, offset: i64, size: u32, reply: ReplyData) {
         println!("read() from {:?}", ino);
         match self.inodes.get(&ino) {
             Some(n) => {
-                let data = &n.lock().unwrap().data;
-                println!("{:?}", data);
-                reply.data(&data);
+                let data_rest = &n.lock().unwrap().data[offset as usize..];
+                if data_rest.len() >= size as usize {
+                    reply.data(&data_rest[..size as usize]);
+                } else {
+                    reply.data(&data_rest);
+                }
             },
             None => reply.error(EACCES),
         }
