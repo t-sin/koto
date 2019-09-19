@@ -122,18 +122,17 @@ impl Filesystem for KotoFS {
     fn create(&mut self, _req: &Request, parent: u64, name: &OsStr, _mode: u32, _flag: u32, reply: ReplyCreate) {
         println!("create() with {:?}", name);
         if let Some(parent_node) = self.inodes.get(&parent) {
-            // TODO: check if exist a same filename
-
             let inode = time::now().to_timespec().sec as u64;
-            let f = create_file(inode, 0, FileType::RegularFile);
+            let name = name.to_str().unwrap().to_string();
+            let attr = create_file(inode, 0, FileType::RegularFile);
             let node = KotoNode {
                 parent: Some(parent_node.clone()), inode: inode, children: Vec::new(),
-                name: name.to_str().unwrap().to_string(), data: [].to_vec(), link: Path::new("").to_path_buf(), attr: f,
+                name: name, data: [].to_vec(), link: Path::new("").to_path_buf(), attr: attr,
             };
             let node = Arc::new(Mutex::new(node));
             parent_node.lock().unwrap().children.push(node.clone());
             self.inodes.insert(inode, node);
-            reply.created(&TTL, &f, 0, 0, 0,);
+            reply.created(&TTL, &attr, 0, 0, 0,);
         }
     }
 
@@ -265,16 +264,14 @@ impl Filesystem for KotoFS {
 
     fn symlink(&mut self, _req: &Request, parent: u64, name: &OsStr, link: &Path, reply: ReplyEntry) {
         println!("symlink() with {:?}", name);
-
         if let Some(parent_node) = self.inodes.get(&parent) {
-            // TODO: check if exist a same filename
-
             let inode = time::now().to_timespec().sec as u64;
+            let name = name.to_str().unwrap().to_string();
             let attr = create_file(inode, 0, FileType::Symlink);
             let path = Path::new(link.to_str().unwrap()).to_path_buf();
             let node = KotoNode {
                 parent: Some(parent_node.clone()), inode: inode, children: Vec::new(),
-                name: name.to_str().unwrap().to_string(), data: [].to_vec(), link: path, attr: attr,
+                name: name, data: [].to_vec(), link: path, attr: attr,
             };
 
             let node = Arc::new(Mutex::new(node));
