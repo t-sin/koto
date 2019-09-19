@@ -219,4 +219,23 @@ impl Filesystem for KotoFS {
             None => reply.error(EACCES),
         }
     }
+
+    fn unlink(&mut self, _req: &Request, parent: u64, name: &OsStr, reply: ReplyEmpty) {
+        println!("unlink() {:?}", name);
+
+        if let Some(parent_node) = self.inodes.get(&parent) {
+            let children = &mut parent_node.lock().unwrap().children;
+            let name = name.to_str().unwrap().to_string();
+
+            if let Some(pos) = children.iter().position(|n| n.lock().unwrap().name == name) {
+                let node = &children[pos];
+                self.inodes.remove(&node.lock().unwrap().inode);
+                children.remove(pos);
+
+                reply.ok();
+                return;
+            }
+        }
+        reply.error(ENOENT);
+    }
 }
