@@ -27,6 +27,7 @@
     - [x] Global binding and `def` (with unit sharing)
     - [x] SAVE the graph
 - [ ] FUSE interfaces
+    - [ ] Simple in-memory filesystem
     - [ ] Map unit graph into filesystem (read only)
     - [ ] Unit manipulation
     - [ ] Unit manipulation via filesystem
