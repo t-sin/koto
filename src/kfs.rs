@@ -15,16 +15,10 @@ use fuse::{
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 
 #[derive(Debug, Clone)]
-pub enum NodeKind {
-    Dir, File, Link
-}
-
-#[derive(Debug, Clone)]
 pub struct KotoNode {
     // if parent is None, it'a a root.
     pub parent: Option<Arc<Mutex<KotoNode>>>,
     pub inode: u64,
-    pub kind: NodeKind,
     pub children: Vec<Arc<Mutex<KotoNode>>>,
     pub name: String,
     pub data: Vec<u8>,
@@ -55,7 +49,7 @@ fn create_file(ino: u64, size: u64, ftype: FileType) -> FileAttr {
 impl KotoFS {
     pub fn init() -> KotoFS {
         let root = KotoNode {
-            inode: 1, kind: NodeKind::Dir, children: [].to_vec(),
+            inode: 1, children: [].to_vec(),
             name: "/".to_string(), data: [].to_vec(), link: Path::new("").to_path_buf(),
             parent: None, attr: create_file(1, 0, FileType::Directory),
         };
@@ -133,7 +127,7 @@ impl Filesystem for KotoFS {
             let inode = time::now().to_timespec().sec as u64;
             let f = create_file(inode, 0, FileType::RegularFile);
             let node = KotoNode {
-                parent: Some(parent_node.clone()), inode: inode, kind: NodeKind::File, children: Vec::new(),
+                parent: Some(parent_node.clone()), inode: inode, children: Vec::new(),
                 name: name.to_str().unwrap().to_string(), data: [].to_vec(), link: Path::new("").to_path_buf(), attr: f,
             };
             let node = Arc::new(Mutex::new(node));
@@ -160,7 +154,7 @@ impl Filesystem for KotoFS {
             let inode = time::now().to_timespec().sec as u64;
             let attr = create_file(inode, 0, FileType::Directory);
             let node = KotoNode {
-                parent: Some(parent_node.clone()), inode: inode, kind: NodeKind::Dir, children: Vec::new(),
+                parent: Some(parent_node.clone()), inode: inode, children: Vec::new(),
                 name: name.to_str().unwrap().to_string(), data: [].to_vec(), link: Path::new("").to_path_buf(), attr: attr,
             };
 
@@ -255,8 +249,8 @@ impl Filesystem for KotoFS {
 
         if let Some(node) = self.inodes.get(&ino) {
             let mut is_link = false;
-            match node.lock().unwrap().kind {
-                NodeKind::Link => is_link = true,
+            match node.lock().unwrap().attr.kind {
+                FileType::Symlink => is_link = true,
                 _ => (),
             }
 
@@ -279,7 +273,7 @@ impl Filesystem for KotoFS {
             let attr = create_file(inode, 0, FileType::Symlink);
             let path = Path::new(link.to_str().unwrap()).to_path_buf();
             let node = KotoNode {
-                parent: Some(parent_node.clone()), inode: inode, kind: NodeKind::Link, children: Vec::new(),
+                parent: Some(parent_node.clone()), inode: inode, children: Vec::new(),
                 name: name.to_str().unwrap().to_string(), data: [].to_vec(), link: path, attr: attr,
             };
 
