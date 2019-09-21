@@ -77,17 +77,30 @@ impl KotoFS {
     fn build_children(&mut self, parent: &Option<Arc<Mutex<KotoNode>>>, ug: AUnit)
     -> Vec<Arc<Mutex<KotoNode>>> {
         let mut vec = Vec::new();
-        match ug.0.lock().unwrap().node {
+        match &ug.0.lock().unwrap().node {
             Node::Val(v) => {
                 let node = Arc::new(Mutex::new(create_node(
                     "pa".to_string(), Vec::from(v.to_string().as_bytes()), FileType::RegularFile
                 )));
                 self.inodes.insert(node.lock().unwrap().inode, node.clone());
+                if let Some(parent) = parent {
+                    parent.lock().unwrap().children.push(node.clone());
+                }
                 vec.push(node.clone());
             },
-            _ => (),
+            Node::Sig(s) => {
+                let node = Arc::new(Mutex::new(create_node(
+                    "pa".to_string(), Vec::from("aaa".to_string().as_bytes()), FileType::RegularFile
+                )));
+                self.inodes.insert(node.lock().unwrap().inode, node.clone());
+                if let Some(parent) = parent {
+                    parent.lock().unwrap().children.push(node.clone());
+                }
+                println!("{:?}", node);
+                vec.push(node.clone());
+            },
+            _ => {},
         };
-
         vec
     }
 
@@ -107,7 +120,11 @@ impl KotoFS {
     }
 
     pub fn build(&mut self, ug: AUnit) {
-        let root_node = self.build_node(&None, ug.clone());
+        let mut root = Arc::new(Mutex::new(self.build_node(&None, ug.clone())));
+        root.lock().unwrap().inode = 1;
+        self.inodes = HashMap::new();
+        self.inodes.insert(root.lock().unwrap().inode, root.clone());
+        self.root = root.clone();
         ug.0.lock().unwrap().walk(&mut |u| {
             true
         });
