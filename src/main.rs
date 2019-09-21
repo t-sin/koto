@@ -90,14 +90,15 @@ fn main() {
     };
     println!("{}", tlisp::dump(unit_graph.clone(), &env));
 
-    let mut lcd = SoundSystem::new(env.time, unit_graph);
+    let mut lcd = SoundSystem::new(env.time, unit_graph.clone());
 
     std::thread::spawn(move || {
         let audio_device = AudioDevice::open(lcd.time.sample_rate);
         lcd.run(&audio_device);
     });
 
-    let fs = kfs::KotoFS::init();
+    let mut fs = kfs::KotoFS::init();
+    fs.build(unit_graph.clone());
     fs.mount(OsString::from("koto.test"));
 
     // somnia::run_test();

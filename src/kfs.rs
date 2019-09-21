@@ -12,6 +12,8 @@ use fuse::{
     ReplyWrite, ReplyData, ReplyEmpty
 };
 
+use super::units::unit::{Walk, Node, AUnit};
+
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 
 #[derive(Debug, Clone)]
@@ -46,6 +48,19 @@ fn create_file(ino: u64, size: u64, ftype: FileType) -> FileAttr {
     }
 }
 
+fn create_node(name: String, data: Vec<u8>, ftype: FileType) -> KotoNode {
+    let inode = time::now().to_timespec().sec as u64;
+    let size = match ftype {
+        FileType::RegularFile => data.len(),
+        _ => 0,
+    };
+    let attr = create_file(inode, size as u64, ftype);
+    KotoNode {
+        inode: inode, children: Vec::new(), parent: None, link: Path::new("").to_path_buf(),
+        name: name, data: data, attr: attr,
+    }
+}
+
 impl KotoFS {
     pub fn init() -> KotoFS {
         let root = KotoNode {
@@ -58,6 +73,47 @@ impl KotoFS {
         inodes.insert(root_arc.lock().unwrap().inode, root_arc.clone());
         KotoFS { inodes: inodes, root: root_arc }
     }
+
+    fn build_children(&mut self, parent: &Option<Arc<Mutex<KotoNode>>>, ug: AUnit)
+    -> Vec<Arc<Mutex<KotoNode>>> {
+        let mut vec = Vec::new();
+        match ug.0.lock().unwrap().node {
+            Node::Val(v) => {
+                let node = Arc::new(Mutex::new(create_node(
+                    "pa".to_string(), Vec::from(v.to_string().as_bytes()), FileType::RegularFile
+                )));
+                self.inodes.insert(node.lock().unwrap().inode, node.clone());
+                vec.push(node.clone());
+            },
+            _ => (),
+        };
+
+        vec
+    }
+
+    fn build_node(&mut self, parent: &Option<Arc<Mutex<KotoNode>>>, ug: AUnit) -> KotoNode {
+        let children = self.build_children(&parent, ug);
+        let name = "hoge".to_string();
+        let data = Vec::new();
+        let mut node = create_node(name, data, FileType::Directory);
+
+        node.children = children;
+        if let Some(p) = parent {
+            node.parent = Some(p.clone());
+        } else {
+            node.parent = None;
+        }
+        node
+    }
+
+    pub fn build(&mut self, ug: AUnit) {
+        let root_node = self.build_node(&None, ug.clone());
+        ug.0.lock().unwrap().walk(&mut |u| {
+            true
+        });
+    }
+
+    pub fn sync_ug(&mut self, ino: u64) {}
 
     pub fn mount(self, mountpoint: OsString) {
         println!("{:?}", self);
