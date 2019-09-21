@@ -79,9 +79,10 @@ fn main() {
 (def $eg3 (adsr 0.02 0.15 0.6 0))
 (def $feg3 (adsr 0 0.1 0.3 0))
 
-(+ (pan 0.2 (gain 0.15 (delay 0.3 0.5 1 (seq $pat1 $osc1 $eg1))))
-   (gain 0.25 (seq $pat2 $osc2 $eg2))
-   (gain 0.2 (lpf (+ 500 (+ 200 (* 200 (tri 0 0.5))) (* 1200 $feg3)) 10 (seq $pat3 $osc3 (trig $eg3 $feg3)))))".to_string();
+(out 0.3
+  (pan 0.2 (gain 0.15 (delay 0.3 0.5 1 (seq $pat1 $osc1 $eg1))))
+  (gain 0.25 (seq $pat2 $osc2 $eg2))
+  (gain 0.2 (lpf (+ 500 (+ 200 (* 200 (tri 0 0.5))) (* 1200 $feg3)) 10 (seq $pat3 $osc3 (trig $eg3 $feg3)))))".to_string();
     let unit_graph = match tlisp::eval_all(sexp::read(s).unwrap(), &mut env) {
         Ok(Value::Unit(ug)) => ug,
         Ok(_v) => panic!("Oh, unit graph is not a unit!!"),

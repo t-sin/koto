@@ -265,3 +265,51 @@ impl Unit for Multiply {
         (l, r)
     }
 }
+
+pub struct Out {
+    vol: f64,
+    sources: Vec<AUnit>,
+}
+
+impl Out {
+    pub fn new(vol: f64, sources: Vec<AUnit>) -> AUnit {
+        Mut::amut(UnitGraph::new(Node::Sig(
+            Mut::amut(Out { vol: vol, sources: sources })
+        )))
+    }
+}
+
+impl Walk for Out {
+    fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
+        for s in self.sources.iter() {
+            if f(s) { s.0.lock().unwrap().walk(f); }
+        }
+    }
+}
+
+impl Dump for Out {
+    fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump {
+        let mut vec = Vec::new();
+        vec.push(Box::new(UDump::Str(self.vol.to_string())));
+        for u in self.sources.iter() {
+            match shared_vec.iter().position(|e| e == u) {
+                Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+                None => vec.push(Box::new(u.0.lock().unwrap().dump(shared_vec, shared_map))),
+            };
+        }
+        UDump::Op("out".to_string(), vec)
+    }
+}
+
+impl Unit for Out {
+    fn proc(&mut self, time: &Time) -> Signal {
+        let mut l = 0.0;
+        let mut r = 0.0;
+        for u in self.sources.iter_mut() {
+            let (l2, r2) = u.0.lock().unwrap().proc(&time);
+            l += l2;
+            r += r2;
+        }
+        (l * self.vol, r * self.vol)
+    }
+}

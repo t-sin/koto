@@ -4,7 +4,7 @@ use super::super::sexp::{Cons, print, to_vec};
 use super::super::event::{Message, to_note, to_pos};
 
 use super::super::units::unit::{Mut, AUnit, Node, UnitGraph, Table, Pattern};
-use super::super::units::core::{Pan, Clip, Offset, Gain, Add, Multiply};
+use super::super::units::core::{Pan, Clip, Offset, Gain, Add, Multiply, Out};
 use super::super::units::effect::{LPFilter, Delay};
 use super::super::units::oscillator::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
 use super::super::units::sequencer::{Trigger, AdsrEg, Seq};
@@ -409,6 +409,29 @@ fn make_delay(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     }
 }
 
+// utility
+
+fn make_out(args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
+    if args.len() >= 1 {
+        match(*args[0]) {
+            Cons::Number(vol) => {
+                let mut v: Vec<AUnit> = Vec::new();
+                for s in args[1..].iter() {
+                    match eval(s, env) {
+                        Ok(Value::Unit(unit)) => v.push(unit),
+                        Ok(_v) => return Err(EvalError::NotAUnit),
+                        Err(err) => return Err(err),
+                    }
+                }
+                Ok(Out::new(vol, v))
+            },
+            _ => Err(EvalError::NotANumber(print(&args[0]))),
+        }
+    } else {
+        Err(EvalError::FnWrongParams(String::from("out"), args))
+    }
+}
+
 pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUnit, EvalError> {
     match &name[..] {
         // core
@@ -435,6 +458,8 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<AUni
         // fx
         "lpf" => make_lpf(args, env),
         "delay" => make_delay(args, env),
+        // for convinience
+        "out" => make_out(args, env),
         _ => Err(EvalError::FnUnknown(String::from(name))),
     }
 }
