@@ -92,8 +92,10 @@ fn main() {
 
     let mut lcd = SoundSystem::new(env.time, unit_graph);
 
-    // let audio_device = AudioDevice::open(lcd.time.sample_rate);
-    // lcd.run(&audio_device);
+    std::thread::spawn(move || {
+        let audio_device = AudioDevice::open(lcd.time.sample_rate);
+        lcd.run(&audio_device);
+    });
 
     let fs = kfs::KotoFS::init();
     fs.mount(OsString::from("koto.test"));
