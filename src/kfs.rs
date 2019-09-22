@@ -120,9 +120,9 @@ impl KotoFS {
     }
 
     pub fn build(&mut self, ug: AUnit) {
-        root.lock().unwrap().inode = 1;
         self.inodes = HashMap::new();
         let mut root = self.build_node(&None, ug.clone());
+        root.lock().unwrap().inode = 1;
         self.inodes.insert(root.lock().unwrap().inode, root.clone());
         self.root = root.clone();
         ug.0.lock().unwrap().walk(&mut |u| {
