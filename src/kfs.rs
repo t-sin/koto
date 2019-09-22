@@ -104,25 +104,25 @@ impl KotoFS {
         vec
     }
 
-    fn build_node(&mut self, parent: &Option<Arc<Mutex<KotoNode>>>, ug: AUnit) -> KotoNode {
-        let children = self.build_children(&parent, ug);
+    fn build_node(&mut self, parent: &Option<Arc<Mutex<KotoNode>>>, ug: AUnit)
+    -> Arc<Mutex<KotoNode>> {
         let name = "hoge".to_string();
         let data = Vec::new();
-        let mut node = create_node(name, data, FileType::Directory);
+        let node = Arc::new(Mutex::new(create_node(name, data, FileType::Directory)));
+        node.lock().unwrap().children = self.build_children(&Some(node.clone()), ug);
 
-        node.children = children;
         if let Some(p) = parent {
-            node.parent = Some(p.clone());
+            node.lock().unwrap().parent = Some(p.clone());
         } else {
-            node.parent = None;
+            node.lock().unwrap().parent = None;
         }
         node
     }
 
     pub fn build(&mut self, ug: AUnit) {
-        let mut root = Arc::new(Mutex::new(self.build_node(&None, ug.clone())));
         root.lock().unwrap().inode = 1;
         self.inodes = HashMap::new();
+        let mut root = self.build_node(&None, ug.clone());
         self.inodes.insert(root.lock().unwrap().inode, root.clone());
         self.root = root.clone();
         ug.0.lock().unwrap().walk(&mut |u| {
