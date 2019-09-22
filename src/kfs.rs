@@ -288,7 +288,7 @@ impl Filesystem for KotoFS {
                     reply.data(&data_rest);
                 }
             },
-            None => reply.error(EACCES),
+            None => reply.error(ENOENT),
         }
     }
 
