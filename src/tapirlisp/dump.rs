@@ -6,7 +6,8 @@ use super::value::Env;
 
 pub fn dump_unit(dump: &UDump) -> String {
     match dump {
-        UDump::Str(s) => s.to_string(),
+        UDump::Value(s) => s.to_string(),
+        UDump::Param(_, s) => s.to_string(),
         UDump::Op(name, vec) => {
             let mut s = String::new();
             s.push_str("(");

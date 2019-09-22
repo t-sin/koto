@@ -34,12 +34,18 @@ impl Dump for Trigger {
     fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump {
         let mut vec = Vec::new();
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.eg)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "eg".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.eg.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
+        let mut n = 0;
         for eg in &self.egs {
+            n += 1;
             match shared_vec.iter().position(|e| Arc::ptr_eq(e, &eg)) {
-                Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+                Some(idx) => vec.push(Box::new(UDump::Param(
+                    format!("eg-{}", n).to_string(), shared_map.get(&idx).unwrap().to_string())
+                )),
                 None => vec.push(Box::new(eg.0.lock().unwrap().dump(shared_vec, shared_map))),
             }
         }
@@ -107,19 +113,27 @@ impl Dump for AdsrEg {
     fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump {
         let mut vec = Vec::new();
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.a)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "a".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.a.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.d)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "d".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.d.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.s)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "s".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.s.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.r)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "r".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.r.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         UDump::Op("adsr".to_string(), vec)
@@ -245,15 +259,21 @@ impl Dump for Seq {
     fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump {
         let mut vec = Vec::new();
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.pattern)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "pattern".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.pattern.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.osc)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "osc".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.osc.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.eg)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "eg".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.eg.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         UDump::Op("seq".to_string(), vec)

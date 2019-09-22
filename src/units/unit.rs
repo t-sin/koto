@@ -25,10 +25,15 @@ pub trait Walk {
     fn walk(&self, f: &mut FnMut(&AUnit) -> bool);
 }
 
+type ParamName = String;
+type ParamValue = String;
+type OpName = String;
+
 #[derive(Debug)]
 pub enum UDump {
-    Str(String),
-    Op(String, Vec<Box<UDump>>),
+    Value(String),
+    Param(ParamName, ParamValue),
+    Op(OpName, Vec<Box<UDump>>),
 }
 
 pub trait Dump: Walk {
@@ -74,7 +79,7 @@ impl Dump for Table {
     fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> UDump {
         let mut vec = Vec::new();
         for v in self.0.iter() {
-            vec.push(Box::new(UDump::Str(v.to_string())));
+            vec.push(Box::new(UDump::Value(v.to_string())));
         }
         UDump::Op("table".to_string(), vec)
     }
@@ -108,9 +113,9 @@ impl Dump for Pattern {
                 Message::Note(pitch, len) => {
                     let pitch_s = to_str(&pitch);
                     let len_s = to_len(&len, &m);
-                    vec.push(Box::new(UDump::Str(format!("({} {})",  pitch_s, len_s))));
+                    vec.push(Box::new(UDump::Value(format!("({} {})",  pitch_s, len_s))));
                 },
-                Message::Loop => vec.push(Box::new(UDump::Str("loop".to_string()))),
+                Message::Loop => vec.push(Box::new(UDump::Op("loop".to_string(), Vec::new()))),
             }
         }
         UDump::Op("pat".to_string(), vec)
@@ -205,7 +210,7 @@ impl Walk for Node {
 impl Dump for Node {
     fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump {
         match self {
-            Node::Val(v) => UDump::Str(v.to_string()),
+            Node::Val(v) => UDump::Value(v.to_string()),
             Node::Sig(u) => u.0.lock().unwrap().dump(shared_vec, shared_map),
             Node::Osc(u) => u.0.lock().unwrap().dump(shared_vec, shared_map),
             Node::Eg(u) => u.0.lock().unwrap().dump(shared_vec, shared_map),

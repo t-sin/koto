@@ -33,7 +33,9 @@ impl Walk for Rand {
 
 impl Dump for Rand {
     fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> UDump {
-        UDump::Op("rand".to_string(), vec![Box::new(UDump::Str(self.v.to_string()))])
+        UDump::Op("rand".to_string(), vec![Box::new(UDump::Param(
+            "v".to_string(), self.v.to_string())
+        )])
     }
 }
 
@@ -77,11 +79,15 @@ impl Dump for Sine {
     fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump {
         let mut vec = Vec::new();
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.init_ph)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "init_ph".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.init_ph.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.freq)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "freq".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.freq.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         UDump::Op("sine".to_string(), vec)
@@ -134,11 +140,15 @@ impl Dump for Tri {
     fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump {
         let mut vec = Vec::new();
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.init_ph)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "init_ph".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.init_ph.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.freq)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "freq".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.freq.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         UDump::Op("tri".to_string(), vec)
@@ -200,11 +210,15 @@ impl Dump for Saw {
     fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump {
         let mut vec = Vec::new();
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.init_ph)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "init_ph".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.init_ph.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.freq)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "freq".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.freq.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         UDump::Op("saw".to_string(), vec)
@@ -261,15 +275,21 @@ impl Dump for Pulse {
     fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump {
         let mut vec = Vec::new();
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.init_ph)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "init_ph".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.init_ph.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.freq)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "freq".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.freq.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.duty)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "duty".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.duty.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         UDump::Op("pulse".to_string(), vec)
@@ -338,7 +358,9 @@ impl Dump for Phase {
     fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump {
         let mut vec = Vec::new();
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.osc)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "osc".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.osc.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         UDump::Op("phase".to_string(), vec)
@@ -417,11 +439,15 @@ impl Dump for WaveTable {
     fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump {
         let mut vec = Vec::new();
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.table)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "table".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.table.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.ph)) {
-            Some(idx) => vec.push(Box::new(UDump::Str(shared_map.get(&idx).unwrap().to_string()))),
+            Some(idx) => vec.push(Box::new(UDump::Param(
+                "ph".to_string(), shared_map.get(&idx).unwrap().to_string())
+            )),
             None => vec.push(Box::new(self.ph.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
         UDump::Op("wavetable".to_string(), vec)
