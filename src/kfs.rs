@@ -16,10 +16,18 @@ use super::units::unit::{Walk, Node, AUnit};
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
+pub enum UnitState {
+    NotMapped,
+    Mapped(AUnit),
+    MappedParam(String, AUnit),
+}
+
+#[derive(Clone)]
 pub struct KotoNode {
     // if parent is None, it'a a root.
     pub parent: Option<Arc<Mutex<KotoNode>>>,
+    pub unit: UnitState,
     pub inode: u64,
     pub children: Vec<Arc<Mutex<KotoNode>>>,
     pub name: String,
@@ -28,7 +36,6 @@ pub struct KotoNode {
     pub attr: FileAttr,
 }
 
-#[derive(Debug)]
 pub struct KotoFS {
     pub root: Arc<Mutex<KotoNode>>,
     pub inodes: HashMap<u64, Arc<Mutex<KotoNode>>>,
@@ -57,14 +64,14 @@ fn create_node(name: String, data: Vec<u8>, ftype: FileType) -> KotoNode {
     let attr = create_file(inode, size as u64, ftype);
     KotoNode {
         inode: inode, children: Vec::new(), parent: None, link: Path::new("").to_path_buf(),
-        name: name, data: data, attr: attr,
+        unit: UnitState::NotMapped, name: name, data: data, attr: attr,
     }
 }
 
 impl KotoFS {
     pub fn init() -> KotoFS {
         let root = KotoNode {
-            inode: 1, children: [].to_vec(),
+            inode: 1, children: [].to_vec(), unit: UnitState::NotMapped,
             name: "/".to_string(), data: [].to_vec(), link: Path::new("").to_path_buf(),
             parent: None, attr: create_file(1, 0, FileType::Directory),
         };
@@ -96,7 +103,6 @@ impl KotoFS {
                 if let Some(parent) = parent {
                     parent.lock().unwrap().children.push(node.clone());
                 }
-                println!("{:?}", node);
                 vec.push(node.clone());
             },
             _ => {},
@@ -133,7 +139,6 @@ impl KotoFS {
     pub fn sync_ug(&mut self, ino: u64) {}
 
     pub fn mount(self, mountpoint: OsString) {
-        println!("{:?}", self);
         fuse::mount(self, &mountpoint, &[]).expect(&format!("fail mount() with {:?}", mountpoint));
     }
 }
