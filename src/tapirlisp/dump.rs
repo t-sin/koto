@@ -4,25 +4,44 @@ use std::sync::Arc;
 use super::super::units::unit::{Walk, UDump, Dump, Unit, AUnit};
 use super::value::Env;
 
+fn dump_list(name: &String, vec: &Vec<String>) -> String {
+    let mut s = String::new();
+    s.push_str("(");
+    s.push_str(&name[..]);
+    s.push_str(" ");
+    for (i, v) in vec.iter().enumerate() {
+        s.push_str(v);
+        if i != vec.len() - 1 {
+            s.push_str(" ");
+        }
+    }
+    s.push_str(")");
+    s
+}
+
+fn dump_op(name: &String, vvec: &Vec<Box<UDump>>) -> String {
+    let mut s = String::new();
+    s.push_str("(");
+    s.push_str(&name[..]);
+    s.push_str(" ");
+    for (i, d) in vvec.iter().enumerate() {
+        let dump = dump_unit(&**d);
+        s.push_str(&dump[..]);
+        if dump.len() != 0 && i != vvec.len() - 1 {
+            s.push_str(" ");
+        }
+    }
+    s.push_str(")");
+    s
+}
+
 pub fn dump_unit(dump: &UDump) -> String {
     match dump {
         UDump::Value(s) => s.to_string(),
-        UDump::Param(_, s) => s.to_string(),
-        UDump::Op(name, vec) => {
-            let mut s = String::new();
-            s.push_str("(");
-            s.push_str(&name[..]);
-            s.push_str(" ");
-            for (i, d) in vec.iter().enumerate() {
-                let dump = dump_unit(&**d);
-                s.push_str(&dump[..]);
-                if dump.len() != 0 && i != vec.len() - 1 {
-                    s.push_str(" ");
-                }
-            }
-            s.push_str(")");
-            s
-        }
+        UDump::Table(vals) => dump_list(&"table".to_string(), &vals),
+        UDump::Pattern(pat) => dump_list(&"pat".to_string(), &pat),
+        UDump::OpRest(name, _, vvec) => dump_op(&name, &vvec),
+        UDump::Op(name, _, vvec) => dump_op(&name, &vvec),
     }
 }
 

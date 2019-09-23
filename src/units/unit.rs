@@ -32,8 +32,10 @@ type OpName = String;
 #[derive(Debug)]
 pub enum UDump {
     Value(String),
-    Param(ParamName, ParamValue),
-    Op(OpName, Vec<Box<UDump>>),
+    Table(Vec<String>),
+    Pattern(Vec<String>),
+    OpRest(OpName, Vec<String>, Vec<Box<UDump>>),
+    Op(OpName, Vec<String>, Vec<Box<UDump>>),
 }
 
 pub trait Dump: Walk {
@@ -79,9 +81,9 @@ impl Dump for Table {
     fn dump(&self, _shared_vec: &Vec<AUnit>, _shared_map: &HashMap<usize, String>) -> UDump {
         let mut vec = Vec::new();
         for v in self.0.iter() {
-            vec.push(Box::new(UDump::Value(v.to_string())));
+            vec.push(v.to_string());
         }
-        UDump::Op("table".to_string(), vec)
+        UDump::Table(vec)
     }
 }
 
@@ -113,12 +115,12 @@ impl Dump for Pattern {
                 Message::Note(pitch, len) => {
                     let pitch_s = to_str(&pitch);
                     let len_s = to_len(&len, &m);
-                    vec.push(Box::new(UDump::Value(format!("({} {})",  pitch_s, len_s))));
+                    vec.push(format!("({} {})",  pitch_s, len_s));
                 },
-                Message::Loop => vec.push(Box::new(UDump::Op("loop".to_string(), Vec::new()))),
+                Message::Loop => vec.push("loop".to_string()),
             }
         }
-        UDump::Op("pat".to_string(), vec)
+        UDump::Pattern(vec)
     }
 }
 

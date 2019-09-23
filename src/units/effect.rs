@@ -37,26 +37,27 @@ impl Walk for LPFilter {
 
 impl Dump for LPFilter {
     fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump {
-        let mut vec = Vec::new();
+        let mut nvec = Vec::new();
+        let mut vvec = Vec::new();
+
+        nvec.push("freq".to_string());
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.freq)) {
-            Some(idx) => vec.push(Box::new(UDump::Param(
-                "freq".to_string(), shared_map.get(&idx).unwrap().to_string())
-            )),
-            None => vec.push(Box::new(self.freq.0.lock().unwrap().dump(shared_vec, shared_map))),
+            Some(idx) => vvec.push(Box::new(UDump::Value(shared_map.get(&idx).unwrap().to_string()))),
+            None => vvec.push(Box::new(self.freq.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
+
+        nvec.push("q".to_string());
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.q)) {
-            Some(idx) => vec.push(Box::new(UDump::Param(
-                "q".to_string(), shared_map.get(&idx).unwrap().to_string())
-            )),
-            None => vec.push(Box::new(self.q.0.lock().unwrap().dump(shared_vec, shared_map))),
+            Some(idx) => vvec.push(Box::new(UDump::Value(shared_map.get(&idx).unwrap().to_string()))),
+            None => vvec.push(Box::new(self.q.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
+
+        nvec.push("src".to_string());
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.src)) {
-            Some(idx) => vec.push(Box::new(UDump::Param(
-                "src".to_string(), shared_map.get(&idx).unwrap().to_string())
-            )),
-            None => vec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
+            Some(idx) => vvec.push(Box::new(UDump::Value(shared_map.get(&idx).unwrap().to_string()))),
+            None => vvec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
-        UDump::Op("lpf".to_string(), vec)
+        UDump::Op("lpf".to_string(), nvec, vvec)
     }
 }
 
@@ -126,32 +127,34 @@ impl Walk for Delay {
 
 impl Dump for Delay {
     fn dump(&self, shared_vec: &Vec<AUnit>, shared_map: &HashMap<usize, String>) -> UDump {
-        let mut vec = Vec::new();
+        let mut nvec = Vec::new();
+        let mut vvec = Vec::new();
+
+        nvec.push("time".to_string());
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.time)) {
-            Some(idx) => vec.push(Box::new(UDump::Param(
-                "time".to_string(), shared_map.get(&idx).unwrap().to_string())
-            )),
-            None => vec.push(Box::new(self.time.0.lock().unwrap().dump(shared_vec, shared_map))),
+            Some(idx) => vvec.push(Box::new(UDump::Value(shared_map.get(&idx).unwrap().to_string()))),
+            None => vvec.push(Box::new(self.time.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
+
+        nvec.push("feedback".to_string());
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.feedback)) {
-            Some(idx) => vec.push(Box::new(UDump::Param(
-                "time".to_string(), shared_map.get(&idx).unwrap().to_string())
-            )),
-            None => vec.push(Box::new(self.feedback.0.lock().unwrap().dump(shared_vec, shared_map))),
+            Some(idx) => vvec.push(Box::new(UDump::Value(shared_map.get(&idx).unwrap().to_string()))),
+            None => vvec.push(Box::new(self.feedback.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
+
+        nvec.push("mix".to_string());
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.mix)) {
-            Some(idx) => vec.push(Box::new(UDump::Param(
-                "mix".to_string(), shared_map.get(&idx).unwrap().to_string())
-            )),
-            None => vec.push(Box::new(self.mix.0.lock().unwrap().dump(shared_vec, shared_map))),
+            Some(idx) => vvec.push(Box::new(UDump::Value(shared_map.get(&idx).unwrap().to_string()))),
+            None => vvec.push(Box::new(self.mix.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
+
+        nvec.push("src".to_string());
         match shared_vec.iter().position(|e| Arc::ptr_eq(e, &self.src)) {
-            Some(idx) => vec.push(Box::new(UDump::Param(
-                "mix".to_string(), shared_map.get(&idx).unwrap().to_string())
-            )),
-            None => vec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
+            Some(idx) => vvec.push(Box::new(UDump::Value(shared_map.get(&idx).unwrap().to_string()))),
+            None => vvec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
-        UDump::Op("delay".to_string(), vec)
+
+        UDump::Op("delay".to_string(), nvec, vvec)
     }
 }
 
