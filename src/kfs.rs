@@ -195,17 +195,14 @@ impl Filesystem for KotoFS {
     fn create(&mut self, _req: &Request, parent: u64, name: &OsStr, _mode: u32, _flag: u32, reply: ReplyCreate) {
         println!("create() with {:?}", name);
         if let Some(parent_node) = self.inodes.get(&parent) {
-            let inode = time::now().to_timespec().sec as u64;
             let name = name.to_str().unwrap().to_string();
-            let attr = create_file(inode, 0, FileType::RegularFile);
-            let node = KotoNode {
-                parent: Some(parent_node.clone()), inode: inode, children: Vec::new(),
-                name: name, data: [].to_vec(), link: Path::new("").to_path_buf(), attr: attr,
-            };
+            let mut node = create_node(name, [].to_vec(), FileType::RegularFile);
+            node.parent = Some(parent_node.clone());
+
             let node = Arc::new(Mutex::new(node));
             parent_node.lock().unwrap().children.push(node.clone());
-            self.inodes.insert(inode, node);
-            reply.created(&TTL, &attr, 0, 0, 0,);
+            self.inodes.insert(node.lock().unwrap().inode, node.clone());
+            reply.created(&TTL, &node.lock().unwrap().attr, 0, 0, 0,);
         }
     }
 
@@ -223,16 +220,13 @@ impl Filesystem for KotoFS {
     fn mkdir(&mut self, _req: &Request, parent: u64, name: &OsStr, _mode: u32, reply: ReplyEntry) {
         println!("mkdir() with {:?}", name);
         if let Some(parent_node) = self.inodes.get(&parent) {
-            let inode = time::now().to_timespec().sec as u64;
-            let attr = create_file(inode, 0, FileType::Directory);
-            let node = KotoNode {
-                parent: Some(parent_node.clone()), inode: inode, children: Vec::new(),
-                name: name.to_str().unwrap().to_string(), data: [].to_vec(), link: Path::new("").to_path_buf(), attr: attr,
-            };
+            let name = name.to_str().unwrap().to_string();
+            let mut node = create_node(name, [].to_vec(), FileType::Directory);
+            node.parent = Some(parent_node.clone());
 
             let node = Arc::new(Mutex::new(node));
             parent_node.lock().unwrap().children.push(node.clone());
-            self.inodes.insert(inode, node.clone());
+            self.inodes.insert(node.lock().unwrap().inode, node.clone());
             reply.entry(&TTL, &node.lock().unwrap().attr, 0);
             return;
         }
@@ -338,19 +332,16 @@ impl Filesystem for KotoFS {
     fn symlink(&mut self, _req: &Request, parent: u64, name: &OsStr, link: &Path, reply: ReplyEntry) {
         println!("symlink() with {:?}", name);
         if let Some(parent_node) = self.inodes.get(&parent) {
-            let inode = time::now().to_timespec().sec as u64;
             let name = name.to_str().unwrap().to_string();
-            let attr = create_file(inode, 0, FileType::Symlink);
             let path = Path::new(link.to_str().unwrap()).to_path_buf();
-            let node = KotoNode {
-                parent: Some(parent_node.clone()), inode: inode, children: Vec::new(),
-                name: name, data: [].to_vec(), link: path, attr: attr,
-            };
+            let mut node = create_node(name, [].to_vec(), FileType::Symlink);
+            node.parent = Some(parent_node.clone());
+            node.link = path;
 
             let node = Arc::new(Mutex::new(node));
             parent_node.lock().unwrap().children.push(node.clone());
-            self.inodes.insert(inode, node);
-            reply.entry(&TTL, &attr, 0);
+            self.inodes.insert(node.lock().unwrap().inode, node.clone());
+            reply.entry(&TTL, &node.lock().unwrap().attr, 0);
             return;
         }
         reply.error(EACCES);
