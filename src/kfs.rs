@@ -41,6 +41,17 @@ pub struct KotoFS {
     pub inodes: HashMap<u64, Arc<Mutex<KotoNode>>>,
 }
 
+fn get_ext(name: &str) -> String {
+    let mut ext = String::new();
+    for c in name.chars() {
+        if c == '.' {
+            break;
+        }
+        ext.push(c);
+    }
+    ext
+}
+
 fn create_file(ino: u64, size: u64, ftype: FileType) -> FileAttr {
     let t = time::now().to_timespec();
     FileAttr {
@@ -240,13 +251,7 @@ impl Filesystem for KotoFS {
 
     fn rename(&mut self, _req: &Request, parent: u64, name: &OsStr, _newparent: u64, newname: &OsStr, reply: ReplyEmpty) {
         println!("rename() {:?} to {:?}", name, newname);
-        let mut ext: String = "".to_string();
-        for c in newname.to_str().unwrap().to_string().chars() {
-            if c == '.' {
-                break;
-            }
-            ext.push(c);
-        }
+        let ext = get_ext(newname.to_str().unwrap());
         println!("ext: {:?}", ext);
 
         if let Some(parent_node) = self.inodes.get(&parent) {
