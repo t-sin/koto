@@ -44,7 +44,7 @@ impl Dump for Pan {
             Some(idx) => vvec.push(Box::new(UDump::Value(shared_map.get(&idx).unwrap().to_string()))),
             None => vvec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
-        UDump::Op("pan".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "pan".to_string(), nvec, vvec)
     }
 }
 
@@ -99,7 +99,7 @@ impl Dump for Clip {
             Some(idx) => vvec.push(Box::new(UDump::Value(shared_map.get(&idx).unwrap().to_string()))),
             None => vvec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
-        UDump::Op("clip".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "clip".to_string(), nvec, vvec)
     }
 }
 
@@ -142,7 +142,7 @@ impl Dump for Offset {
             Some(idx) => vvec.push(Box::new(UDump::Value(shared_map.get(&idx).unwrap().to_string()))),
             None => vvec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
-        UDump::Op("offset".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "offset".to_string(), nvec, vvec)
     }
 }
 
@@ -185,7 +185,7 @@ impl Dump for Gain {
             Some(idx) => vvec.push(Box::new(UDump::Value(shared_map.get(&idx).unwrap().to_string()))),
             None => vvec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
-        UDump::Op("gain".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "gain".to_string(), nvec, vvec)
     }
 }
 
@@ -228,7 +228,7 @@ impl Dump for Add {
                 None => vvec.push(Box::new(u.0.lock().unwrap().dump(shared_vec, shared_map))),
             };
         }
-        UDump::Op("+".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "+".to_string(), nvec, vvec)
     }
 }
 
@@ -277,7 +277,7 @@ impl Dump for Multiply {
                 None => vvec.push(Box::new(u.0.lock().unwrap().dump(shared_vec, shared_map))),
             };
         }
-        UDump::Op("*".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "*".to_string(), nvec, vvec)
     }
 }
 
@@ -330,7 +330,7 @@ impl Dump for Out {
                 None => vvec.push(Box::new(u.0.lock().unwrap().dump(shared_vec, shared_map))),
             }
         }
-        UDump::OpRest("out".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "out".to_string(), nvec, vvec)
     }
 }
 

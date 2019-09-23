@@ -40,8 +40,7 @@ pub fn dump_unit(dump: &UDump) -> String {
         UDump::Value(s) => s.to_string(),
         UDump::Table(vals) => dump_list(&"table".to_string(), &vals),
         UDump::Pattern(pat) => dump_list(&"pat".to_string(), &pat),
-        UDump::OpRest(name, _, vvec) => dump_op(&name, &vvec),
-        UDump::Op(name, _, vvec) => dump_op(&name, &vvec),
+        UDump::Op(_, name, _, vvec) => dump_op(&name, &vvec),
     }
 }
 

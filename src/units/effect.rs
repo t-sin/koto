@@ -1,5 +1,5 @@
 use std::collections::{HashMap, VecDeque};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use super::super::mtime::Time;
 use super::super::tapirlisp::value::Env;
@@ -57,7 +57,7 @@ impl Dump for LPFilter {
             Some(idx) => vvec.push(Box::new(UDump::Value(shared_map.get(&idx).unwrap().to_string()))),
             None => vvec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
-        UDump::Op("lpf".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "lpf".to_string(), nvec, vvec)
     }
 }
 
@@ -154,7 +154,7 @@ impl Dump for Delay {
             None => vvec.push(Box::new(self.src.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
 
-        UDump::Op("delay".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "delay".to_string(), nvec, vvec)
     }
 }
 

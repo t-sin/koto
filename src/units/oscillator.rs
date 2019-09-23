@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use rand::{Rng, SeedableRng};
 use rand::rngs::SmallRng;
@@ -38,7 +38,7 @@ impl Dump for Rand {
 
         nvec.push("v".to_string());
         vvec.push(Box::new(UDump::Value(self.v.to_string())));
-        UDump::Op("rand".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "rand".to_string(), nvec, vvec)
     }
 }
 
@@ -95,7 +95,7 @@ impl Dump for Sine {
             None => vvec.push(Box::new(self.freq.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
 
-        UDump::Op("sine".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "sine".to_string(), nvec, vvec)
     }
 }
 
@@ -158,7 +158,7 @@ impl Dump for Tri {
             None => vvec.push(Box::new(self.freq.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
 
-        UDump::Op("tri".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "tri".to_string(), nvec, vvec)
     }
 }
 
@@ -230,7 +230,7 @@ impl Dump for Saw {
             None => vvec.push(Box::new(self.freq.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
 
-        UDump::Op("saw".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "saw".to_string(), nvec, vvec)
     }
 }
 
@@ -303,7 +303,7 @@ impl Dump for Pulse {
             None => vvec.push(Box::new(self.duty.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
 
-        UDump::Op("pulse".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "pulse".to_string(), nvec, vvec)
     }
 }
 
@@ -376,7 +376,7 @@ impl Dump for Phase {
             None => vvec.push(Box::new(self.osc.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
 
-        UDump::Op("phase".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "phase".to_string(), nvec, vvec)
     }
 }
 
@@ -465,7 +465,7 @@ impl Dump for WaveTable {
             None => vvec.push(Box::new(self.ph.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
 
-        UDump::Op("wavetable".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "wavetable".to_string(), nvec, vvec)
     }
 }
 

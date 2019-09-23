@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::collections::VecDeque;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use super::super::mtime::{Time, Pos, PosOps, Measure};
 use super::super::event::{Event, Message, Pitch, to_freq};
@@ -51,7 +51,7 @@ impl Dump for Trigger {
             }
         }
 
-        UDump::Op("trig".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "trig".to_string(), nvec, vvec)
     }
 }
 
@@ -140,7 +140,7 @@ impl Dump for AdsrEg {
             None => vvec.push(Box::new(self.r.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
 
-        UDump::Op("adsr".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "adsr".to_string(), nvec, vvec)
     }
 }
 
@@ -282,7 +282,7 @@ impl Dump for Seq {
             None => vvec.push(Box::new(self.eg.0.lock().unwrap().dump(shared_vec, shared_map))),
         }
 
-        UDump::Op("seq".to_string(), nvec, vvec)
+        UDump::Op(Mut::amut(self), "seq".to_string(), nvec, vvec)
     }
 }
 
