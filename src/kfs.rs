@@ -12,7 +12,7 @@ use fuse::{
     ReplyWrite, ReplyData, ReplyEmpty
 };
 
-use super::units::unit::{UDump, Walk, Dump, Node, AUnit};
+use super::units::unit::{Walk, Node, AUnit};
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 
@@ -121,66 +121,30 @@ impl KotoFS {
         vec
     }
 
-    fn build_node(&mut self, parent: &mut Option<Arc<Mutex<KotoNode>>>, name: &str, ug: AUnit)
+    fn build_node(&mut self, parent: &Option<Arc<Mutex<KotoNode>>>, ug: AUnit)
     -> Arc<Mutex<KotoNode>> {
-        let name = name.to_string();
-        let dump = ug.0.lock().unwrap().dump(&Vec::new(), &HashMap::new());
+        let name = "hoge".to_string();
         let data = Vec::new();
         let node = Arc::new(Mutex::new(create_node(name, data, FileType::Directory)));
-
-        if let UDump::Op(_, name, nvec, vvec) = dump {
-            for (idx, name) in nvec.iter().enumerate() {
-                let child = match *vvec[idx] {
-                    UDump::Value(s) => {
-                        let value = create_node(name.to_string(), s.as_bytes().to_vec(), FileType::RegularFile);
-                        value.parent = Some(node);
-                        value
-                    },
-                    UDump::Table(vals) => {
-                        let mut data = String::new();
-                        for s in vals.iter() {
-                            data.push_str(s);
-                            data.push_str(" ");
-                        }
-                        let table = create_node(name.to_string(), data.as_bytes().to_vec(), FileType::RegularFile);
-                        table.parent = Some(node);
-                        table
-                    },
-                    UDump::Pattern(pat) => {
-                        let mut data = String::new();
-                        for s in vals.iter() {
-                            data.push_str(s);
-                            data.push_str(" ");
-                        }
-                        let pat = create_node(name.to_string(), data.as_bytes().to_vec(), FileType::RegularFile);
-                        pat.parent = Some(node);
-                        pat
-                    },
-                    UDump::Op(unit, name, _, _) => {
-                        self.build_node(&mut Some(node.clone()), &name, unit)
-                    },
-                };
-            }
-        }
+        node.lock().unwrap().children = self.build_children(&Some(node.clone()), ug);
 
         if let Some(p) = parent {
             node.lock().unwrap().parent = Some(p.clone());
         } else {
             node.lock().unwrap().parent = None;
         }
-
         node
     }
 
     pub fn build(&mut self, ug: AUnit) {
         self.inodes = HashMap::new();
-        let dump = ug.0.lock().unwrap().dump(&Vec::new(), &HashMap::new());
-        if let UDump::Op(_, name, nvec, vvec)= dump {
-            let mut root = self.build_node(&mut None, "/", ug.clone());
-            self.root = root.clone();
-            root.lock().unwrap().inode = 1;
-            self.inodes.insert(root.lock().unwrap().inode, root.clone());
-        }
+        let mut root = self.build_node(&None, ug.clone());
+        root.lock().unwrap().inode = 1;
+        self.inodes.insert(root.lock().unwrap().inode, root.clone());
+        self.root = root.clone();
+        ug.0.lock().unwrap().walk(&mut |u| {
+            true
+        });
     }
 
     pub fn sync_ug(&mut self, ino: u64) {}

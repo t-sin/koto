@@ -29,11 +29,13 @@ type ParamName = String;
 type ParamValue = String;
 type OpName = String;
 
+#[derive(Debug)]
 pub enum UDump {
     Value(String),
     Table(Vec<String>),
     Pattern(Vec<String>),
-    Op(AUnit, OpName, Vec<String>, Vec<Box<UDump>>),
+    OpRest(OpName, Vec<String>, Vec<Box<UDump>>),
+    Op(OpName, Vec<String>, Vec<Box<UDump>>),
 }
 
 pub trait Dump: Walk {
