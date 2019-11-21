@@ -1,11 +1,11 @@
+use std::cmp::{Eq, PartialEq};
 use std::collections::HashMap;
-use std::cmp::{PartialEq, Eq};
 use std::sync::{Arc, Mutex};
 
-use super::super::mtime::{Time, Measure};
-use super::super::event::{Message, to_str, to_len};
+use super::super::event::{to_len, to_str, Message};
+use super::super::mtime::{Measure, Time};
 
-pub struct Mut<T: ?Sized> (pub Mutex<T>);
+pub struct Mut<T: ?Sized>(pub Mutex<T>);
 type Amut<T> = Arc<Mut<T>>;
 
 impl<T> Mut<T> {
@@ -88,7 +88,8 @@ impl Dump for Table {
 }
 
 impl Unit for Table {
-    fn proc(&mut self, _time: &Time) -> Signal {  // dummy
+    fn proc(&mut self, _time: &Time) -> Signal {
+        // dummy
         (0.0, 0.0)
     }
 }
@@ -115,8 +116,8 @@ impl Dump for Pattern {
                 Message::Note(pitch, len) => {
                     let pitch_s = to_str(&pitch);
                     let len_s = to_len(&len, &m);
-                    vec.push(format!("({} {})",  pitch_s, len_s));
-                },
+                    vec.push(format!("({} {})", pitch_s, len_s));
+                }
                 Message::Loop => vec.push("loop".to_string()),
             }
         }
@@ -125,7 +126,8 @@ impl Dump for Pattern {
 }
 
 impl Unit for Pattern {
-    fn proc(&mut self, _time: &Time) -> Signal {  // dummy
+    fn proc(&mut self, _time: &Time) -> Signal {
+        // dummy
         (0.0, 0.0)
     }
 }
@@ -169,32 +171,8 @@ impl PartialEq for Node {
         }
     }
 }
+
 impl Eq for Node {}
-
-pub struct UnitGraph {
-    pub last_tick: u64,
-    pub last_sig: Signal,
-    pub node: Node,
-}
-
-pub type AUnit = Amut<UnitGraph>;
-
-impl PartialEq for UnitGraph {
-    fn eq(&self, other: &Self) -> bool {
-        self.node == other.node
-    }
-}
-impl Eq for UnitGraph {}
-
-impl UnitGraph {
-    pub fn new(node: Node) -> UnitGraph {
-        UnitGraph {
-            last_tick: 0,
-            last_sig: (0.0, 0.0),
-            node: node,
-        }
-    }
-}
 
 impl Walk for Node {
     fn walk(&self, f: &mut FnMut(&AUnit) -> bool) {
@@ -218,7 +196,7 @@ impl Dump for Node {
             Node::Eg(u) => u.0.lock().unwrap().dump(shared_vec, shared_map),
             Node::Tab(t) => t.0.lock().unwrap().dump(shared_vec, shared_map),
             Node::Pat(p) => p.0.lock().unwrap().dump(shared_vec, shared_map),
-         }
+        }
     }
 }
 
@@ -253,6 +231,29 @@ impl Eg for Node {
     }
 }
 
+pub struct UnitGraph {
+    pub last_tick: u64,
+    pub last_sig: Signal,
+    pub node: Node,
+}
+
+impl PartialEq for UnitGraph {
+    fn eq(&self, other: &Self) -> bool {
+        self.node == other.node
+    }
+}
+impl Eq for UnitGraph {}
+
+impl UnitGraph {
+    pub fn new(node: Node) -> UnitGraph {
+        UnitGraph {
+            last_tick: 0,
+            last_sig: (0.0, 0.0),
+            node: node,
+        }
+    }
+}
+
 impl Unit for UnitGraph {
     fn proc(&mut self, time: &Time) -> Signal {
         if self.last_tick < time.tick {
@@ -276,3 +277,5 @@ impl Dump for UnitGraph {
         self.node.dump(shared_vec, shared_map)
     }
 }
+
+pub type AUnit = Amut<UnitGraph>;
