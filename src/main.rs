@@ -4,7 +4,7 @@ extern crate libc;
 extern crate num;
 extern crate rand;
 
-mod audio_device;
+mod soundsystem;
 mod mtime;
 mod event;
 mod units;
@@ -18,45 +18,14 @@ use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 
-use audio_device::AudioDevice;
-use mtime::{Time, Clock};
+use soundsystem::{AudioDevice, SoundSystem};
+use mtime::Time;
 
 use units::unit::{Unit, AUnit};
 
 use tapirlisp as tlisp;
 use tapirlisp::value::{Value, Env};
 
-struct SoundSystem {
-    time: Time,
-    root_ug: AUnit,
-}
-
-impl SoundSystem {
-    pub fn new(time: Time, ug: AUnit) -> SoundSystem {
-        SoundSystem {
-            time: time,
-            root_ug: ug,
-        }
-    }
-
-    pub fn run(&mut self, ad: &AudioDevice) {
-        ad.run(|mut buffer| {
-            let mut iter = buffer.iter_mut();
-            loop {
-                let (l, r) = self.root_ug.0.lock().unwrap().proc(&self.time);
-                match iter.next() {
-                    Some(lref) => *lref = l as f32,
-                    None => break,
-                }
-                match iter.next() {
-                    Some(rref) => *rref = r as f32,
-                    None => break,
-                }
-                self.time.inc();
-            }
-        });
-    }
-}
 
 fn main() {
     let sample_rate = 44100u32;
@@ -74,16 +43,16 @@ fn main() {
     };
     println!("{}", tlisp::dump(unit_graph.clone(), &env));
 
+    let mut ad = AudioDevice::open(sample_rate);
     let mut lcd = SoundSystem::new(env.time, unit_graph.clone());
+    // std::thread::spawn(move || {
+    //     lcd.run(&ad);
+    // });
+    lcd.run(&ad);
 
-    std::thread::spawn(move || {
-        let audio_device = AudioDevice::open(lcd.time.sample_rate);
-        lcd.run(&audio_device);
-    });
-
-    let mut fs = kfs::KotoFS::init();
-    fs.build(unit_graph.clone());
-    fs.mount(OsString::from("koto.test"));
+    // let mut fs = kfs::KotoFS::init();
+    // fs.build(unit_graph.clone());
+    // fs.mount(OsString::from("koto.test"));
 
     // somnia::run_test();
 }
