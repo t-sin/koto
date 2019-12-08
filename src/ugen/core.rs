@@ -13,16 +13,17 @@ pub trait Walk {
 type OpName = String;
 type ParamName = String;
 
-#[derive(Debug)]
-pub enum Parameter {
+pub enum Param {
     Value(f64),
     Table(Vec<f64>),
     Pattern(Vec<String>),
-    UG(OpName, Vec<ParamName>, Vec<Box<Parameter>>),
+    Shared(Aug),
+    Ug(OpName, Vec<ParamName>, Vec<Box<Param>>),
+    UgRest(OpName, Vec<ParamName>, Vec<Box<Param>>, Vec<Box<Param>>),
 }
 
 pub trait Dump: Walk {
-    fn dump(&self, shared_ug: &Vec<Aug>) -> Parameter;
+    fn dump(&self, shared_ug: &Vec<Aug>) -> Param;
 }
 
 pub type Signal = (f64, f64);
@@ -83,12 +84,12 @@ impl Walk for Table {
 }
 
 impl Dump for Table {
-    fn dump(&self, _shared_vec: &Vec<Aug>) -> Parameter {
+    fn dump(&self, _shared_vec: &Vec<Aug>) -> Param {
         let mut vec = Vec::new();
         for v in self.0.lock().unwrap().iter() {
             vec.push(*v);
         }
-        Parameter::Table(vec)
+        Param::Table(vec)
     }
 }
 
@@ -105,7 +106,7 @@ impl Walk for Pattern {
 }
 
 impl Dump for Pattern {
-    fn dump(&self, _shared_vec: &Vec<Aug>) -> Parameter {
+    fn dump(&self, _shared_vec: &Vec<Aug>) -> Param {
         let mut vec = Vec::new();
         let m = Measure { beat: 4, note: 4 };
 
@@ -119,7 +120,7 @@ impl Dump for Pattern {
                 Message::Loop => vec.push("loop".to_string()),
             }
         }
-        Parameter::Pattern(vec)
+        Param::Pattern(vec)
     }
 }
 
@@ -139,9 +140,9 @@ impl Walk for UG {
 }
 
 impl Dump for UG {
-    fn dump(&self, shared_vec: &Vec<Aug>) -> Parameter {
+    fn dump(&self, shared_vec: &Vec<Aug>) -> Param {
         match self {
-            UG::Val(v) => Parameter::Value(*v),
+            UG::Val(v) => Param::Value(*v),
             UG::Proc(u) => u.dump(shared_vec),
             UG::Osc(u) => u.dump(shared_vec),
             UG::Eg(u) => u.dump(shared_vec),
@@ -202,8 +203,21 @@ impl Walk for UGen {
 }
 
 impl Dump for UGen {
-    fn dump(&self, shared_ug: &Vec<Aug>) -> Parameter {
+    fn dump(&self, shared_ug: &Vec<Aug>) -> Param {
         self.ug.dump(shared_ug)
+    }
+}
+
+impl Proc for UGen {
+    fn proc(&mut self, time: &Time) -> Signal {
+        if self.last_tick == time.tick {
+            self.last_sig
+        } else {
+            self.last_tick = time.tick;
+            let sig = self.ug.proc(time);
+            self.last_sig = sig;
+            sig
+        }
     }
 }
 
@@ -212,6 +226,12 @@ impl Dump for UGen {
 impl Aug {
     pub fn new(ug: UGen) -> Aug {
         Aug(Arc::new(Mutex::new(ug)))
+    }
+}
+
+impl Clone for Aug {
+    fn clone(&self) -> Aug {
+        Aug(self.0.clone())
     }
 }
 
@@ -230,7 +250,13 @@ impl Walk for Aug {
 }
 
 impl Dump for Aug {
-    fn dump(&self, shared_ug: &Vec<Aug>) -> Parameter {
+    fn dump(&self, shared_ug: &Vec<Aug>) -> Param {
         self.0.lock().unwrap().dump(shared_ug)
+    }
+}
+
+impl Proc for Aug {
+    fn proc(&mut self, time: &Time) -> Signal {
+        self.0.lock().unwrap().proc(time)
     }
 }
