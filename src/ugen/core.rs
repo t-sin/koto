@@ -55,9 +55,9 @@ pub struct Pattern(pub Arc<Mutex<Vec<Box<Message>>>>);
 
 pub enum UG {
     Val(f64),
-    Proc(Box<dyn Proc>),
-    Osc(Box<dyn Osc>),
-    Eg(Box<dyn Eg>),
+    Proc(Box<dyn Proc + Send>),
+    Osc(Box<dyn Osc + Send>),
+    Eg(Box<dyn Eg + Send>),
     Tab(Table),
     Pat(Pattern),
 }
