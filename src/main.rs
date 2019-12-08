@@ -9,16 +9,16 @@ mod audiodevice;
 mod mtime;
 mod event;
 mod ugen;
-//mod soundsystem;
+mod soundsystem;
 
 use audiodevice::AudioDevice;
-//use soundsystem::SoundSystem;
+use soundsystem::SoundSystem;
 use mtime::Time;
 
 fn main() {
     let sample_rate = 44100u32;
     let time = Time::new(sample_rate);
-    //let mut env = Env::init(time);
+    // let mut env = Env::init(time);
 
     // let mut f = File::open("./configure.lisp").unwrap();
     // let mut text = String::new();
@@ -32,12 +32,14 @@ fn main() {
     // println!("{}", tlisp::dump(unit_graph.clone(), &env));
 
     let mut ad = AudioDevice::open(sample_rate);
-    // let mut lcd = SoundSystem::new(env.time, unit_graph.clone());
+    let mut lcd = SoundSystem::new(time, ugen::osc::Sine::new(
+        ugen::core::Aug::new(ugen::core::UGen::new(ugen::core::UG::Val(0.0))),
+        ugen::core::Aug::new(ugen::core::UGen::new(ugen::core::UG::Val(440.0)))
+    ));
     // // std::thread::spawn(move || {
     // //     lcd.run(&ad);
     // // });
-    // lcd.run(&ad);
-    ad.run(|mut buf| {});
+    lcd.run(&ad);
 
     // let mut fs = kfs::KotoFS::init();
     // fs.build(unit_graph.clone());
