@@ -1,5 +1,4 @@
 use std::cmp::{Eq, PartialEq};
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use super::super::event::{to_len, to_str, Message};
@@ -8,7 +7,7 @@ use super::super::mtime::{Measure, Time};
 //// types and traits
 
 pub trait Walk {
-    fn walk(&self, f: &mut Fn(&Aug) -> bool);
+    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool);
 }
 
 type OpName = String;
@@ -55,9 +54,9 @@ pub struct Pattern(pub Arc<Mutex<Vec<Box<Message>>>>);
 
 pub enum UG {
     Val(f64),
-    Proc(Proc),
-    Osc(Osc),
-    Eg(Eg),
+    Proc(Box<dyn Proc>),
+    Osc(Box<dyn Osc>),
+    Eg(Box<dyn Eg>),
     Tab(Table),
     Pat(Pattern),
 }
@@ -79,11 +78,15 @@ impl Table {
     }
 }
 
+impl Walk for Table {
+    fn walk(&self, _f: &mut dyn Fn(&Aug) -> bool) {}
+}
+
 impl Dump for Table {
-    fn dump(&self, _shared_vec: &Vec<Aug>, _shared_map: &HashMap<usize, String>) -> Parameter {
+    fn dump(&self, _shared_vec: &Vec<Aug>) -> Parameter {
         let mut vec = Vec::new();
-        for v in self.0.iter() {
-            vec.push(v.to_string());
+        for v in self.0.lock().unwrap().iter() {
+            vec.push(*v);
         }
         Parameter::Table(vec)
     }
@@ -97,12 +100,16 @@ impl Pattern {
     }
 }
 
+impl Walk for Pattern {
+    fn walk(&self, _f: &mut dyn Fn(&Aug) -> bool) {}
+}
+
 impl Dump for Pattern {
-    fn dump(&self, _shared_vec: &Vec<Aug>, _shared_map: &HashMap<usize, String>) -> Parameter {
+    fn dump(&self, _shared_vec: &Vec<Aug>) -> Parameter {
         let mut vec = Vec::new();
         let m = Measure { beat: 4, note: 4 };
 
-        for ev in self.0.iter() {
+        for ev in self.0.lock().unwrap().iter() {
             match &**ev {
                 Message::Note(pitch, len) => {
                     let pitch_s = to_str(&pitch);
@@ -119,7 +126,7 @@ impl Dump for Pattern {
 // trait implementations for UG
 
 impl Walk for UG {
-    fn walk(&self, f: &mut Fn(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool) {
         match self {
             UG::Val(_) => (),
             UG::Proc(u) => u.walk(f),
@@ -132,14 +139,14 @@ impl Walk for UG {
 }
 
 impl Dump for UG {
-    fn dump(&self, shared_vec: &Vec<Aug>, shared_map: &HashMap<usize, String>) -> Parameter {
+    fn dump(&self, shared_vec: &Vec<Aug>) -> Parameter {
         match self {
-            UG::Val(v) => Parameter::Value(v.to_string()),
-            UG::Sig(u) => u.dump(shared_vec, shared_map),
-            UG::Osc(u) => u.dump(shared_vec, shared_map),
-            UG::Eg(u) => u.dump(shared_vec, shared_map),
-            UG::Tab(t) => t.dump(shared_vec, shared_map),
-            UG::Pat(p) => p.dump(shared_vec, shared_map),
+            UG::Val(v) => Parameter::Value(*v),
+            UG::Proc(u) => u.dump(shared_vec),
+            UG::Osc(u) => u.dump(shared_vec),
+            UG::Eg(u) => u.dump(shared_vec),
+            UG::Tab(t) => t.dump(shared_vec),
+            UG::Pat(p) => p.dump(shared_vec),
         }
     }
 }
@@ -177,28 +184,28 @@ impl Eg for UG {
 
 // trait implementations for UGen
 
-static mut id: usize = 0;
-
 impl UGen {
     pub fn new(ug: UG) -> UGen {
-        let ug = UGen {
-            id: id,
+        UGen {
+            id: 0,  // FIXME
             last_tick: 0,
             last_sig: (0.0, 0.0),
             ug: ug,
-        };
-        id += 1;
-        ug
+        }
     }
 }
 
-impl PartialEq for UGen {
-    fn eq(&self, other: &Self) -> bool {
-        self.id == other.id
+impl Walk for UGen {
+    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool) {
+        self.ug.walk(f);
     }
 }
 
-impl Eq for UGen {}
+impl Dump for UGen {
+    fn dump(&self, shared_ug: &Vec<Aug>) -> Parameter {
+        self.ug.dump(shared_ug)
+    }
+}
 
 // trait implementations for Aug
 
@@ -210,15 +217,15 @@ impl Aug {
 
 impl PartialEq for Aug {
     fn eq(&self, other: &Self) -> bool {
-        Arc::ptr_eq(self.0, other.0)
+        Arc::ptr_eq(&self.0, &other.0)
     }
 }
 
 impl Eq for Aug {}
 
 impl Walk for Aug {
-    fn walk(&self, f: &mut Fn(&Aug)) -> bool {
-        self.0.lock().unwrap().walk(f)
+    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool) {
+        (*self.0.lock().unwrap()).walk(f)
     }
 }
 
