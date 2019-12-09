@@ -20,7 +20,7 @@ impl Pan {
 }
 
 impl Walk for Pan {
-    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         if f(&self.v) { self.v.walk(f); }
         if f(&self.src) { self.src.walk(f); }
     }
@@ -76,7 +76,7 @@ impl Clip {
 }
 
 impl Walk for Clip {
-    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         if f(&self.src) { self.src.walk(f); }
     }
 }
@@ -122,7 +122,7 @@ impl Offset {
 }
 
 impl Walk for Offset {
-    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         if f(&self.src) { self.src.walk(f); }
     }
 }
@@ -165,7 +165,7 @@ impl Gain {
 }
 
 impl Walk for Gain {
-    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         if f(&self.src) { self.src.walk(f); }
     }
 }
@@ -207,7 +207,7 @@ impl Add {
 }
 
 impl Walk for Add {
-    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         for s in self.sources.iter() {
             if f(s) { s.walk(f); }
         }
@@ -256,7 +256,7 @@ impl Multiply {
 }
 
 impl Walk for Multiply {
-    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         for s in self.sources.iter() {
             if f(s) { s.walk(f); }
         }
@@ -306,7 +306,7 @@ impl Out {
 }
 
 impl Walk for Out {
-    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         for s in self.sources.iter() {
             if f(s) { s.walk(f); }
         }

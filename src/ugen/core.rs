@@ -7,7 +7,7 @@ use super::super::mtime::{Measure, Time};
 //// types and traits
 
 pub trait Walk {
-    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool);
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool);
 }
 
 type OpName = String;
@@ -80,7 +80,7 @@ impl Table {
 }
 
 impl Walk for Table {
-    fn walk(&self, _f: &mut dyn Fn(&Aug) -> bool) {}
+    fn walk(&self, _f: &mut dyn FnMut(&Aug) -> bool) {}
 }
 
 impl Dump for Table {
@@ -102,7 +102,7 @@ impl Pattern {
 }
 
 impl Walk for Pattern {
-    fn walk(&self, _f: &mut dyn Fn(&Aug) -> bool) {}
+    fn walk(&self, _f: &mut dyn FnMut(&Aug) -> bool) {}
 }
 
 impl Dump for Pattern {
@@ -127,7 +127,7 @@ impl Dump for Pattern {
 // trait implementations for UG
 
 impl Walk for UG {
-    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         match self {
             UG::Val(_) => (),
             UG::Proc(u) => u.walk(f),
@@ -197,7 +197,7 @@ impl UGen {
 }
 
 impl Walk for UGen {
-    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         self.ug.walk(f);
     }
 }
@@ -248,7 +248,7 @@ impl PartialEq for Aug {
 impl Eq for Aug {}
 
 impl Walk for Aug {
-    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         (*self.0.lock().unwrap()).walk(f)
     }
 }

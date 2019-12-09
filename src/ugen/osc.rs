@@ -25,7 +25,7 @@ impl Rand {
 }
 
 impl Walk for Rand {
-    fn walk(&self, _f: &mut dyn Fn(&Aug) -> bool) {}
+    fn walk(&self, _f: &mut dyn FnMut(&Aug) -> bool) {}
 }
 
 impl Dump for Rand {
@@ -65,7 +65,7 @@ impl Sine {
 }
 
 impl Walk for Sine {
-    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         if f(&self.init_ph) {
             self.init_ph.walk(f);
         }
@@ -128,7 +128,7 @@ impl Tri {
 }
 
 impl Walk for Tri {
-    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         if f(&self.init_ph) {
             self.init_ph.walk(f);
         }
@@ -200,7 +200,7 @@ impl Saw {
 }
 
 impl Walk for Saw {
-    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         if f(&self.init_ph) {
             self.init_ph.walk(f);
         }
@@ -270,7 +270,7 @@ impl Pulse {
 }
 
 impl Walk for Pulse {
-    fn walk(&self, f: &mut dyn Fn(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         if f(&self.init_ph) { self.init_ph.walk(f); }
         if f(&self.freq) { self.freq.walk(f); }
         if f(&self.duty) { self.duty.walk(f); }
