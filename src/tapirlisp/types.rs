@@ -4,13 +4,13 @@ use std::fmt;
 
 use super::super::sexp::Cons;
 use super::super::mtime::Time;
-use super::super::units::unit::AUnit;
+use super::super::ugen::core::Aug;
 
 pub type Name = String;
 
 #[derive(Clone)]
 pub enum Value {
-    Unit(AUnit),
+    Unit(Aug),
     Nil,
 }
 
@@ -37,7 +37,7 @@ pub enum EvalError {
     AlreadyBound(String),
     NotANumber(String),
     NotASymbol(Box<Cons>),
-    NotAUnit,
+    NotAug,
     NotAPattern,
 }
 
@@ -74,7 +74,7 @@ impl fmt::Display for EvalError {
             EvalError::NotASymbol(cons) => {
                 write!(f, "{:?} is not a symbol.", cons)
             },
-            EvalError::NotAUnit => {
+            EvalError::NotAug => {
                 write!(f, "((serialized unit here)) is not an unit")
             },
             EvalError::NotAPattern => {
@@ -97,7 +97,7 @@ impl Error for EvalError {
             EvalError::AlreadyBound(_) => None,
             EvalError::NotANumber(_) => None,
             EvalError::NotASymbol(_) => None,
-            EvalError::NotAUnit => None,
+            EvalError::NotAug => None,
             EvalError::NotAPattern => None,
         }
     }
