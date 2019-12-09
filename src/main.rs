@@ -33,8 +33,8 @@ fn main() {
 
     let mut ad = AudioDevice::open(sample_rate);
     let mut lcd = SoundSystem::new(time, ugen::osc::Sine::new(
-        ugen::core::Aug::new(ugen::core::UGen::new(ugen::core::UG::Val(0.0))),
-        ugen::core::Aug::new(ugen::core::UGen::new(ugen::core::UG::Val(440.0)))
+        ugen::core::Aug::val(0.0),
+        ugen::core::Aug::val(440.0),
     ));
     // // std::thread::spawn(move || {
     // //     lcd.run(&ad);

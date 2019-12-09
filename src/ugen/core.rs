@@ -227,6 +227,10 @@ impl Aug {
     pub fn new(ug: UGen) -> Aug {
         Aug(Arc::new(Mutex::new(ug)))
     }
+
+    pub fn val(v: f64) -> Aug {
+        Aug::new(UGen::new(UG::Val(v)))
+    }
 }
 
 impl Clone for Aug {
