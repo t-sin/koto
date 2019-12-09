@@ -50,8 +50,6 @@ fn dump_ug(name: &String, slots: &Vec<Slot>, values: &Vec<Box<Value>>, shared: &
     s.push_str(&name[..]);
     s.push_str(" ");
     for (i, u) in slots.iter().enumerate() {
-        s.push_str(&u.name);
-        s.push_str(" ");
         let dump = dump_value(&u.value, shared);
         s.push_str(&dump[..]);
         if dump.len() != 0 && i != slots.len() - 1 || values.len() > 0 {
