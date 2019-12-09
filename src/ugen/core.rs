@@ -11,19 +11,28 @@ pub trait Walk {
 }
 
 type OpName = String;
-type ParamName = String;
 
-pub enum Param {
-    Value(f64),
+pub enum Value {
+    Number(f64),
     Table(Vec<f64>),
     Pattern(Vec<String>),
-    Shared(Aug),
-    Ug(OpName, Vec<ParamName>, Vec<Box<Param>>),
-    UgRest(OpName, Vec<ParamName>, Vec<Box<Param>>, Vec<Box<Param>>),
+    Ug(Aug),
+    Shared(usize, Aug),
+}
+
+pub struct Slot {
+    pub name: String,
+    pub value: Value,
+}
+
+pub enum UgNode {
+    Val(Value),
+    Ug(OpName, Vec<Slot>),
+    UgRest(OpName, Vec<Slot>, Vec<Box<Value>>),
 }
 
 pub trait Dump: Walk {
-    fn dump(&self, shared_ug: &Vec<Aug>) -> Param;
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode;
 }
 
 pub type Signal = (f64, f64);
@@ -50,7 +59,6 @@ pub trait Eg: Proc {
 }
 
 pub struct Table(pub Arc<Mutex<Vec<f64>>>);
-
 pub struct Pattern(pub Arc<Mutex<Vec<Box<Message>>>>);
 
 pub enum UG {
@@ -84,12 +92,12 @@ impl Walk for Table {
 }
 
 impl Dump for Table {
-    fn dump(&self, _shared_vec: &Vec<Aug>) -> Param {
+    fn dump(&self, _shared_vec: &Vec<Aug>) -> UgNode {
         let mut vec = Vec::new();
         for v in self.0.lock().unwrap().iter() {
             vec.push(*v);
         }
-        Param::Table(vec)
+        UgNode::Val(Value::Table(vec))
     }
 }
 
@@ -106,7 +114,7 @@ impl Walk for Pattern {
 }
 
 impl Dump for Pattern {
-    fn dump(&self, _shared_vec: &Vec<Aug>) -> Param {
+    fn dump(&self, _shared_vec: &Vec<Aug>) -> UgNode {
         let mut vec = Vec::new();
         let m = Measure { beat: 4, note: 4 };
 
@@ -120,7 +128,7 @@ impl Dump for Pattern {
                 Message::Loop => vec.push("loop".to_string()),
             }
         }
-        Param::Pattern(vec)
+        UgNode::Val(Value::Pattern(vec))
     }
 }
 
@@ -140,9 +148,9 @@ impl Walk for UG {
 }
 
 impl Dump for UG {
-    fn dump(&self, shared_vec: &Vec<Aug>) -> Param {
+    fn dump(&self, shared_vec: &Vec<Aug>) -> UgNode {
         match self {
-            UG::Val(v) => Param::Value(*v),
+            UG::Val(v) => UgNode::Val(Value::Number(*v)),
             UG::Proc(u) => u.dump(shared_vec),
             UG::Osc(u) => u.dump(shared_vec),
             UG::Eg(u) => u.dump(shared_vec),
@@ -203,7 +211,7 @@ impl Walk for UGen {
 }
 
 impl Dump for UGen {
-    fn dump(&self, shared_ug: &Vec<Aug>) -> Param {
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
         self.ug.dump(shared_ug)
     }
 }
@@ -254,7 +262,7 @@ impl Walk for Aug {
 }
 
 impl Dump for Aug {
-    fn dump(&self, shared_ug: &Vec<Aug>) -> Param {
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
         self.0.lock().unwrap().dump(shared_ug)
     }
 }

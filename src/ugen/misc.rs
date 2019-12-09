@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use super::super::mtime::Time;
-use super::core::{Signal, Param, Dump, Walk, UG, UGen, Aug, Proc};
+use super::core::{Signal, UgNode, Slot, Value, Dump, Walk, UG, UGen, Aug, Proc};
 
 pub struct Pan {
     pub v: Aug,
@@ -27,22 +27,25 @@ impl Walk for Pan {
 }
 
 impl Dump for Pan {
-    fn dump(&self, shared_ug: &Vec<Aug>) -> Param {
-        let mut pnames = Vec::new();
-        let mut pvals = Vec::new();
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
+        let mut slots = Vec::new();
 
-        pnames.push("v".to_string());
-        match shared_ug.iter().position(|e| *e == self.v) {
-            Some(n) => pvals.push(Box::new(Param::Shared(shared_ug.iter().nth(n).unwrap().clone()))),
-            None => pvals.push(Box::new(self.v.dump(shared_ug))),
-        }
+        slots.push(Slot {
+            name: "v".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.v) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.v.clone()),
+            },
+        });
+        slots.push(Slot {
+            name: "src".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.src) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.src.clone()),
+            },
+        });
 
-        pnames.push("src".to_string());
-        match shared_ug.iter().position(|e| *e == self.src) {
-            Some(n) => pvals.push(Box::new(Param::Shared(shared_ug.iter().nth(n).unwrap().clone()))),
-            None => pvals.push(Box::new(self.src.dump(shared_ug))),
-        }
-        Param::Ug("pan".to_string(), pnames, pvals)
+        UgNode::Ug("pan".to_string(), slots)
     }
 }
 
@@ -82,22 +85,26 @@ impl Walk for Clip {
 }
 
 impl Dump for Clip {
-    fn dump(&self, shared_ug: &Vec<Aug>) -> Param {
-        let mut pnames = Vec::new();
-        let mut pvals = Vec::new();
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
+        let mut slots = Vec::new();
 
-        pnames.push("min".to_string());
-        pvals.push(Box::new(Param::Value(self.min)));
+        slots.push(Slot {
+            name: "min".to_string(),
+            value: Value::Number(self.min),
+        });
+        slots.push(Slot {
+            name: "max".to_string(),
+            value: Value::Number(self.max),
+        });
+        slots.push(Slot {
+            name: "src".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.src) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.src.clone()),
+            },
+        });
 
-        pnames.push("max".to_string());
-        pvals.push(Box::new(Param::Value(self.max)));
-
-        pnames.push("src".to_string());
-        match shared_ug.iter().position(|e| *e == self.src) {
-            Some(n) => pvals.push(Box::new(Param::Shared(shared_ug.iter().nth(n).unwrap().clone()))),
-            None => pvals.push(Box::new(self.src.dump(shared_ug))),
-        }
-        Param::Ug("clip".to_string(), pnames, pvals)
+        UgNode::Ug("clip".to_string(), slots)
     }
 }
 
@@ -128,19 +135,22 @@ impl Walk for Offset {
 }
 
 impl Dump for Offset {
-    fn dump(&self, shared_ug: &Vec<Aug>) -> Param {
-        let mut pnames = Vec::new();
-        let mut pvals = Vec::new();
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
+        let mut slots = Vec::new();
 
-        pnames.push("v".to_string());
-        pvals.push(Box::new(Param::Value(self.v)));
+        slots.push(Slot {
+            name: "v".to_string(),
+            value: Value::Number(self.v),
+        });
+        slots.push(Slot {
+            name: "src".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.src) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.src.clone()),
+            },
+        });
 
-        pnames.push("src".to_string());
-        match shared_ug.iter().position(|e| *e == self.src) {
-            Some(n) => pvals.push(Box::new(Param::Shared(shared_ug.iter().nth(n).unwrap().clone()))),
-            None => pvals.push(Box::new(self.src.dump(shared_ug))),
-        }
-        Param::Ug("offset".to_string(), pnames, pvals)
+        UgNode::Ug("offset".to_string(), slots)
     }
 }
 
@@ -171,19 +181,22 @@ impl Walk for Gain {
 }
 
 impl Dump for Gain {
-    fn dump(&self, shared_ug: &Vec<Aug>) -> Param {
-        let mut pnames = Vec::new();
-        let mut pvals = Vec::new();
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
+        let mut slots = Vec::new();
 
-        pnames.push("v".to_string());
-        pvals.push(Box::new(Param::Value(self.v)));
+        slots.push(Slot {
+            name: "v".to_string(),
+            value: Value::Number(self.v),
+        });
+        slots.push(Slot {
+            name: "src".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.src) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.src.clone()),
+            },
+        });
 
-        pnames.push("src".to_string());
-        match shared_ug.iter().position(|e| *e == self.src) {
-            Some(n) => pvals.push(Box::new(Param::Shared(shared_ug.iter().nth(n).unwrap().clone()))),
-            None => pvals.push(Box::new(self.src.dump(shared_ug))),
-        }
-        Param::Ug("gain".to_string(), pnames, pvals)
+        UgNode::Ug("gain".to_string(), slots)
     }
 }
 
@@ -215,18 +228,16 @@ impl Walk for Add {
 }
 
 impl Dump for Add {
-    fn dump(&self, shared_ug: &Vec<Aug>) -> Param {
-        let mut pnames = Vec::new();
-        let mut pvals = Vec::new();
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
+        let mut values = Vec::new();
 
-        pnames.push("sources".to_string());
         for u in self.sources.iter() {
             match shared_ug.iter().position(|e| *e == *u) {
-                Some(n) => pvals.push(Box::new(Param::Shared(shared_ug.iter().nth(n).unwrap().clone()))),
-                None => pvals.push(Box::new(u.dump(shared_ug))),
+                Some(n) => values.push(Box::new(Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()))),
+                None => values.push(Box::new(Value::Ug(u.clone()))),
             };
         }
-        Param::Ug("+".to_string(), pnames, pvals)
+        UgNode::UgRest("+".to_string(), Vec::new(), values)
     }
 }
 
@@ -264,18 +275,17 @@ impl Walk for Multiply {
 }
 
 impl Dump for Multiply {
-    fn dump(&self, shared_ug: &Vec<Aug>) -> Param {
-        let mut pnames = Vec::new();
-        let mut pvals = Vec::new();
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
+        let mut values = Vec::new();
 
-        pnames.push("sources".to_string());
         for u in self.sources.iter() {
             match shared_ug.iter().position(|e| *e == *u) {
-                Some(n) => pvals.push(Box::new(Param::Shared(shared_ug.iter().nth(n).unwrap().clone()))),
-                None => pvals.push(Box::new(u.dump(shared_ug))),
+                Some(n) => values.push(Box::new(Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()))),
+                None => values.push(Box::new(Value::Ug(u.clone()))),
             };
         }
-        Param::Ug("*".to_string(), pnames, pvals)
+
+        UgNode::UgRest("*".to_string(), Vec::new(), values)
     }
 }
 
@@ -314,21 +324,22 @@ impl Walk for Out {
 }
 
 impl Dump for Out {
-    fn dump(&self, shared_ug: &Vec<Aug>) -> Param {
-        let mut pnames = Vec::new();
-        let mut pvals = Vec::new();
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
+        let mut slots = Vec::new();
+        let mut values = Vec::new();
 
-        pnames.push("v".to_string());
-        pvals.push(Box::new(Param::Value(self.vol)));
+        slots.push(Slot {
+            name: "v".to_string(),
+            value: Value::Number(self.vol)
+        });
 
-        pnames.push("sources".to_string());
         for u in self.sources.iter() {
             match shared_ug.iter().position(|e| *e == *u) {
-                Some(n) => pvals.push(Box::new(Param::Shared(shared_ug.iter().nth(n).unwrap().clone()))),
-                None => pvals.push(Box::new(u.dump(shared_ug))),
+                Some(n) => values.push(Box::new(Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()))),
+                None => values.push(Box::new(Value::Ug(u.clone()))),
             }
         }
-        Param::UgRest("out".to_string(), pnames, pvals, Vec::new())
+        UgNode::UgRest("out".to_string(), slots, values)
     }
 }
 

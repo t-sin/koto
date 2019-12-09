@@ -5,7 +5,7 @@ use rand::{Rng, SeedableRng};
 use rand::rngs::SmallRng;
 
 use super::super::mtime::{Pos, Time, Clock};
-use super::core::{Signal, Param, Dump, Walk, UG, UGen, Aug, Proc, Osc};
+use super::core::{Signal, UgNode, Value, Slot, Dump, Walk, UG, UGen, Aug, Proc, Osc};
 use super::misc::{Clip, Gain, Offset};
 
 pub struct Rand {
@@ -29,13 +29,14 @@ impl Walk for Rand {
 }
 
 impl Dump for Rand {
-    fn dump(&self, _shared_ug: &Vec<Aug>) -> Param {
-        let mut pnames = Vec::new();
-        let mut pvals = Vec::new();
+    fn dump(&self, _shared_ug: &Vec<Aug>) -> UgNode {
+        let mut slots = Vec::new();
 
-        pnames.push("v".to_string());
-        pvals.push(Box::new(Param::Value(self.v)));
-        Param::Ug("rand".to_string(), pnames, pvals)
+        slots.push(Slot {
+            name: "v".to_string(),
+            value: Value::Number(self.v),
+        });
+        UgNode::Ug("rand".to_string(), slots)
     }
 }
 
@@ -76,23 +77,25 @@ impl Walk for Sine {
 }
 
 impl Dump for Sine {
-    fn dump(&self, shared_ug: &Vec<Aug>) -> Param {
-        let mut pnames = Vec::new();
-        let mut pvals = Vec::new();
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
+        let mut slots = Vec::new();
 
-        pnames.push("init_ph".to_string());
-        match shared_ug.iter().position(|e| *e == self.init_ph) {
-            Some(n) => pvals.push(Box::new(Param::Shared(shared_ug.iter().nth(n).unwrap().clone()))),
-            None => pvals.push(Box::new(self.init_ph.dump(shared_ug))),
-        }
+        slots.push(Slot {
+            name: "init_ph".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.init_ph) {
+                Some(n) =>Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.init_ph.clone()),
+            },
+        });
+        slots.push(Slot {
+            name: "freq".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.freq) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.freq.clone()),
+            },
+        });
 
-        pnames.push("freq".to_string());
-        match shared_ug.iter().position(|e| *e == self.freq) {
-            Some(n) => pvals.push(Box::new(Param::Shared(shared_ug.iter().nth(n).unwrap().clone()))),
-            None => pvals.push(Box::new(self.freq.dump(shared_ug))),
-        }
-
-        Param::Ug("sine".to_string(), pnames, pvals)
+        UgNode::Ug("sine".to_string(), slots)
     }
 }
 
@@ -139,23 +142,25 @@ impl Walk for Tri {
 }
 
 impl Dump for Tri {
-    fn dump(&self, shared_ug: &Vec<Aug>) -> Param {
-        let mut pnames = Vec::new();
-        let mut pvals = Vec::new();
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
+        let mut slots = Vec::new();
 
-        pnames.push("init_ph".to_string());
-        match shared_ug.iter().position(|e| *e == self.init_ph) {
-            Some(n) => pvals.push(Box::new(Param::Shared(shared_ug.iter().nth(n).unwrap().clone()))),
-            None => pvals.push(Box::new(self.init_ph.dump(shared_ug))),
-        }
+        slots.push(Slot {
+            name: "init_ph".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.init_ph) {
+                Some(n) =>Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.init_ph.clone()),
+            },
+        });
+        slots.push(Slot {
+            name: "freq".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.freq) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.freq.clone()),
+            },
+        });
 
-        pnames.push("freq".to_string());
-        match shared_ug.iter().position(|e| *e == self.freq) {
-            Some(n) => pvals.push(Box::new(Param::Shared(shared_ug.iter().nth(n).unwrap().clone()))),
-            None => pvals.push(Box::new(self.freq.dump(shared_ug))),
-        }
-
-        Param::Ug("tri".to_string(), pnames, pvals)
+        UgNode::Ug("tri".to_string(), slots)
     }
 }
 
@@ -211,23 +216,25 @@ impl Walk for Saw {
 }
 
 impl Dump for Saw {
-    fn dump(&self, shared_ug: &Vec<Aug>) -> Param {
-        let mut pnames = Vec::new();
-        let mut pvals = Vec::new();
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
+        let mut slots = Vec::new();
 
-        pnames.push("init_ph".to_string());
-        match shared_ug.iter().position(|e| *e == self.init_ph) {
-            Some(n) => pvals.push(Box::new(Param::Shared(shared_ug.iter().nth(n).unwrap().clone()))),
-            None => pvals.push(Box::new(self.init_ph.dump(shared_ug))),
-        }
+        slots.push(Slot {
+            name: "init_ph".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.init_ph) {
+                Some(n) =>Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.init_ph.clone()),
+            },
+        });
+        slots.push(Slot {
+            name: "freq".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.freq) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.freq.clone()),
+            },
+        });
 
-        pnames.push("freq".to_string());
-        match shared_ug.iter().position(|e| *e == self.freq) {
-            Some(n) => pvals.push(Box::new(Param::Shared(shared_ug.iter().nth(n).unwrap().clone()))),
-            None => pvals.push(Box::new(self.freq.dump(shared_ug))),
-        }
-
-        Param::Ug("saw".to_string(), pnames, pvals)
+        UgNode::Ug("saw".to_string(), slots)
     }
 }
 
@@ -278,29 +285,32 @@ impl Walk for Pulse {
 }
 
 impl Dump for Pulse {
-    fn dump(&self, shared_ug: &Vec<Aug>) -> Param {
-        let mut pnames = Vec::new();
-        let mut pvals = Vec::new();
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
+        let mut slots = Vec::new();
 
-        pnames.push("init_ph".to_string());
-        match shared_ug.iter().position(|e| *e == self.init_ph) {
-            Some(n) => pvals.push(Box::new(Param::Shared(shared_ug.iter().nth(n).unwrap().clone()))),
-            None => pvals.push(Box::new(self.init_ph.dump(shared_ug))),
-        }
+        slots.push(Slot {
+            name: "init_ph".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.init_ph) {
+                Some(n) =>Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.init_ph.clone()),
+            },
+        });
+        slots.push(Slot {
+            name: "freq".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.freq) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.freq.clone()),
+            },
+        });
+        slots.push(Slot {
+            name: "duty".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.duty) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.duty.clone()),
+            },
+        });
 
-        pnames.push("freq".to_string());
-        match shared_ug.iter().position(|e| *e == self.freq) {
-            Some(n) => pvals.push(Box::new(Param::Shared(shared_ug.iter().nth(n).unwrap().clone()))),
-            None => pvals.push(Box::new(self.freq.dump(shared_ug))),
-        }
-
-        pnames.push("duty".to_string());
-        match shared_ug.iter().position(|e| *e == self.duty) {
-            Some(n) => pvals.push(Box::new(Param::Shared(shared_ug.iter().nth(n).unwrap().clone()))),
-            None => pvals.push(Box::new(self.duty.dump(shared_ug))),
-        }
-
-        Param::Ug("pulse".to_string(), pnames, pvals)
+        UgNode::Ug("pulse".to_string(), slots)
     }
 }
 
@@ -363,17 +373,17 @@ pub struct Phase {
 // }
 
 // impl Dump for Phase {
-//     fn dump(&self, shared_ug: &Vec<Aug>, shared_map: &HashMap<usize, String>) -> Param {
+//     fn dump(&self, shared_ug: &Vec<Aug>, shared_map: &HashMap<usize, String>) -> UgNode {
 //         let mut pnames = Vec::new();
 //         let mut pvals = Vec::new();
 
 //         pnames.push("osc".to_string());
 //         match shared_ug.iter().position(|e| Arc::ptr_eq(e, &self.osc)) {
-//             Some(idx) => pvals.push(Box::new(Param::Value(shared_map.get(&idx).unwrap().to_string()))),
+//             Some(idx) => pvals.push(Box::new(UgNode::Value(shared_map.get(&idx).unwrap().to_string()))),
 //             None => pvals.push(Box::new(self.osc.0.lock().unwrap().dump(shared_ug, shared_map))),
 //         }
 
-//         Param::Op("phase".to_string(), pnames, pvals)
+//         UgNode::Op("phase".to_string(), pnames, pvals)
 //     }
 // }
 
@@ -446,23 +456,23 @@ pub struct Phase {
 // }
 
 // impl Dump for WaveTable {
-//     fn dump(&self, shared_ug: &Vec<Aug>, shared_map: &HashMap<usize, String>) -> Param {
+//     fn dump(&self, shared_ug: &Vec<Aug>, shared_map: &HashMap<usize, String>) -> UgNode {
 //         let mut pnames = Vec::new();
 //         let mut pvals = Vec::new();
 
 //         pnames.push("table".to_string());
 //         match shared_ug.iter().position(|e| Arc::ptr_eq(e, &self.table)) {
-//             Some(idx) => pvals.push(Box::new(Param::Value(shared_map.get(&idx).unwrap().to_string()))),
+//             Some(idx) => pvals.push(Box::new(UgNode::Value(shared_map.get(&idx).unwrap().to_string()))),
 //             None => pvals.push(Box::new(self.table.0.lock().unwrap().dump(shared_ug, shared_map))),
 //         }
 
 //         pnames.push("ph".to_string());
 //         match shared_ug.iter().position(|e| Arc::ptr_eq(e, &self.ph)) {
-//             Some(idx) => pvals.push(Box::new(Param::Value(shared_map.get(&idx).unwrap().to_string()))),
+//             Some(idx) => pvals.push(Box::new(UgNode::Value(shared_map.get(&idx).unwrap().to_string()))),
 //             None => pvals.push(Box::new(self.ph.0.lock().unwrap().dump(shared_ug, shared_map))),
 //         }
 
-//         Param::Op("wavetable".to_string(), pnames, pvals)
+//         UgNode::Op("wavetable".to_string(), pnames, pvals)
 //     }
 // }
 
