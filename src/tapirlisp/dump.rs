@@ -1,8 +1,23 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use super::super::units::unit::{Walk, UDump, Dump, Unit, AUnit};
-use super::value::Env;
+use super::super::ugen::core::{Walk, Param, Dump, Aug};
+use super::types::Env;
+
+fn dump_table(name: &String, vec: &Vec<f64>) -> String {
+    let mut s = String::new();
+    s.push_str("(");
+    s.push_str(&name[..]);
+    s.push_str(" ");
+    for (i, v) in vec.iter().enumerate() {
+        s.push_str(&v.to_string());
+        if i != vec.len() - 1 {
+            s.push_str(" ");
+        }
+    }
+    s.push_str(")");
+    s
+}
 
 fn dump_list(name: &String, vec: &Vec<String>) -> String {
     let mut s = String::new();
@@ -19,7 +34,7 @@ fn dump_list(name: &String, vec: &Vec<String>) -> String {
     s
 }
 
-fn dump_op(name: &String, vvec: &Vec<Box<UDump>>) -> String {
+fn dump_op(name: &String, vvec: &Vec<Box<Param>>) -> String {
     let mut s = String::new();
     s.push_str("(");
     s.push_str(&name[..]);
@@ -35,31 +50,28 @@ fn dump_op(name: &String, vvec: &Vec<Box<UDump>>) -> String {
     s
 }
 
-pub fn dump_unit(dump: &UDump) -> String {
+pub fn dump_unit(dump: &Param) -> String {
     match dump {
-        UDump::Value(s) => s.to_string(),
-        UDump::Table(vals) => dump_list(&"table".to_string(), &vals),
-        UDump::Pattern(pat) => dump_list(&"pat".to_string(), &pat),
-        UDump::OpRest(name, _, vvec) => dump_op(&name, &vvec),
-        UDump::Op(name, _, vvec) => dump_op(&name, &vvec),
+        Param::Value(s) => s.to_string(),
+        Param::Table(vals) => dump_table(&"table".to_string(), vals),
+        Param::Pattern(pat) => dump_list(&"pat".to_string(), pat),
+        // TODO: Param::UgRest(name, _, vals) => dump_op(&name, &vvec),
+        Param::Ug(name, _, vvec) => dump_op(&name, vvec),
+        _ => "".to_string(),
     }
 }
 
-pub fn dump(ug: AUnit, env: &Env) -> String {
-    let mut searched_units: Vec<AUnit> = Vec::new();
-    let mut shared_units: Vec<AUnit> = Vec::new();
-    let mut shared_unit_map = HashMap::new();
-    let mut shared_id = 0;
+pub fn dump(ug: Aug, env: &Env) -> String {
+    let mut searched_units: Vec<Aug> = Vec::new();
+    let mut shared_units: Vec<Aug> = Vec::new();
 
-    (*ug.0.lock().unwrap()).walk(&mut |u: &AUnit| {
-        match searched_units.iter().position(|e| Arc::ptr_eq(e, u)) {
+    ug.walk(&mut |u: &Aug| {
+        match searched_units.iter().position(|e| *e == *u) {
             Some(idx) => {
                 let u = searched_units[idx].clone();
-                match shared_units.iter().position(|e| Arc::ptr_eq(e, &u)) {
+                match shared_units.iter().position(|e| *e == u) {
                     Some(_idx) => (),
                     None => {
-                        shared_unit_map.insert(shared_units.len(), format!("$shared{}", shared_id));
-                        shared_id += 1;
                         shared_units.push(u);
                     },
                 }
@@ -81,13 +93,12 @@ pub fn dump(ug: AUnit, env: &Env) -> String {
 
     tlisp_str.push_str("\n;; shared units\n");
     for (idx, su) in shared_units.iter().enumerate() {
-        let dumped = dump_unit(&su.0.lock().unwrap().dump(&shared_units, &shared_unit_map));
-        let name = shared_unit_map.get(&idx).unwrap().to_string();
-        tlisp_str.push_str(&format!("(def {} {})\n", name, dumped));
+        let dumped = dump_unit(&su.0.lock().unwrap().dump(&shared_units));
+        tlisp_str.push_str(&format!("(def {} {})\n", format!("shared-{}", idx), dumped));
     }
 
     tlisp_str.push_str("\n;; unit graph\n");
-    let dumped = dump_unit(&ug.0.lock().unwrap().dump(&shared_units, &shared_unit_map));
+    let dumped = dump_unit(&ug.dump(&shared_units));
     tlisp_str.push_str(&format!("{}\n", dumped));
     format!("{}", tlisp_str)
 }
