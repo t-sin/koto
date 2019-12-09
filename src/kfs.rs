@@ -12,15 +12,15 @@ use fuse::{
     ReplyWrite, ReplyData, ReplyEmpty
 };
 
-use super::units::unit::{Walk, Node, AUnit};
+use super::ugen::core::{Aug, Dump};
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 
 #[derive(Clone)]
 pub enum UnitState {
     NotMapped,
-    Mapped(AUnit),
-    MappedParam(String, AUnit),
+    Mapped(Aug),
+    MappedParam(String, Aug),
 }
 
 #[derive(Clone)]
@@ -39,6 +39,7 @@ pub struct KotoNode {
 pub struct KotoFS {
     pub root: Arc<Mutex<KotoNode>>,
     pub inodes: HashMap<u64, Arc<Mutex<KotoNode>>>,
+    inode_count: u64,
 }
 
 fn get_ext(name: &str) -> String {
@@ -89,62 +90,17 @@ impl KotoFS {
         let root_arc = Arc::new(Mutex::new(root));
         let mut inodes = HashMap::new();
         inodes.insert(root_arc.lock().unwrap().inode, root_arc.clone());
-        KotoFS { inodes: inodes, root: root_arc }
+        KotoFS { inodes: inodes, root: root_arc, inode_count: 1 }
     }
 
-    fn build_children(&mut self, parent: &Option<Arc<Mutex<KotoNode>>>, ug: AUnit)
-    -> Vec<Arc<Mutex<KotoNode>>> {
-        let mut vec = Vec::new();
-        match &ug.0.lock().unwrap().node {
-            Node::Val(v) => {
-                let node = Arc::new(Mutex::new(create_node(
-                    "pa".to_string(), Vec::from(v.to_string().as_bytes()), FileType::RegularFile
-                )));
-                self.inodes.insert(node.lock().unwrap().inode, node.clone());
-                if let Some(parent) = parent {
-                    parent.lock().unwrap().children.push(node.clone());
-                }
-                vec.push(node.clone());
-            },
-            Node::Sig(s) => {
-                let node = Arc::new(Mutex::new(create_node(
-                    "pa".to_string(), Vec::from("aaa".to_string().as_bytes()), FileType::RegularFile
-                )));
-                self.inodes.insert(node.lock().unwrap().inode, node.clone());
-                if let Some(parent) = parent {
-                    parent.lock().unwrap().children.push(node.clone());
-                }
-                vec.push(node.clone());
-            },
-            _ => {},
-        };
-        vec
+    fn build_knode(ug: Aug, shared: &Vec<Aug>) -> KotoNode {
+    //     let ug_node = ug.dump(shared);
     }
 
-    fn build_node(&mut self, parent: &Option<Arc<Mutex<KotoNode>>>, ug: AUnit)
-    -> Arc<Mutex<KotoNode>> {
-        let name = "hoge".to_string();
-        let data = Vec::new();
-        let node = Arc::new(Mutex::new(create_node(name, data, FileType::Directory)));
-        node.lock().unwrap().children = self.build_children(&Some(node.clone()), ug);
-
-        if let Some(p) = parent {
-            node.lock().unwrap().parent = Some(p.clone());
-        } else {
-            node.lock().unwrap().parent = None;
-        }
-        node
-    }
-
-    pub fn build(&mut self, ug: AUnit) {
+    pub fn build(&mut self, ug: Aug) {
+        let shared_ug = crate::ugen::util::collect_shared_ugs(ug.clone);
         self.inodes = HashMap::new();
-        let mut root = self.build_node(&None, ug.clone());
-        root.lock().unwrap().inode = 1;
-        self.inodes.insert(root.lock().unwrap().inode, root.clone());
-        self.root = root.clone();
-        ug.0.lock().unwrap().walk(&mut |u| {
-            true
-        });
+        // TODO
     }
 
     pub fn sync_ug(&mut self, ino: u64) {}

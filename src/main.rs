@@ -12,8 +12,10 @@ mod ugen;
 mod sexp;
 mod tapirlisp;
 mod soundsystem;
+mod kfs;
 
 use std::fs::File;
+use std::ffi::OsString;
 use std::io;
 use std::io::prelude::*;
 
@@ -42,14 +44,13 @@ fn main() {
 
     let mut ad = AudioDevice::open(sample_rate);
     let mut lcd = SoundSystem::new(env.time, ug.clone());
-    // std::thread::spawn(move || {
-    //     lcd.run(&ad);
-    // });
+    //std::thread::spawn(move || {
     lcd.run(&ad);
+    //});
 
-    // let mut fs = kfs::KotoFS::init();
-    // fs.build(unit_graph.clone());
-    // fs.mount(OsString::from("koto.test"));
+    let mut fs = kfs::KotoFS::init();
+    // fs.build(ug.clone());
+    fs.mount(OsString::from("koto.test"));
 
     // somnia::run_test();
 }
