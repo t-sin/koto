@@ -12,22 +12,22 @@ use fuse::{
     ReplyWrite, ReplyData, ReplyEmpty
 };
 
-use super::ugen::core::{Aug, Dump};
+use super::ugen::core::{Aug, UgNode, Slot, Value, Dump};
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 
 #[derive(Clone)]
 pub enum UnitState {
     NotMapped,
-    Mapped(Aug),
-    MappedParam(String, Aug),
+    Value(Value),
+    Ug(Aug),
 }
 
 #[derive(Clone)]
 pub struct KotoNode {
     // if parent is None, it'a a root.
     pub parent: Option<Arc<Mutex<KotoNode>>>,
-    pub unit: UnitState,
+    pub ug: UnitState,
     pub inode: u64,
     pub children: Vec<Arc<Mutex<KotoNode>>>,
     pub name: String,
@@ -76,14 +76,14 @@ fn create_node(name: String, data: Vec<u8>, ftype: FileType) -> KotoNode {
     let attr = create_file(inode, size as u64, ftype);
     KotoNode {
         inode: inode, children: Vec::new(), parent: None, link: Path::new("").to_path_buf(),
-        unit: UnitState::NotMapped, name: name, data: data, attr: attr,
+        ug: UnitState::NotMapped, name: name, data: data, attr: attr,
     }
 }
 
 impl KotoFS {
     pub fn init() -> KotoFS {
         let root = KotoNode {
-            inode: 1, children: [].to_vec(), unit: UnitState::NotMapped,
+            inode: 1, children: [].to_vec(), ug: UnitState::NotMapped,
             name: "/".to_string(), data: [].to_vec(), link: Path::new("").to_path_buf(),
             parent: None, attr: create_file(1, 0, FileType::Directory),
         };
@@ -93,17 +93,94 @@ impl KotoFS {
         KotoFS { inodes: inodes, root: root_arc, inode_count: 1 }
     }
 
-    fn build_knode(ug: Aug, shared: &Vec<Aug>) -> KotoNode {
-    //     let ug_node = ug.dump(shared);
+    fn build_node_from_value(&mut self, v: Value, parent: Arc<Mutex<KotoNode>>) -> KotoNode {
+        match v {
+            Value::Number(n) => KotoNode {
+                inode: self.inode_count, parent: Some(parent), children: [].to_vec(),
+                ug: UnitState::Value(Value::Number(n)), data: n.to_string().into_bytes(),
+                name: "poteco".to_string(), link: Path::new("").to_path_buf(),
+                attr: create_file(1, 0, FileType::RegularFile),
+            },
+            Value::Table(vec) => KotoNode {
+                inode: self.inode_count, parent: Some(parent), children: [].to_vec(),
+                ug: UnitState::Value(Value::Table(vec)), data: "table".to_string().into_bytes(),
+                name: "poteco".to_string(), link: Path::new("").to_path_buf(),
+                attr: create_file(1, 0, FileType::RegularFile),
+            },
+            Value::Pattern(vec) => KotoNode {
+                inode: self.inode_count, parent: Some(parent), children: [].to_vec(),
+                ug: UnitState::Value(Value::Pattern(vec)), data: "pattern".to_string().into_bytes(),
+                name: "poteco".to_string(), link: Path::new("").to_path_buf(),
+                attr: create_file(1, 0, FileType::RegularFile),
+            },
+            Value::Ug(aug) => KotoNode {
+                // TODO: UnitState::Mapped(aug.dump(shared))
+                inode: self.inode_count, parent: Some(parent), children: [].to_vec(),
+                ug: UnitState::Ug(aug.clone()), data: [].to_vec(),
+                name: "poteco".to_string(), link: Path::new("").to_path_buf(),
+                attr: create_file(1, 0, FileType::Directory),
+            },
+            Value::Shared(_, aug) => KotoNode {
+                inode: self.inode_count, parent: Some(parent), children: [].to_vec(),
+                ug: UnitState::Ug(aug.clone()), data: [].to_vec(),
+                name: "poteco".to_string(), link: Path::new("/").to_path_buf(),
+                attr: create_file(1, 0, FileType::Symlink),
+            },
+        }
+    }
+
+    fn build_node(&mut self, ug: Aug, parent: Arc<Mutex<KotoNode>>, shared: &Vec<Aug>) -> Arc<Mutex<KotoNode>> {
+        let ug_node = ug.dump(shared);
+        let knode = match ug_node {
+            UgNode::Val(v) => Arc::new(Mutex::new(self.build_node_from_value(v, parent))),
+            UgNode::Ug(name, slots) => {
+                let node = Arc::new(Mutex::new(KotoNode {
+                    inode: self.inode_count, parent: Some(parent), children: [].to_vec(),
+                    ug: UnitState::Ug(ug.clone()), data: [].to_vec(),
+                    name: "name".to_string(), link: Path::new("").to_path_buf(),
+                    attr: create_file(1, 0, FileType::Directory),
+                }));
+                for s in slots.iter() {
+                    let child = Arc::new(Mutex::new(self.build_node_from_value(s.value.clone(), node.clone())));
+                    child.lock().unwrap().name = s.name.clone();
+                    node.lock().unwrap().children.push(child.clone());
+                }
+                node
+            },
+            UgNode::UgRest(name, slots, values) => {
+                let node = Arc::new(Mutex::new(KotoNode {
+                    inode: self.inode_count, parent: Some(parent), children: [].to_vec(),
+                    ug: UnitState::Ug(ug.clone()), data: [].to_vec(),
+                    name: "name".to_string(), link: Path::new("").to_path_buf(),
+                    attr: create_file(1, 0, FileType::Directory),
+                }));
+                for s in slots.iter() {
+                    let child = Arc::new(Mutex::new(self.build_node_from_value(s.value.clone(), node.clone())));
+                    child.lock().unwrap().name = s.name.clone();
+                    node.lock().unwrap().children.push(child.clone());
+                }
+                for (i, v) in values.iter().enumerate() {
+                    let child = Arc::new(Mutex::new(self.build_node_from_value(*v.clone(), node.clone())));
+                    child.lock().unwrap().name = format!("{}-{}", "val", i);
+                    node.lock().unwrap().children.push(child.clone());
+                }
+                node
+            },
+        };
+        self.inode_count += 1;
+        self.inodes.insert(knode.lock().unwrap().inode, knode.clone());
+        knode
     }
 
     pub fn build(&mut self, ug: Aug) {
-        let shared_ug = crate::ugen::util::collect_shared_ugs(ug.clone);
+        let shared_ug = crate::ugen::util::collect_shared_ugs(ug.clone());
         self.inodes = HashMap::new();
-        // TODO
+        let node = self.build_node(ug, self.root.clone(), &shared_ug);
+        self.root.lock().unwrap().children.push(node.clone());
     }
 
-    pub fn sync_ug(&mut self, ino: u64) {}
+    pub fn sync_ug(&mut self, ino: u64) {
+    }
 
     pub fn mount(self, mountpoint: OsString) {
         fuse::mount(self, &mountpoint, &[]).expect(&format!("fail mount() with {:?}", mountpoint));
