@@ -3,10 +3,10 @@ use std::collections::VecDeque;
 use super::super::sexp::{Cons, print, to_vec};
 use super::super::event::{Message, to_note, to_pos};
 
-use super::super::ugen::core::{Aug, Proc, Osc, Eg, Table, Pattern};
+use super::super::ugen::core::{UG, Aug, Proc, Osc, Eg, Table, Pattern};
 use super::super::ugen::misc::{Pan, Clip, Offset, Gain, Add, Multiply, Out};
+use super::super::ugen::osc::{Rand, Sine, Tri, Saw, Pulse};
 // use super::super::units::effect::{LPFilter, Delay};
-// use super::super::units::oscillator::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
 // use super::super::units::sequencer::{Trigger, AdsrEg, Seq};
 
 use super::types::{Value, Env, EvalError};
@@ -106,89 +106,89 @@ fn make_multiply(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> 
 
 // oscillators
 
-// fn make_rand(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
-//     if args.len() == 1 {
-//         match eval(&args[0], env) {
-//             Ok(Value::Unit(unit)) => if let Node::Val(v) = unit.0.lock().unwrap().node {
-//                 Ok(Rand::new(v as u64))
-//             } else {
-//                 Ok(Rand::new(0))
-//             },
-//             Ok(_v) => Err(EvalError::NotAug),
-//             Err(err) => Err(err),
-//         }
-//     } else {
-//         Err(EvalError::FnWrongParams(String::from("wavetable"), args))
-//     }
-// }
+fn make_rand(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
+    if args.len() == 1 {
+        match eval(&args[0], env) {
+            Ok(Value::Unit(unit)) => if let UG::Val(v) = unit.0.lock().unwrap().ug {
+                Ok(Rand::new(v as u64))
+            } else {
+                Ok(Rand::new(0))
+            },
+            Ok(_v) => Err(EvalError::NotAug),
+            Err(err) => Err(err),
+        }
+    } else {
+        Err(EvalError::FnWrongParams(String::from("wavetable"), args))
+    }
+}
 
-// fn make_sine(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
-//     if args.len() == 2 {
-//         match eval(&args[0], env) {
-//             Ok(Value::Unit(init_ph)) => match eval(&args[1], env) {
-//                 Ok(Value::Unit(freq)) => Ok(Sine::new(init_ph, freq)),
-//                 Ok(_v) => Err(EvalError::NotAug),
-//                 Err(err) => Err(err),
-//             },
-//             Ok(_v) => Err(EvalError::NotAug),
-//             Err(err) => Err(err),
-//         }
-//     } else {
-//         Err(EvalError::FnWrongParams(String::from("sine"), args))
-//     }
-// }
+fn make_sine(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
+    if args.len() == 2 {
+        match eval(&args[0], env) {
+            Ok(Value::Unit(init_ph)) => match eval(&args[1], env) {
+                Ok(Value::Unit(freq)) => Ok(Sine::new(init_ph, freq)),
+                Ok(_v) => Err(EvalError::NotAug),
+                Err(err) => Err(err),
+            },
+            Ok(_v) => Err(EvalError::NotAug),
+            Err(err) => Err(err),
+        }
+    } else {
+        Err(EvalError::FnWrongParams(String::from("sine"), args))
+    }
+}
 
-// fn make_tri(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
-//     if args.len() == 2 {
-//         match eval(&args[0], env) {
-//             Ok(Value::Unit(init_ph)) => match eval(&args[1], env) {
-//                 Ok(Value::Unit(freq)) => Ok(Tri::new(init_ph, freq)),
-//                 Ok(_v) => Err(EvalError::NotAug),
-//                 Err(err) => Err(err),
-//             },
-//             Ok(_v) => Err(EvalError::NotAug),
-//             Err(err) => Err(err),
-//         }
-//     } else {
-//         Err(EvalError::FnWrongParams(String::from("tri"), args))
-//     }
-// }
+fn make_tri(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
+    if args.len() == 2 {
+        match eval(&args[0], env) {
+            Ok(Value::Unit(init_ph)) => match eval(&args[1], env) {
+                Ok(Value::Unit(freq)) => Ok(Tri::new(init_ph, freq)),
+                Ok(_v) => Err(EvalError::NotAug),
+                Err(err) => Err(err),
+            },
+            Ok(_v) => Err(EvalError::NotAug),
+            Err(err) => Err(err),
+        }
+    } else {
+        Err(EvalError::FnWrongParams(String::from("tri"), args))
+    }
+}
 
-// fn make_saw(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
-//     if args.len() == 2 {
-//         match eval(&args[0], env) {
-//             Ok(Value::Unit(init_ph)) => match eval(&args[1], env) {
-//                 Ok(Value::Unit(freq)) => Ok(Saw::new(init_ph, freq)),
-//                 Ok(_v) => Err(EvalError::NotAug),
-//                 Err(err) => Err(err),
-//             },
-//             Ok(_v) => Err(EvalError::NotAug),
-//             Err(err) => Err(err),
-//         }
-//     } else {
-//         Err(EvalError::FnWrongParams(String::from("saw"), args))
-//     }
-//  }
+fn make_saw(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
+    if args.len() == 2 {
+        match eval(&args[0], env) {
+            Ok(Value::Unit(init_ph)) => match eval(&args[1], env) {
+                Ok(Value::Unit(freq)) => Ok(Saw::new(init_ph, freq)),
+                Ok(_v) => Err(EvalError::NotAug),
+                Err(err) => Err(err),
+            },
+            Ok(_v) => Err(EvalError::NotAug),
+            Err(err) => Err(err),
+        }
+    } else {
+        Err(EvalError::FnWrongParams(String::from("saw"), args))
+    }
+ }
 
-// fn make_pulse(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
-//     if args.len() == 3 {
-//         match eval(&args[0], env) {
-//             Ok(Value::Unit(init_ph)) => match eval(&args[1], env) {
-//                 Ok(Value::Unit(freq)) => match eval(&args[2], env) {
-//                     Ok(Value::Unit(duty)) => Ok(Pulse::new(init_ph, freq, duty)),
-//                     Ok(_v) => Err(EvalError::NotAug),
-//                     Err(err) => Err(err),
-//                 },
-//                 Ok(_v) => Err(EvalError::NotAug),
-//                 Err(err) => Err(err),
-//             },
-//             Ok(_v) => Err(EvalError::NotAug),
-//             Err(err) => Err(err),
-//         }
-//     } else {
-//         Err(EvalError::FnWrongParams(String::from("pulse"), args))
-//     }
-// }
+fn make_pulse(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
+    if args.len() == 3 {
+        match eval(&args[0], env) {
+            Ok(Value::Unit(init_ph)) => match eval(&args[1], env) {
+                Ok(Value::Unit(freq)) => match eval(&args[2], env) {
+                    Ok(Value::Unit(duty)) => Ok(Pulse::new(init_ph, freq, duty)),
+                    Ok(_v) => Err(EvalError::NotAug),
+                    Err(err) => Err(err),
+                },
+                Ok(_v) => Err(EvalError::NotAug),
+                Err(err) => Err(err),
+            },
+            Ok(_v) => Err(EvalError::NotAug),
+            Err(err) => Err(err),
+        }
+    } else {
+        Err(EvalError::FnWrongParams(String::from("pulse"), args))
+    }
+}
 
 // // wavetable oscillator
 
@@ -442,11 +442,11 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug,
         "+" => make_add(args, env),
         "*" => make_multiply(args, env),
         // oscillator
-        // "rand" => make_rand(args, env),
-        // "sine" => make_sine(args, env),
-        // "tri" => make_tri(args, env),
-        // "saw" => make_saw(args, env),
-        // "pulse" => make_pulse(args, env),
+        "rand" => make_rand(args, env),
+        "sine" => make_sine(args, env),
+        "tri" => make_tri(args, env),
+        "saw" => make_saw(args, env),
+        "pulse" => make_pulse(args, env),
         // "table" => make_table(args, env),
         // "phase" => make_phase(args, env),
         // "wavetable" => make_wavetable(args, env),

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use super::super::ugen::core::{Walk, Param, Dump, Aug};
+use super::super::ugen::core::{Walk, UgNode, Slot, Value, Dump, Aug};
 use super::types::Env;
 
 fn dump_table(name: &String, vec: &Vec<f64>) -> String {
@@ -34,30 +34,48 @@ fn dump_list(name: &String, vec: &Vec<String>) -> String {
     s
 }
 
-fn dump_op(name: &String, vvec: &Vec<Box<Param>>) -> String {
+pub fn dump_value(v: &Value, shared: &Vec<Aug>) -> String {
+    match v {
+        Value::Number(n) => n.to_string(),
+        Value::Table(vals) => dump_table(&"table".to_string(), vals),
+        Value::Pattern(pat) => dump_list(&"pat".to_string(), pat),
+        Value::Ug(ug) => dump_unit(&ug.dump(shared), shared),
+        Value::Shared(n, aug) => format!("shared-{}", n),
+    }
+}
+
+fn dump_ug(name: &String, slots: &Vec<Slot>, values: &Vec<Box<Value>>, shared: &Vec<Aug>) -> String {
     let mut s = String::new();
     s.push_str("(");
     s.push_str(&name[..]);
     s.push_str(" ");
-    for (i, d) in vvec.iter().enumerate() {
-        let dump = dump_unit(&**d);
+    for (i, u) in slots.iter().enumerate() {
+        s.push_str(&u.name);
+        s.push_str(" ");
+        let dump = dump_value(&u.value, shared);
         s.push_str(&dump[..]);
-        if dump.len() != 0 && i != vvec.len() - 1 {
+        if dump.len() != 0 && i != slots.len() - 1 || values.len() > 0 {
             s.push_str(" ");
         }
     }
+    if values.len() > 0 {
+        for (i, v) in values.iter().enumerate() {
+            s.push_str(&dump_value(&v, shared)[..]);
+            if i != values.len() - 1 {
+                s.push_str(" ");
+            }
+        }
+    }
+
     s.push_str(")");
     s
 }
 
-pub fn dump_unit(dump: &Param) -> String {
+pub fn dump_unit(dump: &UgNode, shared: &Vec<Aug>) -> String {
     match dump {
-        Param::Value(s) => s.to_string(),
-        Param::Table(vals) => dump_table(&"table".to_string(), vals),
-        Param::Pattern(pat) => dump_list(&"pat".to_string(), pat),
-        // TODO: Param::UgRest(name, _, vals) => dump_op(&name, &vvec),
-        Param::Ug(name, _, vvec) => dump_op(&name, vvec),
-        _ => "".to_string(),
+        UgNode::Val(v) => dump_value(v, shared),
+        UgNode::Ug(name, slots) => dump_ug(&name, slots, &Vec::new(), shared),
+        UgNode::UgRest(name, slots, values) => dump_ug(&name, slots, values, shared),
     }
 }
 
@@ -93,12 +111,12 @@ pub fn dump(ug: Aug, env: &Env) -> String {
 
     tlisp_str.push_str("\n;; shared units\n");
     for (idx, su) in shared_units.iter().enumerate() {
-        let dumped = dump_unit(&su.0.lock().unwrap().dump(&shared_units));
+        let dumped = dump_unit(&su.0.lock().unwrap().dump(&shared_units), &shared_units);
         tlisp_str.push_str(&format!("(def {} {})\n", format!("shared-{}", idx), dumped));
     }
 
     tlisp_str.push_str("\n;; unit graph\n");
-    let dumped = dump_unit(&ug.dump(&shared_units));
+    let dumped = dump_unit(&ug.dump(&shared_units), &shared_units);
     tlisp_str.push_str(&format!("{}\n", dumped));
     format!("{}", tlisp_str)
 }
