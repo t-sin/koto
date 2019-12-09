@@ -77,28 +77,9 @@ pub fn dump_unit(dump: &UgNode, shared: &Vec<Aug>) -> String {
     }
 }
 
-pub fn dump(ug: Aug, env: &Env) -> String {
-    let mut searched_units: Vec<Aug> = Vec::new();
-    let mut shared_units: Vec<Aug> = Vec::new();
 
-    ug.walk(&mut |u: &Aug| {
-        match searched_units.iter().position(|e| *e == *u) {
-            Some(idx) => {
-                let u = searched_units[idx].clone();
-                match shared_units.iter().position(|e| *e == u) {
-                    Some(_idx) => (),
-                    None => {
-                        shared_units.push(u);
-                    },
-                }
-                false
-            },
-            None => {
-                searched_units.push(u.clone());
-                true
-            },
-        }
-    });
+pub fn dump(ug: Aug, env: &Env) -> String {
+    let mut shared_units = crate::ugen::util::collect_shared_ugs(ug.clone());
 
     let mut tlisp_str = String::new();
     tlisp_str.push_str(";; environment\n");
