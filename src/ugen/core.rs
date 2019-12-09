@@ -12,6 +12,7 @@ pub trait Walk {
 
 type OpName = String;
 
+#[derive(Clone)]
 pub enum Value {
     Number(f64),
     Table(Vec<f64>),
