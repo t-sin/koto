@@ -5,7 +5,7 @@ use super::super::event::{Message, to_note, to_pos};
 
 use super::super::ugen::core::{UG, Aug, Proc, Osc, Eg, Table, Pattern};
 use super::super::ugen::misc::{Pan, Clip, Offset, Gain, Add, Multiply, Out};
-use super::super::ugen::osc::{Rand, Sine, Tri, Saw, Pulse};
+use super::super::ugen::osc::{Rand, Sine, Tri, Saw, Pulse, Phase};
 // use super::super::units::effect::{LPFilter, Delay};
 // use super::super::units::sequencer::{Trigger, AdsrEg, Seq};
 
@@ -208,17 +208,17 @@ fn make_pulse(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
 
 // }
 
-// fn make_phase(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
-//     if args.len() == 1 {
-//         match eval(&args[0], env) {
-//             Ok(Value::Unit(osc)) => Ok(Phase::new(osc)),
-//             Ok(_v) => Err(EvalError::NotAug),
-//             Err(err) => Err(err),
-//         }
-//     } else {
-//         Err(EvalError::FnWrongParams(String::from("phase"), args))
-//     }
-// }
+fn make_phase(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
+    if args.len() == 1 {
+        match eval(&args[0], env) {
+            Ok(Value::Unit(osc)) => Ok(Phase::new(osc)),
+            Ok(_v) => Err(EvalError::NotAug),
+            Err(err) => Err(err),
+        }
+    } else {
+        Err(EvalError::FnWrongParams(String::from("phase"), args))
+    }
+}
 
 // fn make_wavetable(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
 //     if args.len() == 2 {
@@ -448,7 +448,7 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug,
         "saw" => make_saw(args, env),
         "pulse" => make_pulse(args, env),
         // "table" => make_table(args, env),
-        // "phase" => make_phase(args, env),
+        "phase" => make_phase(args, env),
         // "wavetable" => make_wavetable(args, env),
         // // sequencer
         // "pat" => make_pat(args, env),

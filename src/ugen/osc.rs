@@ -343,66 +343,54 @@ pub struct Phase {
     pub osc: Aug,
 }
 
-// impl Phase {
-//     pub fn new(u: Aug) -> Aug {
-//         Mut::amut(ProcGraph::new(Node::Osc(
-//             Mut::amut(Phase {
-//                 root: Mut::amut(ProcGraph::new(Node::Sig(Mut::amut(Offset {
-//                     v: 1.0,
-//                     src: Mut::amut(ProcGraph::new(Node::Sig(
-//                         Mut::amut(Gain {
-//                             v: 0.5,
-//                             src: Mut::amut(ProcGraph::new(Node::Sig(
-//                                 Mut::amut(Clip {
-//                                     min: -1.0, max: 1.0, src: u.clone(),
-//                                 })
-//                             ))),
-//                         })
-//                     ))),
-//                 })))),
-//                 osc: u.clone(),
-//             })
-//         )))
-//     }
-// }
+impl Phase {
+    pub fn new(u: Aug) -> Aug {
+        Aug::new(UGen::new(UG::Osc(
+            Box::new(Phase {
+                root: Offset::new(1.0, Gain::new(0.5, Clip::new(-1.0, 1.0, u.clone()))),
+                osc: u.clone(),
+            })
+        )))
+    }
+}
 
-// impl Walk for Phase {
-//     fn walk(&self, f: &mut FnMut(&Aug) -> bool) {
-//         if f(&self.osc) { self.osc.0.lock().unwrap().walk(f); }
-//     }
-// }
+impl Walk for Phase {
+    fn walk(&self, f: &mut FnMut(&Aug) -> bool) {
+        if f(&self.osc) {
+            self.osc.walk(f);
+        }
+    }
+}
 
-// impl Dump for Phase {
-//     fn dump(&self, shared_ug: &Vec<Aug>, shared_map: &HashMap<usize, String>) -> UgNode {
-//         let mut pnames = Vec::new();
-//         let mut pvals = Vec::new();
+impl Dump for Phase {
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
+        let mut slots = Vec::new();
 
-//         pnames.push("osc".to_string());
-//         match shared_ug.iter().position(|e| Arc::ptr_eq(e, &self.osc)) {
-//             Some(idx) => pvals.push(Box::new(UgNode::Value(shared_map.get(&idx).unwrap().to_string()))),
-//             None => pvals.push(Box::new(self.osc.0.lock().unwrap().dump(shared_ug, shared_map))),
-//         }
+        slots.push(Slot {
+            name: "osc".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.osc) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.osc.clone()),
+            },
+        });
 
-//         UgNode::Op("phase".to_string(), pnames, pvals)
-//     }
-// }
+        UgNode::Ug("phase".to_string(), slots)
+    }
+}
 
-// impl Proc for Phase {
-//     fn proc(&mut self, time: &Time) -> Signal {
-//         let v = self.root.0.lock().unwrap().proc(time);
-//         v
-//     }
-// }
+impl Proc for Phase {
+    fn proc(&mut self, time: &Time) -> Signal {
+        self.root.proc(time)
+    }
+}
 
-// impl Osc for Phase {
-//     fn set_freq(&mut self, freq: Aug) {
-//         if let Node::Osc(osc) = &self.osc.clone().0.lock().unwrap().node {
-//             osc.0.lock().unwrap().set_freq(freq);
-//         } else {
-//             self.osc = freq;
-//         }
-//     }
-// }
+impl Osc for Phase {
+    fn set_freq(&mut self, freq: Aug) {
+        if let UG::Osc(ref mut osc) = &mut self.osc.0.lock().unwrap().ug {
+            osc.set_freq(freq);
+        }
+    }
+}
 
 // pub struct WaveTable {
 //     pub table: Aug,
