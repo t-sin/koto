@@ -38,6 +38,7 @@ pub struct KotoNode {
 pub struct KotoFS {
     pub root: Arc<Mutex<KotoNode>>,
     pub inodes: HashMap<u64, Arc<Mutex<KotoNode>>>,
+    pub inode_count: u64,
 }
 
 fn get_ext(name: &str) -> String {
@@ -51,11 +52,10 @@ fn get_ext(name: &str) -> String {
     ext
 }
 
-fn create_file(size: u64, ftype: FileType) -> FileAttr {
+fn create_file(ino: u64, size: u64, ftype: FileType) -> FileAttr {
     let t = time::now().to_timespec();
     FileAttr {
-        ino: time::now().to_timespec().sec as u64,
-        size: size, blocks: 0,
+        ino: ino, size: size, blocks: 0,
         atime: t, mtime: t, ctime: t, crtime: t,
         kind: ftype,
         perm: match ftype {
@@ -66,12 +66,12 @@ fn create_file(size: u64, ftype: FileType) -> FileAttr {
     }
 }
 
-fn create_node(name: String, data: Vec<u8>, ftype: FileType) -> KotoNode {
+fn create_node(ino: u64, name: String, data: Vec<u8>, ftype: FileType) -> KotoNode {
     let size = match ftype {
         FileType::RegularFile => data.len(),
         _ => 0,
     };
-    let attr = create_file(size as u64, ftype);
+    let attr = create_file(ino, size as u64, ftype);
     KotoNode {
         children: Vec::new(), parent: None, link: Path::new("").to_path_buf(),
         ug: UnitState::NotMapped, name: name, data: data, attr: attr,
@@ -80,7 +80,7 @@ fn create_node(name: String, data: Vec<u8>, ftype: FileType) -> KotoNode {
 
 impl KotoFS {
     pub fn init() -> KotoFS {
-        let mut attr = create_file(0, FileType::Directory);
+        let mut attr = create_file(1000, 0, FileType::Directory);
         let file = KotoNode {
             children: [].to_vec(), ug: UnitState::NotMapped,
             name: "/".to_string(), data: [].to_vec(), link: Path::new("").to_path_buf(),
@@ -88,59 +88,83 @@ impl KotoFS {
         };
         let dummy = Arc::new(Mutex::new(file));
         let mut inodes = HashMap::new();
-        KotoFS { inodes: inodes, root: dummy }
+        KotoFS { inodes: inodes, root: dummy, inode_count: 151 }
     }
 
-    fn build_node_from_value(&mut self, v: Value, parent: Arc<Mutex<KotoNode>>) -> KotoNode {
+    fn inode(&mut self) -> u64 {
+        let ino = self.inode_count;
+        self.inode_count += 1;
+        ino
+    }
+
+    fn build_node_from_value(&mut self, v: Value, parent: Arc<Mutex<KotoNode>>, shared: &Vec<Aug>)
+                             -> Arc<Mutex<KotoNode>> {
         match v {
-            Value::Number(n) => KotoNode {
-                parent: Some(parent), children: [].to_vec(),
-                ug: UnitState::Value(Value::Number(n)), data: n.to_string().into_bytes(),
-                name: "poteco".to_string(), link: Path::new("").to_path_buf(),
-                attr: create_file(0, FileType::RegularFile),
+            Value::Number(n) => {
+                let data = n.to_string().into_bytes();
+                let node = KotoNode {
+                    parent: Some(parent), children: [].to_vec(),
+                    ug: UnitState::Value(Value::Number(n)), data: n.to_string().into_bytes(),
+                    name: "poteco".to_string(), link: Path::new("").to_path_buf(),
+                    attr: create_file(self.inode(), data.len() as u64, FileType::RegularFile),
+                };
+                Arc::new(Mutex::new(node))
             },
-            Value::Table(vec) => KotoNode {
-                parent: Some(parent), children: [].to_vec(),
-                ug: UnitState::Value(Value::Table(vec)), data: "table".to_string().into_bytes(),
-                name: "poteco".to_string(), link: Path::new("").to_path_buf(),
-                attr: create_file(0, FileType::RegularFile),
+            Value::Table(vec) => {
+                let node = KotoNode {
+                    parent: Some(parent), children: [].to_vec(),
+                    ug: UnitState::Value(Value::Table(vec)), data: "table".to_string().into_bytes(),
+                    name: "poteco".to_string(), link: Path::new("").to_path_buf(),
+                    attr: create_file(self.inode(), 0, FileType::RegularFile),
+                };
+                Arc::new(Mutex::new(node))
             },
-            Value::Pattern(vec) => KotoNode {
-                parent: Some(parent), children: [].to_vec(),
-                ug: UnitState::Value(Value::Pattern(vec)), data: "pattern".to_string().into_bytes(),
-                name: "poteco".to_string(), link: Path::new("").to_path_buf(),
-                attr: create_file(0, FileType::RegularFile),
+            Value::Pattern(vec) => {
+                let node = KotoNode {
+                    parent: Some(parent), children: [].to_vec(),
+                    ug: UnitState::Value(Value::Pattern(vec)), data: "pattern".to_string().into_bytes(),
+                    name: "poteco".to_string(), link: Path::new("").to_path_buf(),
+                    attr: create_file(self.inode(), 0, FileType::RegularFile),
+                };
+                Arc::new(Mutex::new(node))
             },
-            Value::Ug(aug) => KotoNode {
+            Value::Ug(aug) => {
                 // TODO: UnitState::Mapped(aug.dump(shared))
-                parent: Some(parent), children: [].to_vec(),
-                ug: UnitState::Ug(aug.clone()), data: [].to_vec(),
-                name: "poteco".to_string(), link: Path::new("").to_path_buf(),
-                attr: create_file(0, FileType::Directory),
+                self.build_node(aug.clone(), parent, shared)
             },
-            Value::Shared(_, aug) => KotoNode {
-                parent: Some(parent), children: [].to_vec(),
-                ug: UnitState::Ug(aug.clone()), data: [].to_vec(),
-                name: "poteco".to_string(), link: Path::new("/").to_path_buf(),
-                attr: create_file(0, FileType::Symlink),
+            Value::Shared(_, aug) => {
+                let node = KotoNode {
+                    parent: Some(parent), children: [].to_vec(),
+                    ug: UnitState::Ug(aug.clone()), data: [].to_vec(),
+                    name: "poteco".to_string(), link: Path::new("/").to_path_buf(),
+                    attr: create_file(self.inode(), 0, FileType::Symlink),
+                };
+                Arc::new(Mutex::new(node))
             },
         }
     }
 
-    fn build_node(&mut self, ug: Aug, parent: Arc<Mutex<KotoNode>>, shared: &Vec<Aug>) -> Arc<Mutex<KotoNode>> {
+    fn build_node(&mut self, ug: Aug, parent: Arc<Mutex<KotoNode>>, shared: &Vec<Aug>)
+                  -> Arc<Mutex<KotoNode>> {
         let ug_node = ug.dump(shared);
-        let knode = match ug_node {
-            UgNode::Val(v) => Arc::new(Mutex::new(self.build_node_from_value(v, parent))),
+        match ug_node {
+            UgNode::Val(v) => {
+                println!("ﾄｩﾙｯﾄｩﾄｩﾙｯﾄｩﾙｯ ﾜｯﾌｰ!");
+                let node = self.build_node_from_value(v, parent, shared);
+                self.inodes.insert(node.lock().unwrap().attr.ino, node.clone());
+                node
+            },
             UgNode::Ug(name, slots) => {
                 let node = Arc::new(Mutex::new(KotoNode {
                     parent: Some(parent), children: [].to_vec(),
                     ug: UnitState::Ug(ug.clone()), data: [].to_vec(),
                     name: name, link: Path::new("").to_path_buf(),
-                    attr: create_file(0, FileType::Directory),
+                    attr: create_file(self.inode(), 0, FileType::Directory),
                 }));
+                self.inodes.insert(node.lock().unwrap().attr.ino, node.clone());
 
                 for s in slots.iter() {
-                    let child = Arc::new(Mutex::new(self.build_node_from_value(s.value.clone(), node.clone())));
+                    let child = self.build_node_from_value(s.value.clone(), node.clone(), shared);
                     child.lock().unwrap().name = s.name.clone();
                     node.lock().unwrap().children.push(child.clone());
                     self.inodes.insert(child.lock().unwrap().attr.ino, child.clone());
@@ -152,26 +176,25 @@ impl KotoFS {
                     parent: Some(parent), children: [].to_vec(),
                     ug: UnitState::Ug(ug.clone()), data: [].to_vec(),
                     name: name, link: Path::new("").to_path_buf(),
-                    attr: create_file(0, FileType::Directory),
+                    attr: create_file(self.inode(), 0, FileType::Directory),
                 }));
+                self.inodes.insert(node.lock().unwrap().attr.ino, node.clone());
 
                 for s in slots.iter() {
-                    let child = Arc::new(Mutex::new(self.build_node_from_value(s.value.clone(), node.clone())));
+                    let child = self.build_node_from_value(s.value.clone(), node.clone(), shared);
                     child.lock().unwrap().name = s.name.clone();
                     node.lock().unwrap().children.push(child.clone());
                     self.inodes.insert(child.lock().unwrap().attr.ino, child.clone());
                 }
                 for (i, v) in values.iter().enumerate() {
-                    let child = Arc::new(Mutex::new(self.build_node_from_value(*v.clone(), node.clone())));
+                    let child = self.build_node_from_value(*v.clone(), node.clone(), shared);
                     child.lock().unwrap().name = format!("{}-{}", "val", i);
                     node.lock().unwrap().children.push(child.clone());
                     self.inodes.insert(child.lock().unwrap().attr.ino, child.clone());
                 }
                 node
             },
-        };
-        self.inodes.insert(knode.lock().unwrap().attr.ino, knode.clone());
-        knode
+        }
     }
 
     pub fn build(&mut self, ug: Aug) {
@@ -216,11 +239,12 @@ impl Filesystem for KotoFS {
             reply.ok();
             return;
         }
-        reply.add(0, 0, FileType::Directory, ".");
-        reply.add(1, 1, FileType::Directory, "..");
-        let mut reply_add_offset = 2;
 
         if let Some(parent) = self.inodes.get(&ino) {
+            reply.add(ino, 0, FileType::Directory, ".");
+            reply.add(parent.lock().unwrap().attr.ino, 1, FileType::Directory, "..");
+            let mut reply_add_offset = 2;
+
             for n in parent.lock().unwrap().children.iter() {
                 let attr = n.lock().unwrap().attr;
                 let name = n.lock().unwrap().name.to_string();
@@ -250,9 +274,11 @@ impl Filesystem for KotoFS {
 
     fn create(&mut self, _req: &Request, parent: u64, name: &OsStr, _mode: u32, _flag: u32, reply: ReplyCreate) {
         println!("create() with {:?}", name);
+        let ino = self.inode();
+
         if let Some(parent_node) = self.inodes.get(&parent) {
             let name = name.to_str().unwrap().to_string();
-            let mut node = create_node(name, [].to_vec(), FileType::RegularFile);
+            let mut node = create_node(ino, name, [].to_vec(), FileType::RegularFile);
             node.parent = Some(parent_node.clone());
 
             let node = Arc::new(Mutex::new(node));
@@ -275,9 +301,10 @@ impl Filesystem for KotoFS {
 
     fn mkdir(&mut self, _req: &Request, parent: u64, name: &OsStr, _mode: u32, reply: ReplyEntry) {
         println!("mkdir() with {:?}", name);
+        let ino = self.inode();
         if let Some(parent_node) = self.inodes.get(&parent) {
             let name = name.to_str().unwrap().to_string();
-            let mut node = create_node(name, [].to_vec(), FileType::Directory);
+            let mut node = create_node(ino, name, [].to_vec(), FileType::Directory);
             node.parent = Some(parent_node.clone());
 
             let node = Arc::new(Mutex::new(node));
@@ -381,10 +408,12 @@ impl Filesystem for KotoFS {
 
     fn symlink(&mut self, _req: &Request, parent: u64, name: &OsStr, link: &Path, reply: ReplyEntry) {
         println!("symlink() with {:?}", name);
+        let ino = self.inode();
+
         if let Some(parent_node) = self.inodes.get(&parent) {
             let name = name.to_str().unwrap().to_string();
             let path = Path::new(link.to_str().unwrap()).to_path_buf();
-            let mut node = create_node(name, [].to_vec(), FileType::Symlink);
+            let mut node = create_node(ino, name, [].to_vec(), FileType::Symlink);
             node.parent = Some(parent_node.clone());
             node.link = path;
 
