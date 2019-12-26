@@ -3,9 +3,9 @@ use std::collections::VecDeque;
 use super::super::sexp::{Cons, print, to_vec};
 use super::super::event::{Message, to_note, to_pos};
 
-use super::super::ugen::core::{UG, Aug, Proc, Osc, Eg, Table, Pattern};
+use super::super::ugen::core::{UG, UGen, Aug, Proc, Osc, Eg, Table, Pattern};
 use super::super::ugen::misc::{Pan, Clip, Offset, Gain, Add, Multiply, Out};
-use super::super::ugen::osc::{Rand, Sine, Tri, Saw, Pulse, Phase};
+use super::super::ugen::osc::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
 // use super::super::units::effect::{LPFilter, Delay};
 // use super::super::units::sequencer::{Trigger, AdsrEg, Seq};
 
@@ -190,23 +190,23 @@ fn make_pulse(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
     }
 }
 
-// // wavetable oscillator
+// wavetable oscillator
 
-// fn make_table(args: Vec<Box<Cons>>, _env: &mut Env) -> Result<Aug, EvalError> {
-//     let mut table = Vec::new();
-//     if args.len() > 0 {
-//         for s in args.iter() {
-//             match **s {
-//                 Cons::Number(n) => table.push(n),
-//                 _ => return Err(EvalError::NotANumber(print(s))),
-//             }
-//         }
-//         Ok(Table::new(table))
-//     } else {
-//         Err(EvalError::FnWrongParams("table".to_string(), args))
-//     }
+fn make_table(args: Vec<Box<Cons>>, _env: &mut Env) -> Result<Aug, EvalError> {
+    let mut table = Vec::new();
+    if args.len() > 0 {
+        for s in args.iter() {
+            match **s {
+                Cons::Number(n) => table.push(n),
+                _ => return Err(EvalError::NotANumber(print(s))),
+            }
+        }
+        Ok(Aug::new(UGen::new(UG::Tab(Table::new(table)))))
+    } else {
+        Err(EvalError::FnWrongParams("table".to_string(), args))
+    }
 
-// }
+}
 
 fn make_phase(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
     if args.len() == 1 {
@@ -220,33 +220,33 @@ fn make_phase(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
     }
 }
 
-// fn make_wavetable(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
-//     if args.len() == 2 {
-//         match eval(&args[1], env) {
-//             Ok(Value::Unit(ph)) => match eval(&args[0], env) {
-//                 Ok(Value::Unit(table)) => {
-//                     let mut node_type = 0;
-//                     match &table.0.lock().unwrap().node {
-//                         Node::Osc(_) => node_type = 1,
-//                         Node::Tab(_) => node_type = 2,
-//                         _ => (),
-//                     };
-//                     match node_type {
-//                         1 => Ok(WaveTable::from_osc(table.clone(), ph, &env.time)),
-//                         2 => Ok(WaveTable::from_table(table.clone(), ph)),
-//                         _ => return Err(EvalError::NotAug),
-//                     }
-//                 },
-//                 Ok(_v) => Err(EvalError::NotAug),
-//                 Err(err) => Err(err),
-//             },
-//             Ok(_v) => Err(EvalError::NotAug),
-//             Err(err) => Err(err),
-//         }
-//     } else {
-//         Err(EvalError::FnWrongParams(String::from("wavetable"), args))
-//     }
-// }
+fn make_wavetable(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
+    if args.len() == 2 {
+        match eval(&args[1], env) {
+            Ok(Value::Unit(ph)) => match eval(&args[0], env) {
+                Ok(Value::Unit(table)) => {
+                    let mut node_type = 0;
+                    match &table.0.lock().unwrap().ug {
+                        UG::Osc(_) => node_type = 1,
+                        UG::Tab(_) => node_type = 2,
+                        _ => (),
+                    };
+                    match node_type {
+                        1 => Ok(WaveTable::from_osc(table.clone(), ph, &env.time)),
+                        2 => Ok(WaveTable::from_table(table.clone(), ph)),
+                        _ => return Err(EvalError::NotAug),
+                    }
+                },
+                Ok(_v) => Err(EvalError::NotAug),
+                Err(err) => Err(err),
+            },
+            Ok(_v) => Err(EvalError::NotAug),
+            Err(err) => Err(err),
+        }
+    } else {
+        Err(EvalError::FnWrongParams(String::from("wavetable"), args))
+    }
+}
 
 // // sequencer
 
@@ -449,7 +449,7 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug,
         "pulse" => make_pulse(args, env),
         // "table" => make_table(args, env),
         "phase" => make_phase(args, env),
-        // "wavetable" => make_wavetable(args, env),
+        "wavetable" => make_wavetable(args, env),
         // // sequencer
         // "pat" => make_pat(args, env),
         // "trig" => make_trig(args, env),

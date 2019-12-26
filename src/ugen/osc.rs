@@ -5,7 +5,7 @@ use rand::{Rng, SeedableRng};
 use rand::rngs::SmallRng;
 
 use super::super::mtime::{Pos, Time, Clock};
-use super::core::{Signal, UgNode, Value, Slot, Dump, Walk, UG, UGen, Aug, Proc, Osc};
+use super::core::{Signal, UgNode, Value, Slot, Dump, Walk, UG, UGen, Aug, Proc, Osc, Table};
 use super::misc::{Clip, Gain, Offset};
 
 pub struct Rand {
@@ -392,98 +392,106 @@ impl Osc for Phase {
     }
 }
 
-// pub struct WaveTable {
-//     pub table: Aug,
-//     pub ph: Aug,
-// }
+pub struct WaveTable {
+    pub table: Aug,
+    pub ph: Aug,
+}
 
-// impl WaveTable {
-//     pub fn from_osc(osc: Aug, ph: Aug, time: &Time) -> Aug {
-//         let mut table = Vec::new();
-//         let table_len = 256;
-//         let mut time = Time {
-//             sample_rate: (table_len as f64 / 2.0) as u32,
-//             tick: 0,
-//             bpm: time.bpm,
-//             measure: time.measure.clone(),
-//             pos: Pos { bar: 0, beat: 0, pos: 0.0 },
-//         };
-//         for _i in 0..table_len {
-//             let v = osc.0.lock().unwrap().proc(&time).0;
-//             table.push(v);
-//             time.inc();
-//         }
-//         Mut::amut(ProcGraph::new(Node::Osc(
-//             Mut::amut(WaveTable {
-//                 table: Table::new(table),
-//                 ph: ph,
-//             })
-//         )))
-//     }
+impl WaveTable {
+    pub fn from_osc(osc: Aug, ph: Aug, time: &Time) -> Aug {
+        let mut table = Vec::new();
+        let table_len = 256;
+        let mut time = Time {
+            sample_rate: (table_len as f64 / 2.0) as u32,
+            tick: 0,
+            bpm: time.bpm,
+            measure: time.measure.clone(),
+            pos: Pos { bar: 0, beat: 0, pos: 0.0 },
+        };
+        for _i in 0..table_len {
+            let v = osc.0.lock().unwrap().proc(&time).0;
+            table.push(v);
+            time.inc();
+        }
+        let table = Aug::new(UGen::new(UG::Tab(Table::new(table))));
+        Aug::new(UGen::new(UG::Osc(
+            Box::new(WaveTable {
+                table: table,
+                ph: ph,
+            })
+        )))
+    }
 
-//     pub fn from_table(table: Aug, ph: Aug) -> Aug {
-//         Mut::amut(ProcGraph::new(Node::Osc(
-//             Mut::amut(WaveTable {
-//                 table: table,
-//                 ph: ph,
-//             })
-//         )))
-//     }
-// }
+    pub fn from_table(table: Aug, ph: Aug) -> Aug {
+        Aug::new(UGen::new(UG::Osc(
+            Box::new(WaveTable {
+                table: table,
+                ph: ph,
+            })
+        )))
+    }
+}
 
-// fn linear_interpol(v1: f64, v2: f64, r: f64) -> f64 {
-//     let r = r % 1.0;
-//     v1 * r + v2 * (1.0 - r)
-// }
+fn linear_interpol(v1: f64, v2: f64, r: f64) -> f64 {
+    let r = r % 1.0;
+    v1 * r + v2 * (1.0 - r)
+}
 
-// impl Walk for WaveTable {
-//     fn walk(&self, f: &mut FnMut(&Aug) -> bool) {
-//         if f(&self.table) { self.table.0.lock().unwrap().walk(f); }
-//         if f(&self.ph) { self.ph.0.lock().unwrap().walk(f); }
-//     }
-// }
+impl Walk for WaveTable {
+    fn walk(&self, f: &mut FnMut(&Aug) -> bool) {
+        if f(&self.table) {
+            self.table.walk(f);
+        }
+        if f(&self.ph) {
+            self.ph.walk(f);
+        }
+    }
+}
 
-// impl Dump for WaveTable {
-//     fn dump(&self, shared_ug: &Vec<Aug>, shared_map: &HashMap<usize, String>) -> UgNode {
-//         let mut pnames = Vec::new();
-//         let mut pvals = Vec::new();
+impl Dump for WaveTable {
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
+        let mut slots = Vec::new();
 
-//         pnames.push("table".to_string());
-//         match shared_ug.iter().position(|e| Arc::ptr_eq(e, &self.table)) {
-//             Some(idx) => pvals.push(Box::new(UgNode::Value(shared_map.get(&idx).unwrap().to_string()))),
-//             None => pvals.push(Box::new(self.table.0.lock().unwrap().dump(shared_ug, shared_map))),
-//         }
+        slots.push(Slot {
+            name: "table".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.table) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.table.clone()),
+            },
+        });
 
-//         pnames.push("ph".to_string());
-//         match shared_ug.iter().position(|e| Arc::ptr_eq(e, &self.ph)) {
-//             Some(idx) => pvals.push(Box::new(UgNode::Value(shared_map.get(&idx).unwrap().to_string()))),
-//             None => pvals.push(Box::new(self.ph.0.lock().unwrap().dump(shared_ug, shared_map))),
-//         }
+        slots.push(Slot {
+            name: "ph".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.ph) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.ph.clone()),
+            },
+        });
 
-//         UgNode::Op("wavetable".to_string(), pnames, pvals)
-//     }
-// }
+        UgNode::Ug("wavetable".to_string(), slots)
+    }
+}
 
-// impl Proc for WaveTable {
-//     fn proc(&mut self, time: &Time) -> Signal {
-//         if let Node::Tab(t) = &self.table.0.lock().unwrap().node {
-//             let table = &t.0.lock().unwrap().0;
-//             let len = table.len() as f64;
-//             let p = self.ph.0.lock().unwrap().proc(&time).0 * len;
-//             let pos1 = (p.floor() % len) as usize;
-//             let pos2 = (p.ceil() % len) as usize;
-//             let v = linear_interpol(table[pos1], table[pos2], p.fract());
-//             (v, v)
-//         } else {
-//             panic!("it's not a table!!")
-//         }
-//     }
-// }
+impl Proc for WaveTable {
+    fn proc(&mut self, time: &Time) -> Signal {
+        if let UG::Tab(table) = &self.table.0.lock().unwrap().ug {
+            let table = table.0.lock().unwrap();
+            let len = table.len() as f64;
+            let p = self.ph.proc(&time).0 * len;
+            let pos1 = (p.floor() % len) as usize;
+            let pos2 = (p.ceil() % len) as usize;
+            let v = linear_interpol(table[pos1], table[pos2], p.fract());
+            (v, v)
+        } else {
+            panic!("it's not a table!!");
+        }
+    }
+}
 
-// impl Osc for WaveTable {
-//     fn set_freq(&mut self, freq: Aug) {
-//         if let Node::Osc(osc) = &self.ph.0.lock().unwrap().node {
-//             osc.0.lock().unwrap().set_freq(freq);
-//         }
-//     }
-// }
+impl Osc for WaveTable {
+    fn set_freq(&mut self, freq: Aug) {
+        if let UG::Osc(ref mut osc) = &mut self.ph.0.lock().unwrap().ug {
+            osc.set_freq(freq);
+        }
+    }
+}
