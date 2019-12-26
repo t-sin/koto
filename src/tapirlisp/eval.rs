@@ -412,7 +412,7 @@ fn make_delay(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
 
 fn make_out(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
     if args.len() >= 1 {
-        match(*args[0]) {
+        match *args[0] {
             Cons::Number(vol) => {
                 let mut v: Vec<Aug> = Vec::new();
                 for s in args[1..].iter() {
