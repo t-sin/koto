@@ -140,14 +140,21 @@ impl KotoFS {
                 Arc::new(Mutex::new(node))
             }
             Value::Table(vec) => {
+                let mut tab = String::new();
+                for val in &vec {
+                    tab.push_str(&format!("{}", val));
+                    tab.push_str(" ");
+                }
+                tab.push_str("\n");
+                let len = tab.len() as u64;
                 let node = KotoNode {
                     parent: Some(parent),
                     children: [].to_vec(),
                     ug: UnitState::Value(Value::Table(vec)),
-                    data: "table".to_string().into_bytes(),
+                    data: tab.into_bytes(),
                     name: "tab".to_string(),
                     link: Path::new("").to_path_buf(),
-                    attr: create_file(self.inode(), 0, FileType::RegularFile),
+                    attr: create_file(self.inode(), len, FileType::RegularFile),
                 };
                 Arc::new(Mutex::new(node))
             }
