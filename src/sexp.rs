@@ -45,7 +45,7 @@ fn skip_whitespaces(chars: &mut Peekable<Chars>) {
                 } else {
                     break;
                 }
-            },
+            }
             _ => break,
         }
     }
@@ -73,7 +73,7 @@ fn read_symbol(chars: &mut Peekable<Chars>) -> Result<Cons, ReadError> {
                 } else {
                     name.push(chars.next().unwrap());
                 }
-            },
+            }
             _ => break,
         }
     }
@@ -91,7 +91,7 @@ fn read_number(chars: &mut Peekable<Chars>) -> Result<Cons, ReadError> {
                 } else {
                     break;
                 }
-            },
+            }
             _ => break,
         }
     }
@@ -108,15 +108,13 @@ fn read_list_elem(chars: &mut Peekable<Chars>) -> Result<Cons, ReadError> {
         Some(')') => {
             chars.next();
             Ok(Cons::Nil)
-        },
-        _ => {
-            match read_exp(chars) {
-                Ok(car) => match read_list_elem(chars) {
-                    Ok(cdr) =>  Ok(Cons::Cons(Box::new(car), Box::new(cdr))),
-                    e => e,
-                },
+        }
+        _ => match read_exp(chars) {
+            Ok(car) => match read_list_elem(chars) {
+                Ok(cdr) => Ok(Cons::Cons(Box::new(car), Box::new(cdr))),
                 e => e,
-            }
+            },
+            e => e,
         },
     }
 }
@@ -134,7 +132,7 @@ fn read_exp(chars: &mut Peekable<Chars>) -> Result<Cons, ReadError> {
         Some(';') => {
             skip_comment(chars);
             Ok(Cons::Nil)
-        },
+        }
         Some(')') => Err(ReadError::UnexpectedCloseParen),
         Some('(') => read_list(chars),
         Some(c) => {
@@ -143,7 +141,7 @@ fn read_exp(chars: &mut Peekable<Chars>) -> Result<Cons, ReadError> {
             } else {
                 read_symbol(chars)
             }
-        },
+        }
     }
 }
 
@@ -167,16 +165,16 @@ fn print_list(car: &Cons, cdr: &Cons) -> String {
         Cons::Cons(car2, cdr2) => {
             s.push(' ');
             s.push_str(print_list(car2, cdr2).as_str())
-        },
+        }
         Cons::Nil => (),
         Cons::Number(n) => {
             s.push_str(" . ");
             s.push_str(&n.to_string());
-        },
+        }
         Cons::Symbol(n) => {
             s.push_str(" . ");
             s.push_str(n);
-        },
+        }
     }
     s
 }
@@ -191,8 +189,8 @@ pub fn print(exp: &Cons) -> String {
             s.push('(');
             s.push_str(print_list(car, cdr).as_str());
             s.push(')');
-        },
-     }
+        }
+    }
     s
 }
 
@@ -204,7 +202,7 @@ pub fn to_vec(list: &Cons) -> Vec<Box<Cons>> {
             v.push(Box::new((**elem).clone()));
             v.append(&mut to_vec(rest));
             v
-        },
+        }
         _ => panic!("it's not proper list: {:?}", list),
     }
 }

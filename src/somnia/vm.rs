@@ -9,17 +9,26 @@ pub struct Register {
     // stack pointer
     pub sp: u32,
     // general purpose registers
-    pub r1: u32,  pub r2: u32,
-    pub r3: u32,  pub r4: u32,
+    pub r1: u32,
+    pub r2: u32,
+    pub r3: u32,
+    pub r4: u32,
     // output values
-    pub ol: u32,  pub or: u32,
+    pub ol: u32,
+    pub or: u32,
 }
 
 #[derive(Debug, Clone, Copy)]
 pub enum Reg {
-    ZR, IP, SP,
-    R1, R2, R3, R4,
-    OL, OR,
+    ZR,
+    IP,
+    SP,
+    R1,
+    R2,
+    R3,
+    R4,
+    OL,
+    OR,
 }
 
 #[derive(Debug, Clone)]
@@ -77,7 +86,6 @@ impl Reg {
         }
     }
 
-
     fn get(self, vm: &mut VM) -> u32 {
         match self {
             Reg::ZR => vm.reg.zr,
@@ -119,12 +127,12 @@ fn exec_1(vm: &mut VM) {
             let v = reg.get(vm);
             Reg::OL.set(vm, v);
             Reg::OR.set(vm, v);
-        },
+        }
         Op::PUSH(op) => {
             let len = vm.memory.len();
             vm.memory[len - 1 - vm.reg.sp as usize] = op.get(vm);
             vm.reg.sp += 1;
-        },
+        }
         Op::POP(tr) => {
             if vm.reg.sp <= 0 {
                 panic!("stack is empty");
@@ -133,7 +141,7 @@ fn exec_1(vm: &mut VM) {
                 let len = vm.memory.len();
                 tr.set(vm, vm.memory[len - 1 - vm.reg.sp as usize]);
             }
-        },
+        }
         Op::ADD(op1, op2, tr) => {
             let v1 = op1.get(vm);
             let v2 = op2.get(vm);
@@ -145,7 +153,7 @@ fn exec_1(vm: &mut VM) {
                 Reg::R4 => vm.reg.r4 = val,
                 r => panic!("{:?} cannot store result of add"),
             };
-        },
+        }
         Op::SUB(op1, op2, tr) => {
             let v1 = op1.get(vm);
             let v2 = op2.get(vm);
@@ -157,7 +165,7 @@ fn exec_1(vm: &mut VM) {
                 Reg::R4 => vm.reg.r4 = val,
                 r => panic!("{:?} cannot store result of sub"),
             };
-        },
+        }
         Op::MUL(op1, op2, tr) => {
             let v1 = op1.get(vm);
             let v2 = op2.get(vm);
@@ -169,7 +177,7 @@ fn exec_1(vm: &mut VM) {
                 Reg::R4 => vm.reg.r4 = val,
                 r => panic!("{:?} cannot store result of mul"),
             };
-        },
+        }
         Op::DIV(op1, op2, tr) => {
             let v1 = op1.get(vm);
             let v2 = op2.get(vm);
@@ -181,7 +189,7 @@ fn exec_1(vm: &mut VM) {
                 Reg::R4 => vm.reg.r4 = val,
                 r => panic!("{:?} cannot store result of div"),
             };
-        },
+        }
         Op::SHL(op1, op2, tr) => {
             let v1 = op1.get(vm);
             let v2 = op2.get(vm);
@@ -193,7 +201,7 @@ fn exec_1(vm: &mut VM) {
                 Reg::R4 => vm.reg.r4 = val,
                 r => panic!("{:?} cannot store result of shl"),
             };
-        },
+        }
         Op::SHR(op1, op2, tr) => {
             let v1 = op1.get(vm);
             let v2 = op2.get(vm);
@@ -205,7 +213,7 @@ fn exec_1(vm: &mut VM) {
                 Reg::R4 => vm.reg.r4 = val,
                 r => panic!("{:?} cannot store result of shr"),
             };
-        },
+        }
     }
     vm.reg.ip += 1;
 }
@@ -214,9 +222,15 @@ impl VM {
     pub fn init(program: Vec<Box<Op>>, memory: &[u32]) -> VM {
         let vm = VM {
             reg: Register {
-                zr: 0, ip: 0, sp: 0,
-                r1: 0, r2: 0, r3: 0, r4: 0,
-                ol: 0, or: 0
+                zr: 0,
+                ip: 0,
+                sp: 0,
+                r1: 0,
+                r2: 0,
+                r3: 0,
+                r4: 0,
+                ol: 0,
+                or: 0,
             },
             program: program,
             memory: Vec::from(memory),

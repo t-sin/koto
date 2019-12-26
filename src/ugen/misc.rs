@@ -1,7 +1,7 @@
 extern crate num;
 
 use super::super::mtime::Time;
-use super::core::{Signal, UgNode, Slot, Value, Dump, Walk, UG, UGen, Aug, Proc};
+use super::core::{Aug, Dump, Proc, Signal, Slot, UGen, UgNode, Value, Walk, UG};
 
 pub struct Pan {
     pub v: Aug,
@@ -10,16 +10,18 @@ pub struct Pan {
 
 impl Pan {
     pub fn new(v: Aug, src: Aug) -> Aug {
-        Aug::new(UGen::new(UG::Proc(
-            Box::new(Pan { v: v, src: src })
-        )))
+        Aug::new(UGen::new(UG::Proc(Box::new(Pan { v: v, src: src }))))
     }
 }
 
 impl Walk for Pan {
     fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
-        if f(&self.v) { self.v.walk(f); }
-        if f(&self.src) { self.src.walk(f); }
+        if f(&self.v) {
+            self.v.walk(f);
+        }
+        if f(&self.src) {
+            self.src.walk(f);
+        }
     }
 }
 
@@ -69,15 +71,19 @@ pub struct Clip {
 
 impl Clip {
     pub fn new(min: f64, max: f64, src: Aug) -> Aug {
-        Aug::new(UGen::new(UG::Proc(
-           Box::new(Clip { min: min, max: max, src: src })
-        )))
+        Aug::new(UGen::new(UG::Proc(Box::new(Clip {
+            min: min,
+            max: max,
+            src: src,
+        }))))
     }
 }
 
 impl Walk for Clip {
     fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
-        if f(&self.src) { self.src.walk(f); }
+        if f(&self.src) {
+            self.src.walk(f);
+        }
     }
 }
 
@@ -108,7 +114,10 @@ impl Dump for Clip {
 impl Proc for Clip {
     fn proc(&mut self, time: &Time) -> Signal {
         let (l, r) = self.src.proc(&time);
-        (num::clamp(l, self.min, self.max), num::clamp(r, self.min, self.max))
+        (
+            num::clamp(l, self.min, self.max),
+            num::clamp(r, self.min, self.max),
+        )
     }
 }
 
@@ -119,15 +128,15 @@ pub struct Offset {
 
 impl Offset {
     pub fn new(v: f64, src: Aug) -> Aug {
-        Aug::new(UGen::new(UG::Proc(
-            Box::new(Offset { v: v, src: src })
-        )))
+        Aug::new(UGen::new(UG::Proc(Box::new(Offset { v: v, src: src }))))
     }
 }
 
 impl Walk for Offset {
     fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
-        if f(&self.src) { self.src.walk(f); }
+        if f(&self.src) {
+            self.src.walk(f);
+        }
     }
 }
 
@@ -165,15 +174,15 @@ pub struct Gain {
 
 impl Gain {
     pub fn new(v: f64, src: Aug) -> Aug {
-        Aug::new(UGen::new(UG::Proc(
-            Box::new(Gain { v: v, src: src })
-        )))
+        Aug::new(UGen::new(UG::Proc(Box::new(Gain { v: v, src: src }))))
     }
 }
 
 impl Walk for Gain {
     fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
-        if f(&self.src) { self.src.walk(f); }
+        if f(&self.src) {
+            self.src.walk(f);
+        }
     }
 }
 
@@ -210,16 +219,16 @@ pub struct Add {
 
 impl Add {
     pub fn new(sources: Vec<Aug>) -> Aug {
-        Aug::new(UGen::new(UG::Proc(
-            Box::new(Add { sources: sources })
-        )))
+        Aug::new(UGen::new(UG::Proc(Box::new(Add { sources: sources }))))
     }
 }
 
 impl Walk for Add {
     fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         for s in self.sources.iter() {
-            if f(s) { s.walk(f); }
+            if f(s) {
+                s.walk(f);
+            }
         }
     }
 }
@@ -230,7 +239,10 @@ impl Dump for Add {
 
         for u in self.sources.iter() {
             match shared_ug.iter().position(|e| *e == *u) {
-                Some(n) => values.push(Box::new(Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()))),
+                Some(n) => values.push(Box::new(Value::Shared(
+                    n,
+                    shared_ug.iter().nth(n).unwrap().clone(),
+                ))),
                 None => values.push(Box::new(Value::Ug(u.clone()))),
             };
         }
@@ -257,16 +269,16 @@ pub struct Multiply {
 
 impl Multiply {
     pub fn new(sources: Vec<Aug>) -> Aug {
-        Aug::new(UGen::new(UG::Proc(
-            Box::new(Multiply { sources: sources })
-        )))
+        Aug::new(UGen::new(UG::Proc(Box::new(Multiply { sources: sources }))))
     }
 }
 
 impl Walk for Multiply {
     fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         for s in self.sources.iter() {
-            if f(s) { s.walk(f); }
+            if f(s) {
+                s.walk(f);
+            }
         }
     }
 }
@@ -277,7 +289,10 @@ impl Dump for Multiply {
 
         for u in self.sources.iter() {
             match shared_ug.iter().position(|e| *e == *u) {
-                Some(n) => values.push(Box::new(Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()))),
+                Some(n) => values.push(Box::new(Value::Shared(
+                    n,
+                    shared_ug.iter().nth(n).unwrap().clone(),
+                ))),
                 None => values.push(Box::new(Value::Ug(u.clone()))),
             };
         }
@@ -306,16 +321,19 @@ pub struct Out {
 
 impl Out {
     pub fn new(vol: f64, sources: Vec<Aug>) -> Aug {
-        Aug::new(UGen::new(UG::Proc(
-            Box::new(Out { vol: vol, sources: sources })
-        )))
+        Aug::new(UGen::new(UG::Proc(Box::new(Out {
+            vol: vol,
+            sources: sources,
+        }))))
     }
 }
 
 impl Walk for Out {
     fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         for s in self.sources.iter() {
-            if f(s) { s.walk(f); }
+            if f(s) {
+                s.walk(f);
+            }
         }
     }
 }
@@ -327,12 +345,15 @@ impl Dump for Out {
 
         slots.push(Slot {
             name: "v".to_string(),
-            value: Value::Number(self.vol)
+            value: Value::Number(self.vol),
         });
 
         for u in self.sources.iter() {
             match shared_ug.iter().position(|e| *e == *u) {
-                Some(n) => values.push(Box::new(Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()))),
+                Some(n) => values.push(Box::new(Value::Shared(
+                    n,
+                    shared_ug.iter().nth(n).unwrap().clone(),
+                ))),
                 None => values.push(Box::new(Value::Ug(u.clone()))),
             }
         }

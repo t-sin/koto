@@ -1,4 +1,4 @@
-use super::super::sexp::{Cons, to_vec};
+use super::super::sexp::{to_vec, Cons};
 use super::vm::{Op, Reg};
 
 #[derive(Debug)]
@@ -9,14 +9,12 @@ struct CompileState {
 
 fn find_free_reg(cs: &CompileState) -> Option<Reg> {
     match cs.used_regs.iter().position(|e| *e == false) {
-        Some(idx) => {
-            match idx {
-                0 => Some(Reg::R1),
-                1 => Some(Reg::R2),
-                2 => Some(Reg::R3),
-                3 => Some(Reg::R4),
-                _ => None,
-            }
+        Some(idx) => match idx {
+            0 => Some(Reg::R1),
+            1 => Some(Reg::R2),
+            2 => Some(Reg::R3),
+            3 => Some(Reg::R4),
+            _ => None,
         },
         None => None,
     }
@@ -53,7 +51,7 @@ fn compile_fn(name: &str, args: Vec<Box<Cons>>, ret: Reg, cs: &mut CompileState)
             } else {
                 panic!("wrong number of args for '+': {:?}", args);
             }
-        },
+        }
         _ => panic!("unknown operator: {:?}", name),
     }
 }
@@ -74,7 +72,7 @@ fn compile_1(sexp: Box<Cons>, cs: &mut CompileState, toplevel: bool) {
                 } else {
                     cs.program.push(Box::new(Op::PUSH(target)));
                 }
-            },
+            }
             Cons::Symbol(name) => (),
             Cons::Number(n) => {
                 cs.program.push(Box::new(Op::LOADC(n as u32, target)));
@@ -83,10 +81,10 @@ fn compile_1(sexp: Box<Cons>, cs: &mut CompileState, toplevel: bool) {
                 } else {
                     cs.program.push(Box::new(Op::PUSH(target)));
                 }
-            },
+            }
             Cons::Nil => {
                 cs.program.push(Box::new(Op::NOP));
-            },
+            }
         }
         set_reg(target, false, cs);
     } else {

@@ -6,24 +6,24 @@ extern crate rand;
 extern crate users;
 
 mod audiodevice;
-mod mtime;
 mod event;
-mod ugen;
-mod sexp;
-mod tapirlisp;
-mod soundsystem;
 mod kfs;
+mod mtime;
+mod sexp;
+mod soundsystem;
+mod tapirlisp;
+mod ugen;
 
-use std::fs::File;
 use std::ffi::OsString;
+use std::fs::File;
 use std::io::prelude::*;
 
 use audiodevice::AudioDevice;
-use soundsystem::SoundSystem;
 use mtime::Time;
+use soundsystem::SoundSystem;
 
 use tapirlisp as tlisp;
-use tapirlisp::types::{Value, Env};
+use tapirlisp::types::{Env, Value};
 
 fn main() {
     let sample_rate = 44100u32;

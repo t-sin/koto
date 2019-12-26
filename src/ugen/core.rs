@@ -197,7 +197,7 @@ impl Eg for UG {
 impl UGen {
     pub fn new(ug: UG) -> UGen {
         UGen {
-            id: 0,  // FIXME
+            id: 0, // FIXME
             last_tick: 0,
             last_sig: (0.0, 0.0),
             ug: ug,

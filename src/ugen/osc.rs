@@ -1,8 +1,8 @@
-use rand::{Rng, SeedableRng};
 use rand::rngs::SmallRng;
+use rand::{Rng, SeedableRng};
 
-use super::super::mtime::{Pos, Time, Clock};
-use super::core::{Signal, UgNode, Value, Slot, Dump, Walk, UG, UGen, Aug, Proc, Osc, Table};
+use super::super::mtime::{Clock, Pos, Time};
+use super::core::{Aug, Dump, Osc, Proc, Signal, Slot, Table, UGen, UgNode, Value, Walk, UG};
 use super::misc::{Clip, Gain, Offset};
 
 pub struct Rand {
@@ -12,12 +12,10 @@ pub struct Rand {
 
 impl Rand {
     pub fn new(seed: u64) -> Aug {
-        Aug::new(UGen::new(UG::Osc(
-            Box::new(Rand {
-                rng: SmallRng::seed_from_u64(seed),
-                v: 0.15,
-            })
-        )))
+        Aug::new(UGen::new(UG::Osc(Box::new(Rand {
+            rng: SmallRng::seed_from_u64(seed),
+            v: 0.15,
+        }))))
     }
 }
 
@@ -56,9 +54,11 @@ pub struct Sine {
 
 impl Sine {
     pub fn new(init_ph: Aug, freq: Aug) -> Aug {
-        Aug::new(UGen::new(UG::Osc(
-            Box::new(Sine { init_ph: init_ph, ph: 0.0, freq: freq })
-        )))
+        Aug::new(UGen::new(UG::Osc(Box::new(Sine {
+            init_ph: init_ph,
+            ph: 0.0,
+            freq: freq,
+        }))))
     }
 }
 
@@ -67,7 +67,7 @@ impl Walk for Sine {
         if f(&self.init_ph) {
             self.init_ph.walk(f);
         }
-        if f(&self.freq){
+        if f(&self.freq) {
             self.freq.walk(f);
         }
     }
@@ -80,7 +80,7 @@ impl Dump for Sine {
         slots.push(Slot {
             name: "init_ph".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.init_ph) {
-                Some(n) =>Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
                 None => Value::Ug(self.init_ph.clone()),
             },
         });
@@ -121,9 +121,11 @@ pub struct Tri {
 
 impl Tri {
     pub fn new(init_ph: Aug, freq: Aug) -> Aug {
-        Aug::new(UGen::new(UG::Osc(
-            Box::new(Tri { init_ph: init_ph, ph: 0.0, freq: freq })
-        )))
+        Aug::new(UGen::new(UG::Osc(Box::new(Tri {
+            init_ph: init_ph,
+            ph: 0.0,
+            freq: freq,
+        }))))
     }
 }
 
@@ -145,7 +147,7 @@ impl Dump for Tri {
         slots.push(Slot {
             name: "init_ph".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.init_ph) {
-                Some(n) =>Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
                 None => Value::Ug(self.init_ph.clone()),
             },
         });
@@ -195,9 +197,11 @@ pub struct Saw {
 
 impl Saw {
     pub fn new(init_ph: Aug, freq: Aug) -> Aug {
-        Aug::new(UGen::new(UG::Osc(
-            Box::new(Saw { init_ph: init_ph, ph: 0.0, freq: freq })
-        )))
+        Aug::new(UGen::new(UG::Osc(Box::new(Saw {
+            init_ph: init_ph,
+            ph: 0.0,
+            freq: freq,
+        }))))
     }
 }
 
@@ -219,7 +223,7 @@ impl Dump for Saw {
         slots.push(Slot {
             name: "init_ph".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.init_ph) {
-                Some(n) =>Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
                 None => Value::Ug(self.init_ph.clone()),
             },
         });
@@ -267,17 +271,26 @@ pub struct Pulse {
 
 impl Pulse {
     pub fn new(init_ph: Aug, freq: Aug, duty: Aug) -> Aug {
-        Aug::new(UGen::new(UG::Osc(
-            Box::new(Pulse { init_ph: init_ph, ph: 0.0, freq: freq, duty: duty})
-        )))
+        Aug::new(UGen::new(UG::Osc(Box::new(Pulse {
+            init_ph: init_ph,
+            ph: 0.0,
+            freq: freq,
+            duty: duty,
+        }))))
     }
 }
 
 impl Walk for Pulse {
     fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
-        if f(&self.init_ph) { self.init_ph.walk(f); }
-        if f(&self.freq) { self.freq.walk(f); }
-        if f(&self.duty) { self.duty.walk(f); }
+        if f(&self.init_ph) {
+            self.init_ph.walk(f);
+        }
+        if f(&self.freq) {
+            self.freq.walk(f);
+        }
+        if f(&self.duty) {
+            self.duty.walk(f);
+        }
     }
 }
 
@@ -288,7 +301,7 @@ impl Dump for Pulse {
         slots.push(Slot {
             name: "init_ph".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.init_ph) {
-                Some(n) =>Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
                 None => Value::Ug(self.init_ph.clone()),
             },
         });
@@ -342,12 +355,10 @@ pub struct Phase {
 
 impl Phase {
     pub fn new(u: Aug) -> Aug {
-        Aug::new(UGen::new(UG::Osc(
-            Box::new(Phase {
-                root: Offset::new(1.0, Gain::new(0.5, Clip::new(-1.0, 1.0, u.clone()))),
-                osc: u.clone(),
-            })
-        )))
+        Aug::new(UGen::new(UG::Osc(Box::new(Phase {
+            root: Offset::new(1.0, Gain::new(0.5, Clip::new(-1.0, 1.0, u.clone()))),
+            osc: u.clone(),
+        }))))
     }
 }
 
@@ -403,7 +414,11 @@ impl WaveTable {
             tick: 0,
             bpm: time.bpm,
             measure: time.measure.clone(),
-            pos: Pos { bar: 0, beat: 0, pos: 0.0 },
+            pos: Pos {
+                bar: 0,
+                beat: 0,
+                pos: 0.0,
+            },
         };
         for _i in 0..table_len {
             let v = osc.0.lock().unwrap().proc(&time).0;
@@ -411,21 +426,17 @@ impl WaveTable {
             time.inc();
         }
         let table = Aug::new(UGen::new(UG::Tab(Table::new(table))));
-        Aug::new(UGen::new(UG::Osc(
-            Box::new(WaveTable {
-                table: table,
-                ph: ph,
-            })
-        )))
+        Aug::new(UGen::new(UG::Osc(Box::new(WaveTable {
+            table: table,
+            ph: ph,
+        }))))
     }
 
     pub fn from_table(table: Aug, ph: Aug) -> Aug {
-        Aug::new(UGen::new(UG::Osc(
-            Box::new(WaveTable {
-                table: table,
-                ph: ph,
-            })
-        )))
+        Aug::new(UGen::new(UG::Osc(Box::new(WaveTable {
+            table: table,
+            ph: ph,
+        }))))
     }
 }
 
