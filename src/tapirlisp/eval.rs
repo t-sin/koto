@@ -446,7 +446,7 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug,
         "tri" => make_tri(args, env),
         "saw" => make_saw(args, env),
         "pulse" => make_pulse(args, env),
-        // "table" => make_table(args, env),
+        "table" => make_table(args, env),
         "phase" => make_phase(args, env),
         "wavetable" => make_wavetable(args, env),
         // // sequencer
