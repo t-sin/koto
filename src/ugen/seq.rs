@@ -17,7 +17,7 @@ impl Trigger {
 }
 
 impl Walk for Trigger {
-    fn walk(&self, f: &mut FnMut(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         if f(&self.eg) {
             self.eg.walk(f);
         }
@@ -102,7 +102,7 @@ fn sec_to_sample_num(sec: f64, time: &Time) -> u64 {
 }
 
 impl Walk for AdsrEg {
-    fn walk(&self, f: &mut FnMut(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         if f(&self.a) {
             self.a.walk(f);
         }
@@ -262,7 +262,7 @@ impl Seq {
 }
 
 impl Walk for Seq {
-    fn walk(&self, f: &mut FnMut(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         if f(&self.pattern) {
             self.pattern.walk(f);
         }

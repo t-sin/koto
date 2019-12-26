@@ -363,7 +363,7 @@ impl Phase {
 }
 
 impl Walk for Phase {
-    fn walk(&self, f: &mut FnMut(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         if f(&self.osc) {
             self.osc.walk(f);
         }
@@ -446,7 +446,7 @@ fn linear_interpol(v1: f64, v2: f64, r: f64) -> f64 {
 }
 
 impl Walk for WaveTable {
-    fn walk(&self, f: &mut FnMut(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         if f(&self.table) {
             self.table.walk(f);
         }

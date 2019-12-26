@@ -26,7 +26,7 @@ impl LPFilter {
 }
 
 impl Walk for LPFilter {
-    fn walk(&self, f: &mut FnMut(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         if f(&self.freq) {
             self.freq.walk(f);
         }
@@ -135,7 +135,7 @@ impl Delay {
 }
 
 impl Walk for Delay {
-    fn walk(&self, f: &mut FnMut(&Aug) -> bool) {
+    fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         if f(&self.time) {
             self.time.walk(f);
         }
