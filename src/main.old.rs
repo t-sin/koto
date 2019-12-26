@@ -4,27 +4,28 @@ extern crate libc;
 extern crate num;
 extern crate rand;
 
-
-mod audiodevice;
+mod soundsystem;
 mod mtime;
 mod event;
-mod ugen;
+mod units;
 mod sexp;
 mod tapirlisp;
-mod soundsystem;
+mod somnia;
 mod kfs;
 
-use std::fs::File;
 use std::ffi::OsString;
+use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 
-use audiodevice::AudioDevice;
-use soundsystem::SoundSystem;
+use soundsystem::{AudioDevice, SoundSystem};
 use mtime::Time;
 
+use units::unit::{Unit, AUnit};
+
 use tapirlisp as tlisp;
-use tapirlisp::types::{Value, Env};
+use tapirlisp::value::{Value, Env};
+
 
 fn main() {
     let sample_rate = 44100u32;
@@ -35,22 +36,23 @@ fn main() {
     let mut text = String::new();
     f.read_to_string(&mut text);
 
-    let ug = match tlisp::eval_all(sexp::read(text).unwrap(), &mut env) {
+    let unit_graph = match tlisp::eval_all(sexp::read(text).unwrap(), &mut env) {
         Ok(Value::Unit(ug)) => ug,
         Ok(_v) => panic!("Oh, unit graph is not a unit!!"),
         Err(err) => panic!("Error!!! {:?}", err),
     };
-    println!("{}", tlisp::dump(ug.clone(), &env));
+    println!("{}", tlisp::dump(unit_graph.clone(), &env));
 
     let mut ad = AudioDevice::open(sample_rate);
-    let mut lcd = SoundSystem::new(env.time, ug.clone());
-    std::thread::spawn(move || {
-        lcd.run(&ad);
-    });
+    let mut lcd = SoundSystem::new(env.time, unit_graph.clone());
+    // std::thread::spawn(move || {
+    //     lcd.run(&ad);
+    // });
+    lcd.run(&ad);
 
-    let mut fs = kfs::KotoFS::init();
-    fs.build(ug.clone());
-    fs.mount(OsString::from("koto.test"));
+    // let mut fs = kfs::KotoFS::init();
+    // fs.build(unit_graph.clone());
+    // fs.mount(OsString::from("koto.test"));
 
     // somnia::run_test();
 }
