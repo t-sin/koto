@@ -99,100 +99,112 @@ impl Proc for LPFilter {
     }
 }
 
-// pub struct Delay {
-//     buffer: VecDeque<Box<Signal>>,
-//     time: Aug,
-//     feedback: Aug,
-//     mix: Aug,
-//     src: Aug,
-// }
+pub struct Delay {
+    buffer: VecDeque<Box<Signal>>,
+    time: Aug,
+    feedback: Aug,
+    mix: Aug,
+    src: Aug,
+}
 
-// impl Delay {
-//     pub fn new(time: Aug, feedback: Aug, mix: Aug, src: Aug, env: &Env) -> Aug {
-//         let len = (env.time.sample_rate * 2) as usize;
-//         let mut buffer = VecDeque::with_capacity(len);
-//         for _n in 0..len {
-//             buffer.push_back(Box::new((0.0, 0.0)));
-//         }
-//         Mut::amut(UnitGraph::new(Node::Sig(
-//             Mut::amut(Delay {
-//                 buffer: buffer,
-//                 time: time,
-//                 feedback: feedback,
-//                 mix: mix,
-//                 src: src
-//             })
-//         )))
-//     }
-// }
+impl Delay {
+    pub fn new(time: Aug, feedback: Aug, mix: Aug, src: Aug, env: &Env) -> Aug {
+        let len = (env.time.sample_rate * 2) as usize;
+        let mut buffer = VecDeque::with_capacity(len);
+        for _n in 0..len {
+            buffer.push_back(Box::new((0.0, 0.0)));
+        }
+        Aug::new(UGen::new(UG::Proc(
+            Box::new(Delay {
+                buffer: buffer,
+                time: time,
+                feedback: feedback,
+                mix: mix,
+                src: src
+            })
+        )))
+    }
+}
 
-// impl Walk for Delay {
-//     fn walk(&self, f: &mut FnMut(&Aug) -> bool) {
-//         if f(&self.time) { self.time.0.lock().unwrap().walk(f); }
-//         if f(&self.feedback) { self.feedback.0.lock().unwrap().walk(f); }
-//         if f(&self.mix) { self.mix.0.lock().unwrap().walk(f); }
-//         if f(&self.src) { self.src.0.lock().unwrap().walk(f); }
-//     }
-// }
+impl Walk for Delay {
+    fn walk(&self, f: &mut FnMut(&Aug) -> bool) {
+        if f(&self.time) {
+            self.time.walk(f);
+        }
+        if f(&self.feedback) {
+            self.feedback.walk(f);
+        }
+        if f(&self.mix) {
+            self.mix.walk(f);
+        }
+        if f(&self.src) {
+            self.src.walk(f);
+        }
+    }
+}
 
-// impl Dump for Delay {
-//     fn dump(&self, shared_ug: &Vec<Aug>, shared_map: &HashMap<usize, String>) -> UgNode {
-//         let mut nvec = Vec::new();
-//         let mut vvec = Vec::new();
+impl Dump for Delay {
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
+        let mut slots = Vec::new();
 
-//         nvec.push("time".to_string());
-//         match shared_ug.iter().position(|e| Arc::ptr_eq(e, &self.time)) {
-//             Some(idx) => vvec.push(Box::new(UgNode::Value(shared_map.get(&idx).unwrap().to_string()))),
-//             None => vvec.push(Box::new(self.time.0.lock().unwrap().dump(shared_ug, shared_map))),
-//         }
+        slots.push(Slot {
+            name: "time".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.time) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.time.clone()),
+            },
+        });
+        slots.push(Slot {
+            name: "feedback".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.feedback) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.feedback.clone()),
+            },
+        });
+        slots.push(Slot {
+            name: "mix".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.mix) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.mix.clone()),
+            },
+        });
+        slots.push(Slot {
+            name: "src".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.src) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.src.clone()),
+            },
+        });
 
-//         nvec.push("feedback".to_string());
-//         match shared_ug.iter().position(|e| Arc::ptr_eq(e, &self.feedback)) {
-//             Some(idx) => vvec.push(Box::new(UgNode::Value(shared_map.get(&idx).unwrap().to_string()))),
-//             None => vvec.push(Box::new(self.feedback.0.lock().unwrap().dump(shared_ug, shared_map))),
-//         }
+        UgNode::Ug("delay".to_string(), slots)
+    }
+}
 
-//         nvec.push("mix".to_string());
-//         match shared_ug.iter().position(|e| Arc::ptr_eq(e, &self.mix)) {
-//             Some(idx) => vvec.push(Box::new(UgNode::Value(shared_map.get(&idx).unwrap().to_string()))),
-//             None => vvec.push(Box::new(self.mix.0.lock().unwrap().dump(shared_ug, shared_map))),
-//         }
+// TODO: factor out; same function is in `sequencer.rs`
+fn sec_to_sample_num(sec: f64, time: &Time) -> u64 {
+    (time.sample_rate as f64 * sec) as u64
+}
 
-//         nvec.push("src".to_string());
-//         match shared_ug.iter().position(|e| Arc::ptr_eq(e, &self.src)) {
-//             Some(idx) => vvec.push(Box::new(UgNode::Value(shared_map.get(&idx).unwrap().to_string()))),
-//             None => vvec.push(Box::new(self.src.0.lock().unwrap().dump(shared_ug, shared_map))),
-//         }
+impl Proc for Delay {
+    fn proc(&mut self, time: &Time) -> Signal {
+        self.buffer.pop_back();
+        let sig = self.src.proc(time);
+        self.buffer.push_front(Box::new(sig));
+        let dtime = self.time.proc(time).0;
+        let dt = sec_to_sample_num(dtime, time);
+        let fb = self.feedback.proc(time).0;
+        let mix = self.mix.proc(time).0;
 
-//         UgNode::Op("delay".to_string(), nvec, vvec)
-//     }
-// }
+        let (mut dl, mut dr) = (0.0, 0.0);
+        let mut n = 1;
+        while n * dt < self.buffer.len() as u64 {
+            let (l, r) = **self.buffer.get((n * dt) as usize).unwrap();
+            let fbr = fb.powi(n as i32);
+            dl += l * fbr;
+            dr += r * fbr;
+            n += 1;
+        }
 
-// // TODO: factor out; same function is in `sequencer.rs`
-// fn sec_to_sample_num(sec: f64, time: &Time) -> u64 {
-//     (time.sample_rate as f64 * sec) as u64
-// }
-
-// impl Proc for Delay {
-//     fn proc(&mut self, time: &Time) -> Signal {
-//         self.buffer.pop_back();
-//         let sig = self.src.0.lock().unwrap().proc(time);
-//         self.buffer.push_front(Box::new(sig));
-//         let dtime = self.time.0.lock().unwrap().proc(time).0;
-//         let dt = sec_to_sample_num(dtime, time);
-//         let fb = self.feedback.0.lock().unwrap().proc(time).0;
-//         let mix = self.mix.0.lock().unwrap().proc(time).0;
-
-//         let (mut dl, mut dr) = (0.0, 0.0);
-//         let mut n = 1;
-//         while n * dt < self.buffer.len() as u64 {
-//             let (l, r) = **self.buffer.get((n * dt) as usize).unwrap();
-//             let fbr = fb.powi(n as i32);
-//             dl += l * fbr;
-//             dr += r * fbr;
-//             n += 1;
-//         }
-
-//         (sig.0 + dl * mix, sig.1 + dr * mix)
-//     }
-// }
+        (sig.0 + dl * mix, sig.1 + dr * mix)
+    }
+}

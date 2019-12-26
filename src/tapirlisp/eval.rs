@@ -7,7 +7,7 @@ use super::super::ugen::core::{UG, UGen, Aug, Proc, Osc, Eg, Table, Pattern};
 use super::super::ugen::misc::{Pan, Clip, Offset, Gain, Add, Multiply, Out};
 use super::super::ugen::osc::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
 use super::super::ugen::seq::{Trigger, AdsrEg, Seq};
-use super::super::ugen::fx::{LPFilter}; //, Delay};
+use super::super::ugen::fx::{LPFilter, Delay};
 
 use super::types::{Value, Env, EvalError};
 
@@ -384,29 +384,29 @@ fn make_lpf(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
     }
 }
 
-// fn make_delay(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
-//     if args.len() == 4 {
-//         match eval(&args[0], env) {
-//             Ok(Value::Unit(time)) => match eval(&args[1], env) {
-//                 Ok(Value::Unit(feedback)) => match eval(&args[2], env) {
-//                     Ok(Value::Unit(mix)) => match eval(&args[3], env) {
-//                         Ok(Value::Unit(src)) => Ok(Delay::new(time, feedback, mix, src, env)),
-//                         Ok(_v) => Err(EvalError::NotAug),
-//                         Err(_err) => Err(EvalError::NotAug),
-//                     }
-//                     Ok(_v) => Err(EvalError::NotAug),
-//                     Err(err) => Err(err),
-//                 },
-//                 Ok(_v) => Err(EvalError::NotAug),
-//                 Err(err) => Err(err),
-//             },
-//             Ok(_v) => Err(EvalError::NotAug),
-//             Err(err) => Err(err),
-//         }
-//     } else {
-//         Err(EvalError::FnWrongParams(String::from("delay"), args))
-//     }
-// }
+fn make_delay(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
+    if args.len() == 4 {
+        match eval(&args[0], env) {
+            Ok(Value::Unit(time)) => match eval(&args[1], env) {
+                Ok(Value::Unit(feedback)) => match eval(&args[2], env) {
+                    Ok(Value::Unit(mix)) => match eval(&args[3], env) {
+                        Ok(Value::Unit(src)) => Ok(Delay::new(time, feedback, mix, src, env)),
+                        Ok(_v) => Err(EvalError::NotAug),
+                        Err(_err) => Err(EvalError::NotAug),
+                    }
+                    Ok(_v) => Err(EvalError::NotAug),
+                    Err(err) => Err(err),
+                },
+                Ok(_v) => Err(EvalError::NotAug),
+                Err(err) => Err(err),
+            },
+            Ok(_v) => Err(EvalError::NotAug),
+            Err(err) => Err(err),
+        }
+    } else {
+        Err(EvalError::FnWrongParams(String::from("delay"), args))
+    }
+}
 
 // utility
 
@@ -456,7 +456,7 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug,
         "seq" => make_seq(args, env),
         // // fx
         "lpf" => make_lpf(args, env),
-        // "delay" => make_delay(args, env),
+        "delay" => make_delay(args, env),
         // // for convinience
         "out" => make_out(args, env),
         _ => Err(EvalError::FnUnknown(String::from(name))),
