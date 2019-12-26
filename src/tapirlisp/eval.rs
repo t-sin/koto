@@ -1,15 +1,15 @@
 use std::collections::VecDeque;
 
-use super::super::sexp::{Cons, print, to_vec};
-use super::super::event::{Message, to_note, to_pos};
+use super::super::event::{to_note, to_pos, Message};
+use super::super::sexp::{print, to_vec, Cons};
 
-use super::super::ugen::core::{UG, UGen, Aug, Table, Pattern};
-use super::super::ugen::misc::{Pan, Clip, Offset, Gain, Add, Multiply, Out};
-use super::super::ugen::osc::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
-use super::super::ugen::seq::{Trigger, AdsrEg, Seq};
-use super::super::ugen::fx::{LPFilter, Delay};
+use super::super::ugen::core::{Aug, Pattern, Table, UGen, UG};
+use super::super::ugen::fx::{Delay, LPFilter};
+use super::super::ugen::misc::{Add, Clip, Gain, Multiply, Offset, Out, Pan};
+use super::super::ugen::osc::{Phase, Pulse, Rand, Saw, Sine, Tri, WaveTable};
+use super::super::ugen::seq::{AdsrEg, Seq, Trigger};
 
-use super::types::{Value, Env, EvalError};
+use super::types::{Env, EvalError, Value};
 
 // core units
 
@@ -30,7 +30,7 @@ fn make_pan(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
     } else {
         Err(EvalError::FnWrongParams(String::from("pan"), args))
     }
- }
+}
 
 fn make_clip(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
     if args.len() == 3 {
@@ -109,11 +109,13 @@ fn make_multiply(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> 
 fn make_rand(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
     if args.len() == 1 {
         match eval(&args[0], env) {
-            Ok(Value::Unit(unit)) => if let UG::Val(v) = unit.0.lock().unwrap().ug {
-                Ok(Rand::new(v as u64))
-            } else {
-                Ok(Rand::new(0))
-            },
+            Ok(Value::Unit(unit)) => {
+                if let UG::Val(v) = unit.0.lock().unwrap().ug {
+                    Ok(Rand::new(v as u64))
+                } else {
+                    Ok(Rand::new(0))
+                }
+            }
             Ok(_v) => Err(EvalError::NotAug),
             Err(err) => Err(err),
         }
@@ -168,7 +170,7 @@ fn make_saw(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
     } else {
         Err(EvalError::FnWrongParams(String::from("saw"), args))
     }
- }
+}
 
 fn make_pulse(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
     if args.len() == 3 {
@@ -205,7 +207,6 @@ fn make_table(args: Vec<Box<Cons>>, _env: &mut Env) -> Result<Aug, EvalError> {
     } else {
         Err(EvalError::FnWrongParams("table".to_string(), args))
     }
-
 }
 
 fn make_phase(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
@@ -236,7 +237,7 @@ fn make_wavetable(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError>
                         2 => Ok(WaveTable::from_table(table.clone(), ph)),
                         _ => return Err(EvalError::NotAug),
                     }
-                },
+                }
                 Ok(_v) => Err(EvalError::NotAug),
                 Err(err) => Err(err),
             },
@@ -265,18 +266,14 @@ pub fn make_msg(e: &Cons, _env: &mut Env) -> Result<Vec<Box<Message>>, EvalError
                     // without length
                 }
             } else {
-                return Err(EvalError::EvWrongParams(print(e)))
+                return Err(EvalError::EvWrongParams(print(e)));
             }
+        }
+        Cons::Symbol(name) => match &name[..] {
+            "loop" => ev.push(Box::new(Message::Loop)),
+            name => return Err(EvalError::EvUnknown(name.to_string())),
         },
-        Cons::Symbol(name) => {
-            match &name[..] {
-                "loop" => ev.push(Box::new(Message::Loop)),
-                name => return Err(EvalError::EvUnknown(name.to_string())),
-            }
-        },
-        sexp => {
-            return Err(EvalError::EvMalformedEvent(print(sexp)))
-        },
+        sexp => return Err(EvalError::EvMalformedEvent(print(sexp))),
     }
     Ok(ev)
 }
@@ -331,7 +328,7 @@ fn make_adsr_eg(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
                         _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
                     },
                     Ok(_v) => Err(EvalError::NotAug),
-                    _err => Err(EvalError::FnWrongParams(String::from("adsr"), args))
+                    _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
                 },
                 Ok(_v) => Err(EvalError::NotAug),
                 _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
@@ -393,7 +390,7 @@ fn make_delay(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
                         Ok(Value::Unit(src)) => Ok(Delay::new(time, feedback, mix, src, env)),
                         Ok(_v) => Err(EvalError::NotAug),
                         Err(_err) => Err(EvalError::NotAug),
-                    }
+                    },
                     Ok(_v) => Err(EvalError::NotAug),
                     Err(err) => Err(err),
                 },
@@ -423,7 +420,7 @@ fn make_out(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
                     }
                 }
                 Ok(Out::new(vol, v))
-            },
+            }
             _ => Err(EvalError::NotANumber(print(&args[0]))),
         }
     } else {
@@ -473,11 +470,11 @@ fn eval_def(name: &Cons, sexp: &Cons, env: &mut Env) -> Result<Value, EvalError>
                     Ok(v) => {
                         env.binding.insert(name.to_string(), Box::new(v));
                         Ok(Value::Nil)
-                    },
+                    }
                     Err(err) => Err(err),
                 }
             }
-        },
+        }
         exp => Err(EvalError::NotASymbol(Box::new(exp.clone()))),
     }
 }
@@ -494,7 +491,7 @@ fn eval_call(name: &Cons, args: &Cons, env: &mut Env) -> Result<Value, EvalError
             } else {
                 Err(EvalError::FnWrongParams("def".to_string(), vec))
             }
-        },
+        }
         Cons::Symbol(name) if &name[..] == "bpm" => {
             let vec = to_vec(&args);
             if vec.len() == 1 {
@@ -502,13 +499,13 @@ fn eval_call(name: &Cons, args: &Cons, env: &mut Env) -> Result<Value, EvalError
                     Cons::Number(n) => {
                         env.time.bpm = n;
                         Ok(Value::Nil)
-                    },
+                    }
                     _ => Err(EvalError::NotANumber(print(&vec[0]))),
                 }
             } else {
                 Err(EvalError::FnWrongParams("bpm".to_string(), vec))
             }
-        },
+        }
         Cons::Symbol(name) if &name[..] == "measure" => {
             let vec = to_vec(&args);
             if vec.len() == 2 {
@@ -518,7 +515,7 @@ fn eval_call(name: &Cons, args: &Cons, env: &mut Env) -> Result<Value, EvalError
                             env.time.measure.beat = beat as u64;
                             env.time.measure.note = note as u64;
                             Ok(Value::Nil)
-                        },
+                        }
                         _ => Err(EvalError::NotANumber(print(&vec[1]))),
                     },
                     _ => Err(EvalError::NotANumber(print(&vec[0]))),
@@ -526,13 +523,11 @@ fn eval_call(name: &Cons, args: &Cons, env: &mut Env) -> Result<Value, EvalError
             } else {
                 Err(EvalError::FnWrongParams("measure".to_string(), vec))
             }
-        },
-        Cons::Symbol(name) => {
-            match make_unit(&name, to_vec(&args), env) {
-                Ok(u) => Ok(Value::Unit(u)),
-                Err(err) => Err(err),
-            }
         }
+        Cons::Symbol(name) => match make_unit(&name, to_vec(&args), env) {
+            Ok(u) => Ok(Value::Unit(u)),
+            Err(err) => Err(err),
+        },
         c => Err(EvalError::FnMalformedName(Box::new(c.clone()))),
     }
 }
@@ -543,7 +538,7 @@ pub fn eval(sexp: &Cons, env: &mut Env) -> Result<Value, EvalError> {
         Cons::Symbol(name) => match env.binding.get(name) {
             Some(v) => Ok((**v).clone()),
             None => Err(EvalError::UnboundVariable(name.to_string())),
-        }
+        },
         Cons::Number(num) => Ok(Value::Unit(Aug::val(*num))),
         Cons::Nil => Ok(Value::Nil),
     }
@@ -561,5 +556,4 @@ pub fn eval_all(sexp_vec: Vec<Box<Cons>>, env: &mut Env) -> Result<Value, EvalEr
         0 => Ok(Value::Nil),
         _ => Ok(q.pop_back().unwrap()),
     }
-
 }

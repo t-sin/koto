@@ -1,5 +1,5 @@
 use super::mtime::{Clock, Time};
-use super::ugen::core::{Proc, Aug};
+use super::ugen::core::{Aug, Proc};
 
 use super::audiodevice::AudioDevice;
 

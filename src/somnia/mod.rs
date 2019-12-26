@@ -1,11 +1,11 @@
-pub mod vm;
 pub mod compile;
+pub mod vm;
 
 use std::collections::HashMap;
 
 use super::sexp;
-use vm::{Reg, Op, VM};
 use compile::compile;
+use vm::{Op, Reg, VM};
 
 pub fn run_test() {
     println!("-- somnia test --");

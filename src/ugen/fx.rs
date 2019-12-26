@@ -3,12 +3,11 @@ use std::collections::VecDeque;
 use super::super::mtime::Time;
 use super::super::tapirlisp::types::Env;
 
-use super::core::{Signal, UgNode, Value, Slot, Dump, Walk, UG, UGen, Aug, Proc};
-
+use super::core::{Aug, Dump, Proc, Signal, Slot, UGen, UgNode, Value, Walk, UG};
 
 pub struct LPFilter {
-    inbuf: [Signal;2],
-    outbuf: [Signal;2],
+    inbuf: [Signal; 2],
+    outbuf: [Signal; 2],
     freq: Aug,
     q: Aug,
     src: Aug,
@@ -16,13 +15,13 @@ pub struct LPFilter {
 
 impl LPFilter {
     pub fn new(freq: Aug, q: Aug, src: Aug) -> Aug {
-        Aug::new(UGen::new(UG::Proc(
-            Box::new(LPFilter {
-                inbuf: [(0.0, 0.0), (0.0, 0.0)],
-                outbuf: [(0.0, 0.0), (0.0, 0.0)],
-                freq: freq, q: q, src: src,
-            })
-        )))
+        Aug::new(UGen::new(UG::Proc(Box::new(LPFilter {
+            inbuf: [(0.0, 0.0), (0.0, 0.0)],
+            outbuf: [(0.0, 0.0), (0.0, 0.0)],
+            freq: freq,
+            q: q,
+            src: src,
+        }))))
     }
 }
 
@@ -86,8 +85,20 @@ impl Proc for LPFilter {
             (b0 / a0 * v) + (b1 / a0 * in0) + (b2 / a0 * in1) - (a1 / a0 * out0) - (a2 / a0 * out1)
         };
 
-        let l = filter(sl, self.inbuf[0].0, self.inbuf[1].0, self.outbuf[0].0, self.outbuf[1].0);
-        let r = filter(sr, self.inbuf[0].1, self.inbuf[1].1, self.outbuf[0].1, self.outbuf[1].1);
+        let l = filter(
+            sl,
+            self.inbuf[0].0,
+            self.inbuf[1].0,
+            self.outbuf[0].0,
+            self.outbuf[1].0,
+        );
+        let r = filter(
+            sr,
+            self.inbuf[0].1,
+            self.inbuf[1].1,
+            self.outbuf[0].1,
+            self.outbuf[1].1,
+        );
 
         self.inbuf[1] = self.inbuf[0];
         self.inbuf[0] = (sl, sr);
@@ -113,15 +124,13 @@ impl Delay {
         for _n in 0..len {
             buffer.push_back(Box::new((0.0, 0.0)));
         }
-        Aug::new(UGen::new(UG::Proc(
-            Box::new(Delay {
-                buffer: buffer,
-                time: time,
-                feedback: feedback,
-                mix: mix,
-                src: src
-            })
-        )))
+        Aug::new(UGen::new(UG::Proc(Box::new(Delay {
+            buffer: buffer,
+            time: time,
+            feedback: feedback,
+            mix: mix,
+            src: src,
+        }))))
     }
 }
 

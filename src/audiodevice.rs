@@ -1,8 +1,8 @@
 use cpal::Device;
 use cpal::EventLoop;
+use cpal::OutputBuffer;
 use cpal::SampleFormat;
 use cpal::SampleRate;
-use cpal::OutputBuffer;
 use cpal::UnknownTypeOutputBuffer;
 
 pub struct AudioDevice {
@@ -31,13 +31,12 @@ impl AudioDevice {
     }
 
     pub fn run<F: FnMut(OutputBuffer<f32>) + Send>(&self, mut callback: F) {
-        self.event_loop.run(move |_stream_id, stream_data| {
-            match stream_data {
-                cpal::StreamData::Output { buffer: UnknownTypeOutputBuffer::F32(buffer) }
-                => callback(buffer),
+        self.event_loop
+            .run(move |_stream_id, stream_data| match stream_data {
+                cpal::StreamData::Output {
+                    buffer: UnknownTypeOutputBuffer::F32(buffer),
+                } => callback(buffer),
                 _ => (),
-            }
-        });
-
+            });
     }
 }

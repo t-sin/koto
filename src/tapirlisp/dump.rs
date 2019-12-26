@@ -1,4 +1,4 @@
-use super::super::ugen::core::{UgNode, Slot, Value, Dump, Aug};
+use super::super::ugen::core::{Aug, Dump, Slot, UgNode, Value};
 use super::types::Env;
 
 fn dump_table(name: &String, vec: &Vec<f64>) -> String {
@@ -41,7 +41,12 @@ pub fn dump_value(v: &Value, shared: &Vec<Aug>) -> String {
     }
 }
 
-fn dump_ug(name: &String, slots: &Vec<Slot>, values: &Vec<Box<Value>>, shared: &Vec<Aug>) -> String {
+fn dump_ug(
+    name: &String,
+    slots: &Vec<Slot>,
+    values: &Vec<Box<Value>>,
+    shared: &Vec<Aug>,
+) -> String {
     let mut s = String::new();
     s.push_str("(");
     s.push_str(&name[..]);
@@ -74,7 +79,6 @@ pub fn dump_unit(dump: &UgNode, shared: &Vec<Aug>) -> String {
     }
 }
 
-
 pub fn dump(ug: Aug, env: &Env) -> String {
     let shared_units = crate::ugen::util::collect_shared_ugs(ug.clone());
 
@@ -82,7 +86,10 @@ pub fn dump(ug: Aug, env: &Env) -> String {
     tlisp_str.push_str(";; environment\n");
     let bpm_str = format!("(bpm {})\n", env.time.bpm);
     tlisp_str.push_str(&bpm_str.to_string());
-    let mes_str = format!("(measure {} {})\n", env.time.measure.beat, env.time.measure.note);
+    let mes_str = format!(
+        "(measure {} {})\n",
+        env.time.measure.beat, env.time.measure.note
+    );
     tlisp_str.push_str(&mes_str.to_string());
 
     tlisp_str.push_str("\n;; shared units\n");

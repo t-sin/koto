@@ -1,9 +1,9 @@
 use std::collections::VecDeque;
 
-use super::super::mtime::{Time, Pos, PosOps, Measure};
-use super::super::event::{Event, Message, Pitch, to_freq};
+use super::super::event::{to_freq, Event, Message, Pitch};
+use super::super::mtime::{Measure, Pos, PosOps, Time};
 
-use super::core::{Signal, UgNode, Value, Slot, Dump, Walk, UG, UGen, Aug, Proc, ADSR, Eg};
+use super::core::{Aug, Dump, Eg, Proc, Signal, Slot, UGen, UgNode, Value, Walk, ADSR, UG};
 
 pub struct Trigger {
     eg: Aug,
@@ -12,11 +12,7 @@ pub struct Trigger {
 
 impl Trigger {
     pub fn new(eg: Aug, egs: Vec<Aug>) -> Aug {
-        Aug::new(UGen::new(UG::Proc(
-            Box::new(Trigger {
-                eg: eg, egs: egs,
-            })
-        )))
+        Aug::new(UGen::new(UG::Proc(Box::new(Trigger { eg: eg, egs: egs }))))
     }
 }
 
@@ -90,13 +86,14 @@ pub struct AdsrEg {
 
 impl AdsrEg {
     pub fn new(a: Aug, d: Aug, s: Aug, r: Aug) -> Aug {
-        Aug::new(UGen::new(UG::Eg(
-            Box::new(AdsrEg {
-                a: a, d: d, s: s, r: r,
-                state: ADSR::None,
-                eplaced: 0,
-            })
-        )))
+        Aug::new(UGen::new(UG::Eg(Box::new(AdsrEg {
+            a: a,
+            d: d,
+            s: s,
+            r: r,
+            state: ADSR::None,
+            eplaced: 0,
+        }))))
     }
 }
 
@@ -130,28 +127,28 @@ impl Dump for AdsrEg {
             value: match shared_ug.iter().position(|e| *e == self.a) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
                 None => Value::Ug(self.a.clone()),
-            }
+            },
         });
         slots.push(Slot {
             name: "d".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.d) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
                 None => Value::Ug(self.d.clone()),
-            }
+            },
         });
         slots.push(Slot {
             name: "s".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.s) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
                 None => Value::Ug(self.s.clone()),
-            }
+            },
         });
         slots.push(Slot {
             name: "r".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.r) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
                 None => Value::Ug(self.r.clone()),
-            }
+            },
         });
 
         UgNode::Ug("adsr".to_string(), slots)
@@ -179,7 +176,7 @@ impl Proc for AdsrEg {
                     v = 0.0;
                     self.state = ADSR::None;
                 }
-            },
+            }
             ADSR::Decay => {
                 if eplaced < a + d {
                     v = 1.0 - (1.0 - s) * ((eplaced as f64 - a as f64) / d as f64);
@@ -190,10 +187,10 @@ impl Proc for AdsrEg {
                     v = 0.0;
                     self.state = ADSR::None;
                 }
-            },
+            }
             ADSR::Sustin => {
                 v = s;
-            },
+            }
             ADSR::Release => {
                 if eplaced < r {
                     v = s - eplaced as f64 * (s / r as f64);
@@ -201,10 +198,10 @@ impl Proc for AdsrEg {
                     v = 0.0;
                     self.state = ADSR::None;
                 }
-            },
+            }
             ADSR::None => {
                 v = 0.0;
-            },
+            }
         }
         self.eplaced += 1;
         (v, v)
@@ -228,10 +225,10 @@ pub struct Seq {
 impl Seq {
     pub fn new(pat: Aug, osc: Aug, eg: Aug, time: &Time) -> Aug {
         let mut seq = Seq {
-                pattern: pat,
-                queue: VecDeque::new(),
-                osc: osc,
-                eg: eg,
+            pattern: pat,
+            queue: VecDeque::new(),
+            osc: osc,
+            eg: eg,
         };
         seq.fill_queue(&time.pos, &time.measure);
         Aug::new(UGen::new(UG::Proc(Box::new(seq))))
@@ -242,21 +239,20 @@ impl Seq {
         if let UG::Pat(pat) = &self.pattern.0.lock().unwrap().ug {
             for m in pat.0.lock().unwrap().iter() {
                 match &**m {
-                    Message::Note(pitch, len) => {
-                        match pitch {
-                            Pitch::Pitch(_, _) => {
-                                self.queue.push_back(Box::new(Event::On(pos.clone(), to_freq(pitch))));
-                                pos = pos.clone().add(len.clone(), &measure);
-                                self.queue.push_back(Box::new(Event::Off(pos.clone())));
-                            },
-                            Pitch::Rest => {
-                                pos = pos.clone().add(len.clone(), &measure);
-                            },
+                    Message::Note(pitch, len) => match pitch {
+                        Pitch::Pitch(_, _) => {
+                            self.queue
+                                .push_back(Box::new(Event::On(pos.clone(), to_freq(pitch))));
+                            pos = pos.clone().add(len.clone(), &measure);
+                            self.queue.push_back(Box::new(Event::Off(pos.clone())));
+                        }
+                        Pitch::Rest => {
+                            pos = pos.clone().add(len.clone(), &measure);
                         }
                     },
                     Message::Loop => {
                         self.queue.push_back(Box::new(Event::Loop(pos.clone())));
-                    },
+                    }
                 }
             }
         } else {
@@ -316,28 +312,38 @@ impl Proc for Seq {
         let mut q = self.queue.iter().peekable();
         match q.peek() {
             Some(e) => match &***e {
-                Event::On(pos, _freq) => if pos <= &time.pos {
-                    if let Event::On(_pos, freq) = *self.queue.pop_front().unwrap() {
-                        if let UG::Osc(ref mut osc) = &mut self.osc.0.lock().unwrap().ug {
-                            osc.set_freq(Aug::new(UGen::new(UG::Val(freq))));
-                        }
-                        if let UG::Eg(ref mut eg) = &mut self.eg.0.lock().unwrap().ug {
-                            eg.set_state(ADSR::Attack, 0);
-                        }
-                    }
-                },
-                Event::Off(pos) => if pos <= &time.pos {
-                    if let Event::Off(_pos) = *self.queue.pop_front().unwrap() {
-                        if let UG::Eg(ref mut eg) = &mut self.eg.0.lock().unwrap().ug {
-                            eg.set_state(ADSR::Release, 0);
+                Event::On(pos, _freq) => {
+                    if pos <= &time.pos {
+                        if let Event::On(_pos, freq) = *self.queue.pop_front().unwrap() {
+                            if let UG::Osc(ref mut osc) = &mut self.osc.0.lock().unwrap().ug {
+                                osc.set_freq(Aug::new(UGen::new(UG::Val(freq))));
+                            }
+                            if let UG::Eg(ref mut eg) = &mut self.eg.0.lock().unwrap().ug {
+                                eg.set_state(ADSR::Attack, 0);
+                            }
                         }
                     }
-                },
-                Event::Loop(pos) => if pos <= &time.pos {
-                    let base = Pos { bar: time.pos.bar, beat: 0, pos: 0.0 };
-                    self.queue.pop_front().unwrap();
-                    self.fill_queue(&base, &time.measure);
-                },
+                }
+                Event::Off(pos) => {
+                    if pos <= &time.pos {
+                        if let Event::Off(_pos) = *self.queue.pop_front().unwrap() {
+                            if let UG::Eg(ref mut eg) = &mut self.eg.0.lock().unwrap().ug {
+                                eg.set_state(ADSR::Release, 0);
+                            }
+                        }
+                    }
+                }
+                Event::Loop(pos) => {
+                    if pos <= &time.pos {
+                        let base = Pos {
+                            bar: time.pos.bar,
+                            beat: 0,
+                            pos: 0.0,
+                        };
+                        self.queue.pop_front().unwrap();
+                        self.fill_queue(&base, &time.measure);
+                    }
+                }
             },
             None => (),
         }

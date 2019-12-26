@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 
-use super::super::sexp::Cons;
 use super::super::mtime::Time;
+use super::super::sexp::Cons;
 use super::super::ugen::core::Aug;
 
 pub type Name = String;
@@ -21,7 +21,10 @@ pub struct Env {
 
 impl Env {
     pub fn init(time: Time) -> Env {
-        Env { time: time, binding: HashMap::new() }
+        Env {
+            time: time,
+            binding: HashMap::new(),
+        }
     }
 }
 
@@ -46,40 +49,22 @@ impl fmt::Display for EvalError {
         match self {
             EvalError::FnWrongParams(name, args) => {
                 write!(f, "Wrong params for '{:?}' with args '{:?}'", name, args)
-            },
-            EvalError::FnUnknown(name) => {
-                write!(f, "{:?} is unknown or not implemented.", name)
-            },
-            EvalError::FnMalformedName(cons) => {
-                write!(f, "{:?} is not a symbol.", cons)
-            },
+            }
+            EvalError::FnUnknown(name) => write!(f, "{:?} is unknown or not implemented.", name),
+            EvalError::FnMalformedName(cons) => write!(f, "{:?} is not a symbol.", cons),
             EvalError::EvWrongParams(args) => {
                 write!(f, "Wrong params for 'pat' with args '{:?}'", args)
-            },
+            }
             EvalError::EvUnknown(name) => {
                 write!(f, "{:?} is unknown or not implemented event.", name)
-            },
-            EvalError::EvMalformedEvent(s) => {
-                write!(f, "{:?} is not an event.", s)
-            },
-            EvalError::UnboundVariable(name) => {
-                write!(f, "Unbound variable: '{:?}'", name)
-            },
-            EvalError::AlreadyBound(name) => {
-                write!(f, "'{:?}' is already bound", name)
-            },
-            EvalError::NotANumber(s) => {
-                write!(f, "{:?} is not a number", s)
-            },
-            EvalError::NotASymbol(cons) => {
-                write!(f, "{:?} is not a symbol.", cons)
-            },
-            EvalError::NotAug => {
-                write!(f, "((serialized unit here)) is not an unit")
-            },
-            EvalError::NotAPattern => {
-                write!(f, "it's not a pattern")
-            },
+            }
+            EvalError::EvMalformedEvent(s) => write!(f, "{:?} is not an event.", s),
+            EvalError::UnboundVariable(name) => write!(f, "Unbound variable: '{:?}'", name),
+            EvalError::AlreadyBound(name) => write!(f, "'{:?}' is already bound", name),
+            EvalError::NotANumber(s) => write!(f, "{:?} is not a number", s),
+            EvalError::NotASymbol(cons) => write!(f, "{:?} is not a symbol.", cons),
+            EvalError::NotAug => write!(f, "((serialized unit here)) is not an unit"),
+            EvalError::NotAPattern => write!(f, "it's not a pattern"),
         }
     }
 }

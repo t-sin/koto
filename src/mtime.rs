@@ -44,9 +44,13 @@ impl PosOps<Pos> for Pos {
 
         let new_pos = pos_diff.fract();
         let new_beat = beat_diff % measure.note;
-        let new_bar =  self.bar + other.bar + (beat_diff / measure.beat);
+        let new_bar = self.bar + other.bar + (beat_diff / measure.beat);
 
-        Pos { bar: new_bar, beat: new_beat, pos: new_pos }
+        Pos {
+            bar: new_bar,
+            beat: new_beat,
+            pos: new_pos,
+        }
     }
 
     fn sub(&self, other: Pos, measure: &Measure) -> Pos {
@@ -58,18 +62,30 @@ impl PosOps<Pos> for Pos {
         let new_beat = pos_diff.trunc() as u64 / measure.note % measure.beat;
         let new_bar = pos_diff.trunc() as u64 / measure.note / measure.beat;
 
-        Pos { bar: new_bar, beat: new_beat, pos: new_pos }
+        Pos {
+            bar: new_bar,
+            beat: new_beat,
+            pos: new_pos,
+        }
     }
 }
 
 impl PosOps<(u64, u64, f64)> for Pos {
     fn add(&self, other: (u64, u64, f64), measure: &Measure) -> Pos {
-        let t = Pos { bar: other.0, beat: other.1, pos: other.2 };
+        let t = Pos {
+            bar: other.0,
+            beat: other.1,
+            pos: other.2,
+        };
         self.add(t, &measure)
     }
 
     fn sub(&self, other: (u64, u64, f64), measure: &Measure) -> Pos {
-        let t = Pos { bar: other.0, beat: other.1, pos: other.2 };
+        let t = Pos {
+            bar: other.0,
+            beat: other.1,
+            pos: other.2,
+        };
         self.sub(t, &measure)
     }
 }
@@ -114,7 +130,6 @@ impl PartialOrd for Pos {
     }
 }
 
-
 impl Time {
     pub fn new(sample_rate: u32) -> Time {
         Time {
@@ -122,7 +137,11 @@ impl Time {
             tick: 0,
             bpm: 120.0,
             measure: Measure { beat: 4, note: 4 },
-            pos: Pos { bar: 0, beat: 0, pos: 0.0 },
+            pos: Pos {
+                bar: 0,
+                beat: 0,
+                pos: 0.0,
+            },
         }
     }
 }
