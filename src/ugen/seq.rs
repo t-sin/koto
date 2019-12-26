@@ -220,120 +220,129 @@ impl Eg for AdsrEg {
     }
 }
 
-// pub struct Seq {
-//     pattern: Aug,
-//     queue: VecDeque<Box<Event>>,
-//     osc: Aug,
-//     eg: Aug,
-// }
+pub struct Seq {
+    pattern: Aug,
+    queue: VecDeque<Box<Event>>,
+    osc: Aug,
+    eg: Aug,
+}
 
-// impl Seq {
-//     pub fn new(pat: Aug, osc: Aug, eg: Aug, time: &Time) -> Aug {
-//         let mut seq = Seq {
-//                 pattern: pat,
-//                 queue: VecDeque::new(),
-//                 osc: osc,
-//                 eg: eg,
-//         };
-//         seq.fill_queue(&time.pos, &time.measure);
-//         Mut::amut(UnitGraph::new(Node::Sig(Mut::amut(seq))))
-//     }
+impl Seq {
+    pub fn new(pat: Aug, osc: Aug, eg: Aug, time: &Time) -> Aug {
+        let mut seq = Seq {
+                pattern: pat,
+                queue: VecDeque::new(),
+                osc: osc,
+                eg: eg,
+        };
+        seq.fill_queue(&time.pos, &time.measure);
+        Aug::new(UGen::new(UG::Proc(Box::new(seq))))
+    }
 
-//     pub fn fill_queue(&mut self, base: &Pos, measure: &Measure) {
-//         let mut pos = base.clone();
-//         if let Node::Pat(pat) = &self.pattern.0.lock().unwrap().node {
-//             for m in pat.0.lock().unwrap().0.iter() {
-//                 match &**m {
-//                     Message::Note(pitch, len) => {
-//                         match pitch {
-//                             Pitch::Pitch(_, _) => {
-//                                 self.queue.push_back(Box::new(Event::On(pos.clone(), to_freq(pitch))));
-//                                 pos = pos.clone().add(len.clone(), &measure);
-//                                 self.queue.push_back(Box::new(Event::Off(pos.clone())));
-//                             },
-//                             Pitch::Rest => {
-//                                 pos = pos.clone().add(len.clone(), &measure);
-//                             },
-//                         }
-//                     },
-//                     Message::Loop => {
-//                         self.queue.push_back(Box::new(Event::Loop(pos.clone())));
-//                     },
-//                 }
-//             }
-//         } else {
-//             panic!("not a pattern!!");
-//         }
-//     }
-// }
+    pub fn fill_queue(&mut self, base: &Pos, measure: &Measure) {
+        let mut pos = base.clone();
+        if let UG::Pat(pat) = &self.pattern.0.lock().unwrap().ug {
+            for m in pat.0.lock().unwrap().iter() {
+                match &**m {
+                    Message::Note(pitch, len) => {
+                        match pitch {
+                            Pitch::Pitch(_, _) => {
+                                self.queue.push_back(Box::new(Event::On(pos.clone(), to_freq(pitch))));
+                                pos = pos.clone().add(len.clone(), &measure);
+                                self.queue.push_back(Box::new(Event::Off(pos.clone())));
+                            },
+                            Pitch::Rest => {
+                                pos = pos.clone().add(len.clone(), &measure);
+                            },
+                        }
+                    },
+                    Message::Loop => {
+                        self.queue.push_back(Box::new(Event::Loop(pos.clone())));
+                    },
+                }
+            }
+        } else {
+            panic!("not a pattern!!");
+        }
+    }
+}
 
-// impl Walk for Seq {
-//     fn walk(&self, f: &mut FnMut(&Aug) -> bool) {
-//         if f(&self.pattern) { self.pattern.0.lock().unwrap().walk(f); }
-//         if f(&self.osc) { self.osc.0.lock().unwrap().walk(f); }
-//         if f(&self.eg) {  self.eg.0.lock().unwrap().walk(f); }
-//     }
-// }
+impl Walk for Seq {
+    fn walk(&self, f: &mut FnMut(&Aug) -> bool) {
+        if f(&self.pattern) {
+            self.pattern.walk(f);
+        }
+        if f(&self.osc) {
+            self.osc.walk(f);
+        }
+        if f(&self.eg) {
+            self.eg.walk(f);
+        }
+    }
+}
 
-// impl Dump for Seq {
-//     fn dump(&self, shared_ug: &Vec<Aug>, shared_map: &HashMap<usize, String>) -> UgNode {
-//         let mut nvec = Vec::new();
-//         let mut values = Vec::new();
+impl Dump for Seq {
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
+        let mut slots = Vec::new();
 
-//         nvec.push("pattern".to_string());
-//         match shared_ug.iter().position(|e| Arc::ptr_eq(e, &self.pattern)) {
-//             Some(idx) => values.push(Box::new(UgNode::Value(shared_map.get(&idx).unwrap().to_string()))),
-//             None => values.push(Box::new(self.pattern.0.lock().unwrap().dump(shared_ug, shared_map))),
-//         }
+        slots.push(Slot {
+            name: "pattern".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.pattern) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.pattern.clone()),
+            },
+        });
+        slots.push(Slot {
+            name: "osc".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.osc) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.osc.clone()),
+            },
+        });
+        slots.push(Slot {
+            name: "eg".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.eg) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.eg.clone()),
+            },
+        });
 
-//         nvec.push("osc".to_string());
-//         match shared_ug.iter().position(|e| Arc::ptr_eq(e, &self.osc)) {
-//             Some(idx) => values.push(Box::new(UgNode::Value(shared_map.get(&idx).unwrap().to_string()))),
-//             None => values.push(Box::new(self.osc.0.lock().unwrap().dump(shared_ug, shared_map))),
-//         }
+        UgNode::Ug("seq".to_string(), slots)
+    }
+}
 
-//         nvec.push("eg".to_string());
-//         match shared_ug.iter().position(|e| Arc::ptr_eq(e, &self.eg)) {
-//             Some(idx) => values.push(Box::new(UgNode::Value(shared_map.get(&idx).unwrap().to_string()))),
-//             None => values.push(Box::new(self.eg.0.lock().unwrap().dump(shared_ug, shared_map))),
-//         }
-
-//         UgNode::Op("seq".to_string(), nvec, values)
-//     }
-// }
-
-// impl Proc for Seq {
-//     fn proc(&mut self, time: &Time) -> Signal {
-//         let (ol, or) = self.osc.0.lock().unwrap().proc(&time);
-//         let (el, er) = self.eg.0.lock().unwrap().proc(&time);
-//         let mut q = self.queue.iter().peekable();
-//         match q.peek() {
-//             Some(e) => match &***e {
-//                 Event::On(pos, _freq) => if pos <= &time.pos {
-//                     if let Event::On(_pos, freq) = *self.queue.pop_front().unwrap() {
-//                         if let Node::Osc(osc) = &self.osc.0.lock().unwrap().node {
-//                             osc.0.lock().unwrap().set_freq(Mut::amut(UnitGraph::new(Node::Val(freq))));
-//                         }
-//                         if let Node::Eg(eg) = &self.eg.0.lock().unwrap().node {
-//                             eg.0.lock().unwrap().set_state(ADSR::Attack, 0);
-//                         }
-//                     }
-//                 },
-//                 Event::Off(pos) => if pos <= &time.pos {
-//                     if let Event::Off(_pos) = *self.queue.pop_front().unwrap() {
-//                         if let Node::Eg(eg) = &self.eg.0.lock().unwrap().node {
-//                             eg.0.lock().unwrap().set_state(ADSR::Release, 0);
-//                         }
-//                     }
-//                 },
-//                 Event::Loop(pos) => if pos <= &time.pos {
-//                     let base = Pos { bar: time.pos.bar, beat: 0, pos: 0.0 };
-//                     self.queue.pop_front().unwrap();
-//                     self.fill_queue(&base, &time.measure);
-//                 },
-//             },
-//             None => (),
-//         }
-//         ((ol * el), (or * er))
-//     }
-// }
+impl Proc for Seq {
+    fn proc(&mut self, time: &Time) -> Signal {
+        let (ol, or) = self.osc.proc(&time);
+        let (el, er) = self.eg.proc(&time);
+        let mut q = self.queue.iter().peekable();
+        match q.peek() {
+            Some(e) => match &***e {
+                Event::On(pos, _freq) => if pos <= &time.pos {
+                    if let Event::On(_pos, freq) = *self.queue.pop_front().unwrap() {
+                        if let UG::Osc(ref mut osc) = &mut self.osc.0.lock().unwrap().ug {
+                            osc.set_freq(Aug::new(UGen::new(UG::Val(freq))));
+                        }
+                        if let UG::Eg(ref mut eg) = &mut self.eg.0.lock().unwrap().ug {
+                            eg.set_state(ADSR::Attack, 0);
+                        }
+                    }
+                },
+                Event::Off(pos) => if pos <= &time.pos {
+                    if let Event::Off(_pos) = *self.queue.pop_front().unwrap() {
+                        if let UG::Eg(ref mut eg) = &mut self.eg.0.lock().unwrap().ug {
+                            eg.set_state(ADSR::Release, 0);
+                        }
+                    }
+                },
+                Event::Loop(pos) => if pos <= &time.pos {
+                    let base = Pos { bar: time.pos.bar, beat: 0, pos: 0.0 };
+                    self.queue.pop_front().unwrap();
+                    self.fill_queue(&base, &time.measure);
+                },
+            },
+            None => (),
+        }
+        ((ol * el), (or * er))
+    }
+}
