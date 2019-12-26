@@ -231,8 +231,6 @@ impl Filesystem for KotoFS {
             reply.error(ENOENT);
             return;
         }
-
-        reply.error(ENOENT);
     }
 
     fn readdir(&mut self, _req: &Request, ino: u64, _fh: u64, offset: i64, mut reply: ReplyDirectory) {
