@@ -3,7 +3,7 @@ extern crate fuse;
 extern crate libc;
 extern crate num;
 extern crate rand;
-
+extern crate users;
 
 mod audiodevice;
 mod mtime;

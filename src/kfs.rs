@@ -5,6 +5,7 @@ use std::sync::{Arc, Mutex};
 
 use libc::{ENOENT, EACCES};
 use time::Timespec;
+use users::{get_current_uid, get_current_gid};
 
 use fuse::{
     Filesystem, FileType, Request, FileAttr,
@@ -62,7 +63,8 @@ fn create_file(ino: u64, size: u64, ftype: FileType) -> FileAttr {
             FileType::Directory => 0o775,
             _ => 0o644,
         },
-        nlink: 2, uid: 501, gid: 20, rdev: 0, flags: 0,
+        uid: get_current_uid(), gid: get_current_gid(),
+        nlink: 2, rdev: 0, flags: 0,
     }
 }
 
