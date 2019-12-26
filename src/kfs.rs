@@ -191,7 +191,7 @@ impl KotoFS {
                 for (i, v) in values.iter().enumerate() {
                     let child = self.build_node_from_value(*v.clone(), node.clone(), shared);
                     let name = child.lock().unwrap().name.clone();
-                    child.lock().unwrap().name = format!("{}.{}", basename, name);
+                    child.lock().unwrap().name = format!("{}{}.{}", basename, i, name);
                     node.lock().unwrap().children.push(child.clone());
                     self.inodes.insert(child.lock().unwrap().attr.ino, child.clone());
                 }
