@@ -7,7 +7,7 @@ use super::super::ugen::core::{UG, UGen, Aug, Proc, Osc, Eg, Table, Pattern};
 use super::super::ugen::misc::{Pan, Clip, Offset, Gain, Add, Multiply, Out};
 use super::super::ugen::osc::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
 use super::super::ugen::seq::{Trigger, AdsrEg, Seq};
-// use super::super::units::effect::{LPFilter, Delay};
+use super::super::ugen::fx::{LPFilter}; //, Delay};
 
 use super::types::{Value, Env, EvalError};
 
@@ -248,7 +248,7 @@ fn make_wavetable(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError>
     }
 }
 
-// // sequencer
+// sequencer
 
 pub fn make_msg(e: &Cons, _env: &mut Env) -> Result<Vec<Box<Message>>, EvalError> {
     let mut ev = Vec::new();
@@ -363,27 +363,26 @@ fn make_seq(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
     }
 }
 
-// // effects
+// effects
 
-// fn make_lpf(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
-//     if args.len() == 3 {
-//         match eval(&args[0], env) {
-//             Ok(Value::Unit(freq)) => match eval(&args[1], env) {
-//                 Ok(Value::Unit(q)) => match eval(&args[2], env) {
-//                     Ok(Value::Unit(src)) => Ok(LPFilter::new(freq, q, src)),
-//                     _ => Err(EvalError::NotAPattern),
-//                 },
-//                 Ok(_v) => Err(EvalError::NotAug),
-//                 Err(err) => Err(err),
-//             },
-//             Ok(_v) => Err(EvalError::NotAug),
-//             Err(err) => Err(err),
-//         }
-//     } else {
-//         Err(EvalError::FnWrongParams(String::from("lpf"), args))
-//     }
-// }
-
+fn make_lpf(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
+    if args.len() == 3 {
+        match eval(&args[0], env) {
+            Ok(Value::Unit(freq)) => match eval(&args[1], env) {
+                Ok(Value::Unit(q)) => match eval(&args[2], env) {
+                    Ok(Value::Unit(src)) => Ok(LPFilter::new(freq, q, src)),
+                    _ => Err(EvalError::NotAPattern),
+                },
+                Ok(_v) => Err(EvalError::NotAug),
+                Err(err) => Err(err),
+            },
+            Ok(_v) => Err(EvalError::NotAug),
+            Err(err) => Err(err),
+        }
+    } else {
+        Err(EvalError::FnWrongParams(String::from("lpf"), args))
+    }
+}
 
 // fn make_delay(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
 //     if args.len() == 4 {
@@ -456,7 +455,7 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug,
         "adsr" => make_adsr_eg(args, env),
         "seq" => make_seq(args, env),
         // // fx
-        // "lpf" => make_lpf(args, env),
+        "lpf" => make_lpf(args, env),
         // "delay" => make_delay(args, env),
         // // for convinience
         "out" => make_out(args, env),
