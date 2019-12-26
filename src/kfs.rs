@@ -80,14 +80,14 @@ fn create_node(ino: u64, name: String, data: Vec<u8>, ftype: FileType) -> KotoNo
 
 impl KotoFS {
     pub fn init() -> KotoFS {
-        let mut attr = create_file(1000, 0, FileType::Directory);
+        let attr = create_file(1000, 0, FileType::Directory);
         let file = KotoNode {
             children: [].to_vec(), ug: UnitState::NotMapped,
             name: "/".to_string(), data: [].to_vec(), link: Path::new("").to_path_buf(),
             parent: None, attr: attr,
         };
         let dummy = Arc::new(Mutex::new(file));
-        let mut inodes = HashMap::new();
+        let inodes = HashMap::new();
         KotoFS { inodes: inodes, root: dummy, inode_count: 151 }
     }
 

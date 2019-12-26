@@ -76,7 +76,7 @@ pub fn dump_unit(dump: &UgNode, shared: &Vec<Aug>) -> String {
 
 
 pub fn dump(ug: Aug, env: &Env) -> String {
-    let mut shared_units = crate::ugen::util::collect_shared_ugs(ug.clone());
+    let shared_units = crate::ugen::util::collect_shared_ugs(ug.clone());
 
     let mut tlisp_str = String::new();
     tlisp_str.push_str(";; environment\n");
