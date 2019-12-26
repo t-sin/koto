@@ -6,8 +6,8 @@ use super::super::event::{Message, to_note, to_pos};
 use super::super::ugen::core::{UG, UGen, Aug, Proc, Osc, Eg, Table, Pattern};
 use super::super::ugen::misc::{Pan, Clip, Offset, Gain, Add, Multiply, Out};
 use super::super::ugen::osc::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
+use super::super::ugen::seq::{Trigger}; //, AdsrEg, Seq};
 // use super::super::units::effect::{LPFilter, Delay};
-// use super::super::units::sequencer::{Trigger, AdsrEg, Seq};
 
 use super::types::{Value, Env, EvalError};
 
@@ -299,26 +299,26 @@ fn make_wavetable(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError>
 //     }
 // }
 
-// fn make_trig(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
-//     if args.len() > 0 {
-//         // TODO: implement `(trig $eg $egs1 $egs2 ...)`
-//         let mut egs = Vec::<Aug>::new();
-//         for exp in &args[1..] {
-//             match eval(exp, env) {
-//                 Ok(Value::Unit(eg)) => egs.push(eg),
-//                 Ok(_v) => return Err(EvalError::NotAug),
-//                 _err => return Err(EvalError::FnWrongParams(String::from("trig"), args)),
-//             }
-//         }
-//         match eval(&args[0], env) {
-//             Ok(Value::Unit(eg)) => Ok(Trigger::new(eg, egs)),
-//             Ok(_v) => Err(EvalError::NotAug),
-//             _err => Err(EvalError::FnWrongParams(String::from("trig"), args)),
-//         }
-//     } else {
-//         Err(EvalError::FnWrongParams(String::from("trig"), args))
-//     }
-// }
+fn make_trig(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
+    if args.len() > 0 {
+        // TODO: implement `(trig $eg $egs1 $egs2 ...)`
+        let mut egs = Vec::<Aug>::new();
+        for exp in &args[1..] {
+            match eval(exp, env) {
+                Ok(Value::Unit(eg)) => egs.push(eg),
+                Ok(_v) => return Err(EvalError::NotAug),
+                _err => return Err(EvalError::FnWrongParams(String::from("trig"), args)),
+            }
+        }
+        match eval(&args[0], env) {
+            Ok(Value::Unit(eg)) => Ok(Trigger::new(eg, egs)),
+            Ok(_v) => Err(EvalError::NotAug),
+            _err => Err(EvalError::FnWrongParams(String::from("trig"), args)),
+        }
+    } else {
+        Err(EvalError::FnWrongParams(String::from("trig"), args))
+    }
+}
 
 // fn make_adsr_eg(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
 //     if args.len() == 4 {
@@ -452,7 +452,7 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug,
         "wavetable" => make_wavetable(args, env),
         // // sequencer
         // "pat" => make_pat(args, env),
-        // "trig" => make_trig(args, env),
+        "trig" => make_trig(args, env),
         // "adsr" => make_adsr_eg(args, env),
         // "seq" => make_seq(args, env),
         // // fx
