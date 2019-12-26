@@ -6,7 +6,7 @@ use super::super::event::{Message, to_note, to_pos};
 use super::super::ugen::core::{UG, UGen, Aug, Proc, Osc, Eg, Table, Pattern};
 use super::super::ugen::misc::{Pan, Clip, Offset, Gain, Add, Multiply, Out};
 use super::super::ugen::osc::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
-use super::super::ugen::seq::{Trigger}; //, AdsrEg, Seq};
+use super::super::ugen::seq::{Trigger, AdsrEg}; //, Seq};
 // use super::super::units::effect::{LPFilter, Delay};
 
 use super::types::{Value, Env, EvalError};
@@ -320,29 +320,29 @@ fn make_trig(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
     }
 }
 
-// fn make_adsr_eg(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
-//     if args.len() == 4 {
-//         match eval(&args[0], env) {
-//             Ok(Value::Unit(a)) => match eval(&args[1], env) {
-//                 Ok(Value::Unit(d)) => match eval(&args[2], env) {
-//                     Ok(Value::Unit(s)) => match eval(&args[3], env) {
-//                         Ok(Value::Unit(r)) => Ok(AdsrEg::new(a.clone(), d, s, r)),
-//                         Ok(_v) => Err(EvalError::NotAug),
-//                         _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
-//                     },
-//                     Ok(_v) => Err(EvalError::NotAug),
-//                     _err => Err(EvalError::FnWrongParams(String::from("adsr"), args))
-//                 },
-//                 Ok(_v) => Err(EvalError::NotAug),
-//                 _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
-//             },
-//             Ok(_v) => Err(EvalError::NotAug),
-//             _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
-//         }
-//     } else {
-//         Err(EvalError::FnWrongParams(String::from("asdr"), args))
-//     }
-// }
+fn make_adsr_eg(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
+    if args.len() == 4 {
+        match eval(&args[0], env) {
+            Ok(Value::Unit(a)) => match eval(&args[1], env) {
+                Ok(Value::Unit(d)) => match eval(&args[2], env) {
+                    Ok(Value::Unit(s)) => match eval(&args[3], env) {
+                        Ok(Value::Unit(r)) => Ok(AdsrEg::new(a.clone(), d, s, r)),
+                        Ok(_v) => Err(EvalError::NotAug),
+                        _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
+                    },
+                    Ok(_v) => Err(EvalError::NotAug),
+                    _err => Err(EvalError::FnWrongParams(String::from("adsr"), args))
+                },
+                Ok(_v) => Err(EvalError::NotAug),
+                _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
+            },
+            Ok(_v) => Err(EvalError::NotAug),
+            _err => Err(EvalError::FnWrongParams(String::from("adsr"), args)),
+        }
+    } else {
+        Err(EvalError::FnWrongParams(String::from("asdr"), args))
+    }
+}
 
 // fn make_seq(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
 //     if args.len() == 3 {
@@ -453,7 +453,7 @@ pub fn make_unit(name: &str, args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug,
         // // sequencer
         // "pat" => make_pat(args, env),
         "trig" => make_trig(args, env),
-        // "adsr" => make_adsr_eg(args, env),
+        "adsr" => make_adsr_eg(args, env),
         // "seq" => make_seq(args, env),
         // // fx
         // "lpf" => make_lpf(args, env),
