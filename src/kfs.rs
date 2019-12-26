@@ -17,17 +17,16 @@ use super::ugen::core::{Aug, Dump, UgNode, Value};
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 
 #[derive(Clone)]
-pub enum UnitState {
+pub enum UgenState {
     NotMapped,
-    Value(Value),
-    Ug(Aug),
+    Mapped(Aug),
 }
 
 #[derive(Clone)]
 pub struct KotoNode {
     // if parent is None, it'a a root.
     pub parent: Option<Arc<Mutex<KotoNode>>>,
-    pub ug: UnitState,
+    pub ug: UgenState,
     pub children: Vec<Arc<Mutex<KotoNode>>>,
     pub name: String,
     pub data: Vec<u8>,
@@ -85,7 +84,7 @@ fn create_node(ino: u64, name: String, data: Vec<u8>, ftype: FileType) -> KotoNo
         children: Vec::new(),
         parent: None,
         link: Path::new("").to_path_buf(),
-        ug: UnitState::NotMapped,
+        ug: UgenState::NotMapped,
         name: name,
         data: data,
         attr: attr,
@@ -97,7 +96,7 @@ impl KotoFS {
         let attr = create_file(1000, 0, FileType::Directory);
         let file = KotoNode {
             children: [].to_vec(),
-            ug: UnitState::NotMapped,
+            ug: UgenState::NotMapped,
             name: "/".to_string(),
             data: [].to_vec(),
             link: Path::new("").to_path_buf(),
@@ -122,6 +121,7 @@ impl KotoFS {
     fn build_node_from_value(
         &mut self,
         v: Value,
+        ug: Aug,
         parent: Arc<Mutex<KotoNode>>,
         shared: &Vec<Aug>,
     ) -> Arc<Mutex<KotoNode>> {
@@ -131,7 +131,7 @@ impl KotoFS {
                 let node = KotoNode {
                     parent: Some(parent),
                     children: [].to_vec(),
-                    ug: UnitState::Value(Value::Number(n)),
+                    ug: UgenState::Mapped(ug.clone()),
                     data: n.to_string().into_bytes(),
                     name: "val".to_string(),
                     link: Path::new("").to_path_buf(),
@@ -150,7 +150,7 @@ impl KotoFS {
                 let node = KotoNode {
                     parent: Some(parent),
                     children: [].to_vec(),
-                    ug: UnitState::Value(Value::Table(vec)),
+                    ug: UgenState::Mapped(ug.clone()),
                     data: tab.into_bytes(),
                     name: "tab".to_string(),
                     link: Path::new("").to_path_buf(),
@@ -169,7 +169,7 @@ impl KotoFS {
                 let node = KotoNode {
                     parent: Some(parent),
                     children: [].to_vec(),
-                    ug: UnitState::Value(Value::Pattern(vec)),
+                    ug: UgenState::Mapped(ug.clone()),
                     data: pat.into_bytes(),
                     name: "pat".to_string(),
                     link: Path::new("").to_path_buf(),
@@ -178,14 +178,14 @@ impl KotoFS {
                 Arc::new(Mutex::new(node))
             }
             Value::Ug(aug) => {
-                // TODO: UnitState::Mapped(aug.dump(shared))
+                // TODO: UgenState::Mapped(aug.dump(shared))
                 self.build_node(aug.clone(), parent, shared)
             }
             Value::Shared(_, aug) => {
                 let node = KotoNode {
                     parent: Some(parent),
                     children: [].to_vec(),
-                    ug: UnitState::Ug(aug.clone()),
+                    ug: UgenState::Mapped(aug.clone()),
                     data: [].to_vec(),
                     name: "shared".to_string(),
                     link: Path::new("/").to_path_buf(),
@@ -205,7 +205,7 @@ impl KotoFS {
         let ug_node = ug.dump(shared);
         match ug_node {
             UgNode::Val(v) => {
-                let node = self.build_node_from_value(v, parent, shared);
+                let node = self.build_node_from_value(v, ug.clone(), parent, shared);
                 self.inodes
                     .insert(node.lock().unwrap().attr.ino, node.clone());
                 node
@@ -214,7 +214,7 @@ impl KotoFS {
                 let node = Arc::new(Mutex::new(KotoNode {
                     parent: Some(parent),
                     children: [].to_vec(),
-                    ug: UnitState::Ug(ug.clone()),
+                    ug: UgenState::Mapped(ug.clone()),
                     data: [].to_vec(),
                     name: name,
                     link: Path::new("").to_path_buf(),
@@ -224,7 +224,12 @@ impl KotoFS {
                     .insert(node.lock().unwrap().attr.ino, node.clone());
 
                 for s in slots.iter() {
-                    let child = self.build_node_from_value(s.value.clone(), node.clone(), shared);
+                    let child = self.build_node_from_value(
+                        s.value.clone(),
+                        ug.clone(),
+                        node.clone(),
+                        shared,
+                    );
                     let name = child.lock().unwrap().name.clone();
                     child.lock().unwrap().name = format!("{}.{}", s.name.clone(), name);
                     node.lock().unwrap().children.push(child.clone());
@@ -237,7 +242,7 @@ impl KotoFS {
                 let node = Arc::new(Mutex::new(KotoNode {
                     parent: Some(parent),
                     children: [].to_vec(),
-                    ug: UnitState::Ug(ug.clone()),
+                    ug: UgenState::Mapped(ug.clone()),
                     data: [].to_vec(),
                     name: name,
                     link: Path::new("").to_path_buf(),
@@ -247,7 +252,12 @@ impl KotoFS {
                     .insert(node.lock().unwrap().attr.ino, node.clone());
 
                 for s in slots.iter() {
-                    let child = self.build_node_from_value(s.value.clone(), node.clone(), shared);
+                    let child = self.build_node_from_value(
+                        s.value.clone(),
+                        ug.clone(),
+                        node.clone(),
+                        shared,
+                    );
                     let name = child.lock().unwrap().name.clone();
                     child.lock().unwrap().name = format!("{}.{}", s.name.clone(), name);
                     node.lock().unwrap().children.push(child.clone());
@@ -255,7 +265,8 @@ impl KotoFS {
                         .insert(child.lock().unwrap().attr.ino, child.clone());
                 }
                 for (i, v) in values.iter().enumerate() {
-                    let child = self.build_node_from_value(*v.clone(), node.clone(), shared);
+                    let child =
+                        self.build_node_from_value(*v.clone(), ug.clone(), node.clone(), shared);
                     let name = child.lock().unwrap().name.clone();
                     child.lock().unwrap().name = format!("{}{}.{}", basename, i, name);
                     node.lock().unwrap().children.push(child.clone());
