@@ -37,7 +37,7 @@ pub fn dump_value(v: &Value, shared: &Vec<Aug>) -> String {
         Value::Table(vals) => dump_table(&"table".to_string(), vals),
         Value::Pattern(pat) => dump_list(&"pat".to_string(), pat),
         Value::Ug(ug) => dump_unit(&ug.dump(shared), shared),
-        Value::Shared(n, aug) => format!("shared-{}", n),
+        Value::Shared(n, _aug) => format!("shared-{}", n),
     }
 }
 

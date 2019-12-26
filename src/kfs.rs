@@ -211,7 +211,7 @@ impl KotoFS {
         }
     }
 
-    pub fn sync_ug(&mut self, ino: u64) {
+    pub fn sync_ug(&mut self, _ino: u64) {
     }
 
     pub fn mount(self, mountpoint: OsString) {
