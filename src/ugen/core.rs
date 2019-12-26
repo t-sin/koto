@@ -29,7 +29,7 @@ pub struct Slot {
 pub enum UgNode {
     Val(Value),
     Ug(OpName, Vec<Slot>),
-    UgRest(OpName, Vec<Slot>, Vec<Box<Value>>),
+    UgRest(OpName, Vec<Slot>, String, Vec<Box<Value>>),
 }
 
 pub trait Dump: Walk {

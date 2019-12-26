@@ -171,7 +171,7 @@ impl KotoFS {
                 }
                 node
             },
-            UgNode::UgRest(name, slots, values) => {
+            UgNode::UgRest(name, slots, basename, values) => {
                 let node = Arc::new(Mutex::new(KotoNode {
                     parent: Some(parent), children: [].to_vec(),
                     ug: UnitState::Ug(ug.clone()), data: [].to_vec(),
@@ -188,7 +188,7 @@ impl KotoFS {
                 }
                 for (i, v) in values.iter().enumerate() {
                     let child = self.build_node_from_value(*v.clone(), node.clone(), shared);
-                    child.lock().unwrap().name = format!("{}-{}", "val", i);
+                    child.lock().unwrap().name = format!("{}{}", basename, i);
                     node.lock().unwrap().children.push(child.clone());
                     self.inodes.insert(child.lock().unwrap().attr.ino, child.clone());
                 }

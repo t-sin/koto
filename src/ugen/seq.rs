@@ -55,7 +55,7 @@ impl Dump for Trigger {
             });
         }
 
-        UgNode::UgRest("trig".to_string(), slots, values)
+        UgNode::UgRest("trig".to_string(), slots, "src".to_string(), values)
     }
 }
 

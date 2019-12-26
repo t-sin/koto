@@ -73,7 +73,7 @@ pub fn dump_unit(dump: &UgNode, shared: &Vec<Aug>) -> String {
     match dump {
         UgNode::Val(v) => dump_value(v, shared),
         UgNode::Ug(name, slots) => dump_ug(&name, slots, &Vec::new(), shared),
-        UgNode::UgRest(name, slots, values) => dump_ug(&name, slots, values, shared),
+        UgNode::UgRest(name, slots, _, values) => dump_ug(&name, slots, values, shared),
     }
 }
 

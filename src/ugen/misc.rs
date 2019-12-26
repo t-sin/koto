@@ -237,7 +237,7 @@ impl Dump for Add {
                 None => values.push(Box::new(Value::Ug(u.clone()))),
             };
         }
-        UgNode::UgRest("+".to_string(), Vec::new(), values)
+        UgNode::UgRest("+".to_string(), Vec::new(), "src".to_string(), values)
     }
 }
 
@@ -285,7 +285,7 @@ impl Dump for Multiply {
             };
         }
 
-        UgNode::UgRest("*".to_string(), Vec::new(), values)
+        UgNode::UgRest("*".to_string(), Vec::new(), "".to_string(), values)
     }
 }
 
@@ -339,7 +339,7 @@ impl Dump for Out {
                 None => values.push(Box::new(Value::Ug(u.clone()))),
             }
         }
-        UgNode::UgRest("out".to_string(), slots, values)
+        UgNode::UgRest("out".to_string(), slots, "src".to_string(), values)
     }
 }
 
