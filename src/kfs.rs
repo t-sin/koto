@@ -149,7 +149,6 @@ impl KotoFS {
         let ug_node = ug.dump(shared);
         match ug_node {
             UgNode::Val(v) => {
-                println!("ﾄｩﾙｯﾄｩﾄｩﾙｯﾄｩﾙｯ ﾜｯﾌｰ!");
                 let node = self.build_node_from_value(v, parent, shared);
                 self.inodes.insert(node.lock().unwrap().attr.ino, node.clone());
                 node
