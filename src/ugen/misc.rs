@@ -297,7 +297,7 @@ impl Dump for Multiply {
             };
         }
 
-        UgNode::UgRest("*".to_string(), Vec::new(), "".to_string(), values)
+        UgNode::UgRest("*".to_string(), Vec::new(), "src".to_string(), values)
     }
 }
 
