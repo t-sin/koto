@@ -152,14 +152,21 @@ impl KotoFS {
                 Arc::new(Mutex::new(node))
             }
             Value::Pattern(vec) => {
+                let mut pat = String::new();
+                for note in &vec {
+                    pat.push_str(&note);
+                    pat.push_str(" ");
+                }
+                pat.push_str("\n");
+                let len = pat.len() as u64;
                 let node = KotoNode {
                     parent: Some(parent),
                     children: [].to_vec(),
                     ug: UnitState::Value(Value::Pattern(vec)),
-                    data: "pattern".to_string().into_bytes(),
+                    data: pat.into_bytes(),
                     name: "pat".to_string(),
                     link: Path::new("").to_path_buf(),
-                    attr: create_file(self.inode(), 0, FileType::RegularFile),
+                    attr: create_file(self.inode(), len, FileType::RegularFile),
                 };
                 Arc::new(Mutex::new(node))
             }
