@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use super::super::sexp::{Cons, print, to_vec};
 use super::super::event::{Message, to_note, to_pos};
 
-use super::super::ugen::core::{UG, UGen, Aug, Proc, Osc, Eg, Table, Pattern};
+use super::super::ugen::core::{UG, UGen, Aug, Table, Pattern};
 use super::super::ugen::misc::{Pan, Clip, Offset, Gain, Add, Multiply, Out};
 use super::super::ugen::osc::{Rand, Sine, Tri, Saw, Pulse, Phase, WaveTable};
 use super::super::ugen::seq::{Trigger, AdsrEg, Seq};

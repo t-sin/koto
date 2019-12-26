@@ -1,10 +1,9 @@
-use std::collections::{HashMap, VecDeque};
-use std::sync::Arc;
+use std::collections::VecDeque;
 
 use super::super::mtime::Time;
 use super::super::tapirlisp::types::Env;
 
-use super::core::{Signal, UgNode, Value, Slot, Dump, Walk, UG, UGen, Aug, Proc, Osc, Table};
+use super::core::{Signal, UgNode, Value, Slot, Dump, Walk, UG, UGen, Aug, Proc};
 
 
 pub struct LPFilter {

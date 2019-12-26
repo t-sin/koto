@@ -12,7 +12,7 @@ use fuse::{
     ReplyWrite, ReplyData, ReplyEmpty
 };
 
-use super::ugen::core::{Aug, UgNode, Slot, Value, Dump};
+use super::ugen::core::{Aug, UgNode, Value, Dump};
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 

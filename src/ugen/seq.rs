@@ -1,11 +1,9 @@
-use std::collections::HashMap;
 use std::collections::VecDeque;
-use std::sync::Arc;
 
 use super::super::mtime::{Time, Pos, PosOps, Measure};
 use super::super::event::{Event, Message, Pitch, to_freq};
 
-use super::core::{Signal, UgNode, Value, Slot, Dump, Walk, UG, UGen, Aug, Proc, Osc, ADSR, Eg, Table};
+use super::core::{Signal, UgNode, Value, Slot, Dump, Walk, UG, UGen, Aug, Proc, ADSR, Eg};
 
 pub struct Trigger {
     eg: Aug,

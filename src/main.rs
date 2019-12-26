@@ -16,7 +16,6 @@ mod kfs;
 
 use std::fs::File;
 use std::ffi::OsString;
-use std::io;
 use std::io::prelude::*;
 
 use audiodevice::AudioDevice;

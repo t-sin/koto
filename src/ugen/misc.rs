@@ -1,8 +1,5 @@
 extern crate num;
 
-use std::collections::HashMap;
-use std::sync::Arc;
-
 use super::super::mtime::Time;
 use super::core::{Signal, UgNode, Slot, Value, Dump, Walk, UG, UGen, Aug, Proc};
 

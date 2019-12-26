@@ -1,7 +1,4 @@
-use std::collections::HashMap;
-use std::sync::Arc;
-
-use super::super::ugen::core::{Walk, UgNode, Slot, Value, Dump, Aug};
+use super::super::ugen::core::{UgNode, Slot, Value, Dump, Aug};
 use super::types::Env;
 
 fn dump_table(name: &String, vec: &Vec<f64>) -> String {
