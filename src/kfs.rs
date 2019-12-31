@@ -11,7 +11,7 @@ use fuse::{
     ReplyEntry, ReplyWrite, Request,
 };
 
-use super::ugen::core::{Aug, Dump, UgNode, Value};
+use super::ugen::core::{Aug, Dump, Setv, UgNode, Value};
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 
@@ -151,8 +151,8 @@ impl KotoFS {
                 node
             }
             Value::Ug(aug) => {
-                // TODO: UgenState::Mapped(aug.dump(shared))
-                self.build_node(aug.clone(), Some(parent), shared)
+                let node = self.build_node(aug.clone(), Some(parent), shared);
+                node
             }
             Value::Shared(_, aug) => {
                 let node = Arc::new(Mutex::new(KotoNode {
@@ -201,6 +201,7 @@ impl KotoFS {
                         node.clone(),
                         shared,
                     );
+                    node.lock().unwrap().name = s.name.clone();
                     let newname =
                         format!("{}.{}", s.name.clone(), child.lock().unwrap().name.clone());
                     node.lock().unwrap().children.push((newname, child.clone()));
@@ -228,22 +229,55 @@ impl KotoFS {
                         node.clone(),
                         shared,
                     );
-                    let newname =
-                        format!("{}.{}", s.name.clone(), child.lock().unwrap().name.clone());
-                    node.lock().unwrap().children.push((newname, child.clone()));
+                    let typename = child.lock().unwrap().name.clone();
+                    child.lock().unwrap().name = s.name.clone();
+                    let nodename = format!("{}.{}", s.name.clone(), typename);
+                    node.lock()
+                        .unwrap()
+                        .children
+                        .push((nodename, child.clone()));
                     self.inodes
                         .insert(child.lock().unwrap().attr.ino, child.clone());
                 }
                 for (i, v) in values.iter().enumerate() {
                     let child =
                         self.build_node_from_value(*v.clone(), ug.clone(), node.clone(), shared);
-                    let newname =
-                        format!("{}{}.{}", basename, i, child.lock().unwrap().name.clone());
-                    node.lock().unwrap().children.push((newname, child.clone()));
+                    let typename = child.lock().unwrap().name.clone();
+                    child.lock().unwrap().name = format!("{}{}", basename, i);
+                    let nodename = format!(
+                        "{}.{}",
+                        child.lock().unwrap().name.clone(),
+                        typename.clone()
+                    );
+                    node.lock()
+                        .unwrap()
+                        .children
+                        .push((nodename, child.clone()));
                     self.inodes
                         .insert(child.lock().unwrap().attr.ino, child.clone());
                 }
                 node
+            }
+        }
+    }
+
+    pub fn sync_ug(&mut self, ino: u64) {
+        if let Some(node) = self.inodes.get(&ino) {
+            let name = node.lock().unwrap().name.clone();
+            println!("sync Aug named as {:?}", name);
+            let data: String =
+                if let Ok(data) = String::from_utf8(node.lock().unwrap().data.clone()) {
+                    data.clone()
+                } else {
+                    panic!("invalid data for ino:{}", ino);
+                };
+
+            if let Ugen::Mapped(ref mut aug) = &mut node.lock().unwrap().ug {
+                let shared_ug = crate::ugen::util::collect_shared_ugs(aug.clone());
+                aug.setv(&name, data.clone(), &shared_ug);
+                println!("set {:?} to {:?}", data, name);
+            } else {
+                println!("ooo not mapped...");
             }
         }
     }
@@ -253,7 +287,7 @@ impl KotoFS {
         let mut fs = KotoFS {
             inodes: inodes,
             root: Arc::new(Mutex::new(KotoNode {
-                ug: UgenState::NotMapped,
+                ug: Ugen::NotMapped,
                 parent: None,
                 children: Vec::new(),
                 name: "".to_string(),
@@ -275,8 +309,6 @@ impl KotoFS {
         }
         fs
     }
-
-    pub fn sync_ug(&mut self, _ino: u64) {}
 
     pub fn mount(self, mountpoint: OsString) {
         fuse::mount(self, &mountpoint, &[]).expect(&format!("fail mount() with {:?}", mountpoint));
@@ -360,7 +392,7 @@ impl Filesystem for KotoFS {
 
         if let Some(parent_node) = self.inodes.get(&parent) {
             let name = name.to_str().unwrap().to_string();
-            let mut node = create_node(ino, name.clone(), [].to_vec(), FileType::RegularFile);
+            let node = create_node(ino, name.clone(), [].to_vec(), FileType::RegularFile);
 
             let node = Arc::new(Mutex::new(node));
             node.lock().unwrap().parent = Some(parent_node.clone());
@@ -467,6 +499,7 @@ impl Filesystem for KotoFS {
                 n.lock().unwrap().data.append(&mut data.to_vec());
             }
         }
+        self.sync_ug(ino);
         reply.written(length as u32);
     }
 
