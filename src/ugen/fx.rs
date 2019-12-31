@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use super::super::mtime::Time;
 use super::super::tapirlisp::types::Env;
 
-use super::core::{Aug, Dump, Proc, Signal, Slot, UGen, UgNode, Value, Walk, UG};
+use super::core::{Aug, Dump, Proc, Setv, Signal, Slot, UGen, UgNode, Value, Walk, UG};
 
 pub struct LPFilter {
     inbuf: [Signal; 2],
@@ -67,6 +67,10 @@ impl Dump for LPFilter {
 
         UgNode::Ug("lpf".to_string(), slots)
     }
+}
+
+impl Setv for LPFilter {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
 }
 
 impl Proc for LPFilter {
@@ -186,6 +190,10 @@ impl Dump for Delay {
 
         UgNode::Ug("delay".to_string(), slots)
     }
+}
+
+impl Setv for Delay {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
 }
 
 // TODO: factor out; same function is in `sequencer.rs`

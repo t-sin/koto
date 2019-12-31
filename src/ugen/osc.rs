@@ -2,7 +2,7 @@ use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
 use super::super::mtime::{Clock, Pos, Time};
-use super::core::{Aug, Dump, Osc, Proc, Signal, Slot, Table, UGen, UgNode, Value, Walk, UG};
+use super::core::{Aug, Dump, Osc, Proc, Setv, Signal, Slot, Table, UGen, UgNode, Value, Walk, UG};
 use super::misc::{Clip, Gain, Offset};
 
 pub struct Rand {
@@ -33,6 +33,10 @@ impl Dump for Rand {
         });
         UgNode::Ug("rand".to_string(), slots)
     }
+}
+
+impl Setv for Rand {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
 }
 
 impl Proc for Rand {
@@ -94,6 +98,10 @@ impl Dump for Sine {
 
         UgNode::Ug("sine".to_string(), slots)
     }
+}
+
+impl Setv for Sine {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
 }
 
 impl Proc for Sine {
@@ -161,6 +169,10 @@ impl Dump for Tri {
 
         UgNode::Ug("tri".to_string(), slots)
     }
+}
+
+impl Setv for Tri {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
 }
 
 impl Proc for Tri {
@@ -237,6 +249,10 @@ impl Dump for Saw {
 
         UgNode::Ug("saw".to_string(), slots)
     }
+}
+
+impl Setv for Saw {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
 }
 
 impl Proc for Saw {
@@ -324,6 +340,10 @@ impl Dump for Pulse {
     }
 }
 
+impl Setv for Pulse {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+}
+
 impl Proc for Pulse {
     fn proc(&mut self, time: &Time) -> Signal {
         let ph = self.init_ph.proc(&time).0 + self.ph;
@@ -384,6 +404,10 @@ impl Dump for Phase {
 
         UgNode::Ug("phase".to_string(), slots)
     }
+}
+
+impl Setv for Phase {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
 }
 
 impl Proc for Phase {
@@ -478,6 +502,10 @@ impl Dump for WaveTable {
 
         UgNode::Ug("wavetable".to_string(), slots)
     }
+}
+
+impl Setv for WaveTable {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
 }
 
 impl Proc for WaveTable {

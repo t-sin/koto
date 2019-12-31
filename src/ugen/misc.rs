@@ -1,7 +1,7 @@
 extern crate num;
 
 use super::super::mtime::Time;
-use super::core::{Aug, Dump, Proc, Signal, Slot, UGen, UgNode, Value, Walk, UG};
+use super::core::{Aug, Dump, Proc, Setv, Signal, Slot, UGen, UgNode, Value, Walk, UG};
 
 pub struct Pan {
     pub v: Aug,
@@ -46,6 +46,10 @@ impl Dump for Pan {
 
         UgNode::Ug("pan".to_string(), slots)
     }
+}
+
+impl Setv for Pan {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
 }
 
 impl Proc for Pan {
@@ -111,6 +115,10 @@ impl Dump for Clip {
     }
 }
 
+impl Setv for Clip {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+}
+
 impl Proc for Clip {
     fn proc(&mut self, time: &Time) -> Signal {
         let (l, r) = self.src.proc(&time);
@@ -160,6 +168,10 @@ impl Dump for Offset {
     }
 }
 
+impl Setv for Offset {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+}
+
 impl Proc for Offset {
     fn proc(&mut self, time: &Time) -> Signal {
         let (l, r) = self.src.proc(&time);
@@ -206,6 +218,10 @@ impl Dump for Gain {
     }
 }
 
+impl Setv for Gain {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+}
+
 impl Proc for Gain {
     fn proc(&mut self, time: &Time) -> Signal {
         let (l, r) = self.src.proc(&time);
@@ -248,6 +264,10 @@ impl Dump for Add {
         }
         UgNode::UgRest("+".to_string(), Vec::new(), "src".to_string(), values)
     }
+}
+
+impl Setv for Add {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
 }
 
 impl Proc for Add {
@@ -299,6 +319,10 @@ impl Dump for Multiply {
 
         UgNode::UgRest("*".to_string(), Vec::new(), "src".to_string(), values)
     }
+}
+
+impl Setv for Multiply {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
 }
 
 impl Proc for Multiply {
@@ -358,6 +382,23 @@ impl Dump for Out {
             }
         }
         UgNode::UgRest("out".to_string(), slots, "src".to_string(), values)
+    }
+}
+
+impl Setv for Out {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {
+        match pname {
+            "v" => {
+                let mut vol = data.clone();
+                vol.retain(|c| c != '\n');
+                if let Ok(vol) = vol.parse::<f64>() {
+                    self.vol = vol;
+                } else {
+                    println!("error while parsing out.vol");
+                }
+            }
+            _ => (),
+        }
     }
 }
 

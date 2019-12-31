@@ -36,9 +36,13 @@ pub trait Dump: Walk {
     fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode;
 }
 
+pub trait Setv: Dump {
+    fn setv(&mut self, pname: &str, data: String, shared_ug: &Vec<Aug>);
+}
+
 pub type Signal = (f64, f64);
 
-pub trait Proc: Dump {
+pub trait Proc: Setv {
     fn proc(&mut self, time: &Time) -> Signal;
 }
 
@@ -161,6 +165,10 @@ impl Dump for UG {
     }
 }
 
+impl Setv for UG {
+    fn setv(&mut self, pname: &str, data: String, shared_ug: &Vec<Aug>) {}
+}
+
 impl Proc for UG {
     fn proc(&mut self, time: &Time) -> Signal {
         match self {
@@ -217,6 +225,27 @@ impl Dump for UGen {
     }
 }
 
+impl Setv for UGen {
+    fn setv(&mut self, pname: &str, data: String, shared_ug: &Vec<Aug>) {
+        match &mut self.ug {
+            UG::Val(v) => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.ug = UG::Val(v);
+                } else {
+                    panic!("cannot parse {:?}", data);
+                }
+            }
+            UG::Proc(u) => {
+                u.setv(pname, data, shared_ug);
+            }
+            UG::Osc(u) => (),
+            UG::Eg(u) => (),
+            UG::Tab(_) => (),
+            UG::Pat(_) => (),
+        }
+    }
+}
+
 impl Proc for UGen {
     fn proc(&mut self, time: &Time) -> Signal {
         if self.last_tick == time.tick {
@@ -268,6 +297,11 @@ impl Dump for Aug {
     }
 }
 
+impl Setv for Aug {
+    fn setv(&mut self, pname: &str, data: String, shared_ug: &Vec<Aug>) {
+        self.0.lock().unwrap().setv(pname, data, shared_ug);
+    }
+}
 impl Proc for Aug {
     fn proc(&mut self, time: &Time) -> Signal {
         self.0.lock().unwrap().proc(time)

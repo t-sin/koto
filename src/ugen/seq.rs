@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use super::super::event::{to_freq, Event, Message, Pitch};
 use super::super::mtime::{Measure, Pos, PosOps, Time};
 
-use super::core::{Aug, Dump, Eg, Proc, Signal, Slot, UGen, UgNode, Value, Walk, ADSR, UG};
+use super::core::{Aug, Dump, Eg, Proc, Setv, Signal, Slot, UGen, UgNode, Value, Walk, ADSR, UG};
 
 pub struct Trigger {
     eg: Aug,
@@ -51,6 +51,10 @@ impl Dump for Trigger {
 
         UgNode::UgRest("trig".to_string(), slots, "src".to_string(), values)
     }
+}
+
+impl Setv for Trigger {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
 }
 
 impl Proc for Trigger {
@@ -153,6 +157,10 @@ impl Dump for AdsrEg {
 
         UgNode::Ug("adsr".to_string(), slots)
     }
+}
+
+impl Setv for AdsrEg {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
 }
 
 impl Proc for AdsrEg {
@@ -303,6 +311,10 @@ impl Dump for Seq {
 
         UgNode::Ug("seq".to_string(), slots)
     }
+}
+
+impl Setv for Seq {
+    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
 }
 
 impl Proc for Seq {
