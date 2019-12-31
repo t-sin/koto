@@ -25,7 +25,7 @@ pub enum UgenState {
 pub struct KotoNode {
     pub ug: UgenState,
     pub parent: Option<Arc<Mutex<KotoNode>>>,
-    pub children: Vec<Arc<Mutex<KotoNode>>>,
+    pub children: Vec<(String, Arc<Mutex<KotoNode>>)>,
     pub name: String,
     pub data: Vec<u8>,
     pub attr: FileAttr,
@@ -201,9 +201,9 @@ impl KotoFS {
                         node.clone(),
                         shared,
                     );
-                    let name = child.lock().unwrap().name.clone();
-                    child.lock().unwrap().name = format!("{}.{}", s.name.clone(), name);
-                    node.lock().unwrap().children.push(child.clone());
+                    let newname =
+                        format!("{}.{}", s.name.clone(), child.lock().unwrap().name.clone());
+                    node.lock().unwrap().children.push((newname, child.clone()));
                     self.inodes
                         .insert(child.lock().unwrap().attr.ino, child.clone());
                 }
@@ -228,18 +228,18 @@ impl KotoFS {
                         node.clone(),
                         shared,
                     );
-                    let name = child.lock().unwrap().name.clone();
-                    child.lock().unwrap().name = format!("{}.{}", s.name.clone(), name);
-                    node.lock().unwrap().children.push(child.clone());
+                    let newname =
+                        format!("{}.{}", s.name.clone(), child.lock().unwrap().name.clone());
+                    node.lock().unwrap().children.push((newname, child.clone()));
                     self.inodes
                         .insert(child.lock().unwrap().attr.ino, child.clone());
                 }
                 for (i, v) in values.iter().enumerate() {
                     let child =
                         self.build_node_from_value(*v.clone(), ug.clone(), node.clone(), shared);
-                    let name = child.lock().unwrap().name.clone();
-                    child.lock().unwrap().name = format!("{}{}.{}", basename, i, name);
-                    node.lock().unwrap().children.push(child.clone());
+                    let newname =
+                        format!("{}{}.{}", basename, i, child.lock().unwrap().name.clone());
+                    node.lock().unwrap().children.push((newname, child.clone()));
                     self.inodes
                         .insert(child.lock().unwrap().attr.ino, child.clone());
                 }
@@ -320,9 +320,8 @@ impl Filesystem for KotoFS {
             );
             let mut reply_add_offset = 2;
 
-            for n in parent.lock().unwrap().children.iter() {
-                let attr = n.lock().unwrap().attr;
-                let name = n.lock().unwrap().name.to_string();
+            for (name, node) in parent.lock().unwrap().children.iter() {
+                let attr = node.lock().unwrap().attr;
                 reply.add(attr.ino, reply_add_offset, attr.kind, name);
                 reply_add_offset += 1;
             }
@@ -337,7 +336,7 @@ impl Filesystem for KotoFS {
             let children = &mut parent_node.lock().unwrap().children;
             let name = name.to_str().unwrap().to_string();
 
-            if let Some(node) = children.iter().find(|n| n.lock().unwrap().name == name) {
+            if let Some((_, node)) = children.iter().find(|(nodename, _)| nodename == &name) {
                 let attr = node.lock().unwrap().attr;
                 reply.entry(&TTL, &attr, 0);
                 return;
@@ -361,11 +360,15 @@ impl Filesystem for KotoFS {
 
         if let Some(parent_node) = self.inodes.get(&parent) {
             let name = name.to_str().unwrap().to_string();
-            let mut node = create_node(ino, name, [].to_vec(), FileType::RegularFile);
+            let mut node = create_node(ino, name.clone(), [].to_vec(), FileType::RegularFile);
 
             let node = Arc::new(Mutex::new(node));
             node.lock().unwrap().parent = Some(parent_node.clone());
-            parent_node.lock().unwrap().children.push(node.clone());
+            parent_node
+                .lock()
+                .unwrap()
+                .children
+                .push((name, node.clone()));
             self.inodes
                 .insert(node.lock().unwrap().attr.ino, node.clone());
             reply.created(&TTL, &node.lock().unwrap().attr, 0, 0, 0);
@@ -401,11 +404,15 @@ impl Filesystem for KotoFS {
         let ino = self.inode();
         if let Some(parent_node) = self.inodes.get(&parent) {
             let name = name.to_str().unwrap().to_string();
-            let mut node = create_node(ino, name, [].to_vec(), FileType::Directory);
+            let mut node = create_node(ino, name.clone(), [].to_vec(), FileType::Directory);
             node.parent = Some(parent_node.clone());
 
             let node = Arc::new(Mutex::new(node));
-            parent_node.lock().unwrap().children.push(node.clone());
+            parent_node
+                .lock()
+                .unwrap()
+                .children
+                .push((name, node.clone()));
             self.inodes
                 .insert(node.lock().unwrap().attr.ino, node.clone());
             reply.entry(&TTL, &node.lock().unwrap().attr, 0);
@@ -430,10 +437,7 @@ impl Filesystem for KotoFS {
         if let Some(parent_node) = self.inodes.get(&parent) {
             let children = &parent_node.lock().unwrap().children;
             let old_name = name.to_str().unwrap();
-            if let Some(node) = children
-                .iter()
-                .find(|n| &n.lock().unwrap().name == old_name)
-            {
+            if let Some((_, node)) = children.iter().find(|(nodename, _)| nodename == &old_name) {
                 node.lock().unwrap().name = newname.to_str().unwrap().to_string();
                 reply.ok();
                 return;
@@ -489,6 +493,31 @@ impl Filesystem for KotoFS {
         }
     }
 
+    fn link(
+        &mut self,
+        _req: &Request,
+        ino: u64,
+        newparent: u64,
+        newname: &OsStr,
+        reply: ReplyEntry,
+    ) {
+        println!("link() {:?}", newname);
+
+        if let Some(node) = self.inodes.get(&ino) {
+            if let Some(parent) = self.inodes.get(&newparent) {
+                let attr = node.lock().unwrap().attr;
+                parent
+                    .lock()
+                    .unwrap()
+                    .children
+                    .push((newname.to_str().unwrap().to_string(), node.clone()));
+                reply.entry(&TTL, &attr, 0);
+                return;
+            }
+        }
+        reply.error(ENOENT);
+    }
+
     fn unlink(&mut self, _req: &Request, parent: u64, name: &OsStr, reply: ReplyEmpty) {
         println!("unlink() {:?}", name);
         let mut inode = None;
@@ -497,8 +526,8 @@ impl Filesystem for KotoFS {
             let children = &mut parent_node.lock().unwrap().children;
             let name = name.to_str().unwrap().to_string();
 
-            if let Some(pos) = children.iter().position(|n| n.lock().unwrap().name == name) {
-                let node = &children[pos];
+            if let Some(pos) = children.iter().position(|(nodename, _)| nodename == &name) {
+                let (_, node) = &children[pos];
                 inode = Some(node.lock().unwrap().attr.ino);
                 children.remove(pos);
             }
