@@ -431,7 +431,7 @@ impl Setv for Out {
         match pname {
             "vol" => {
                 let mut vol = data.clone();
-                vol.retain(|c| c != '\n');
+                vol.retain(|c| c != '\n' && c != ' ');
                 if let Ok(vol) = vol.parse::<f64>() {
                     self.vol = Aug::val(vol);
                 } else {

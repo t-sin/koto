@@ -231,7 +231,9 @@ impl Setv for UGen {
     fn setv(&mut self, pname: &str, data: String, shared_ug: &Vec<Aug>) {
         match &mut self.ug {
             UG::Val(v) => {
-                if let Ok(v) = data.parse::<f64>() {
+                let mut val = data.clone();
+                val.retain(|c| c != '\n' && c != ' ');
+                if let Ok(v) = val.parse::<f64>() {
                     self.ug = UG::Val(v);
                 } else {
                     panic!("cannot parse {:?}", data);
