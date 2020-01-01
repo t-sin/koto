@@ -44,6 +44,7 @@ impl Dump for LPFilter {
         let mut slots = Vec::new();
 
         slots.push(Slot {
+            ug: self.freq.clone(),
             name: "freq".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.freq) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -51,6 +52,7 @@ impl Dump for LPFilter {
             },
         });
         slots.push(Slot {
+            ug: self.q.clone(),
             name: "q".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.q) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -58,6 +60,7 @@ impl Dump for LPFilter {
             },
         });
         slots.push(Slot {
+            ug: self.src.clone(),
             name: "src".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.src) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -160,6 +163,7 @@ impl Dump for Delay {
         let mut slots = Vec::new();
 
         slots.push(Slot {
+            ug: self.time.clone(),
             name: "time".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.time) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -167,6 +171,7 @@ impl Dump for Delay {
             },
         });
         slots.push(Slot {
+            ug: self.feedback.clone(),
             name: "feedback".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.feedback) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -174,6 +179,7 @@ impl Dump for Delay {
             },
         });
         slots.push(Slot {
+            ug: self.mix.clone(),
             name: "mix".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.mix) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -181,6 +187,7 @@ impl Dump for Delay {
             },
         });
         slots.push(Slot {
+            ug: self.src.clone(),
             name: "src".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.src) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),

@@ -25,6 +25,7 @@ pub enum Value {
 pub struct Slot {
     pub name: String,
     pub value: Value,
+    pub ug: Aug,
 }
 
 pub enum UgNode {

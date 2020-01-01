@@ -30,6 +30,7 @@ impl Dump for Pan {
         let mut slots = Vec::new();
 
         slots.push(Slot {
+            ug: self.pan.clone(),
             name: "pan".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.pan) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -37,6 +38,7 @@ impl Dump for Pan {
             },
         });
         slots.push(Slot {
+            ug: self.src.clone(),
             name: "src".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.src) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -68,13 +70,13 @@ impl Proc for Pan {
 }
 
 pub struct Clip {
-    pub min: f64,
-    pub max: f64,
+    pub min: Aug,
+    pub max: Aug,
     pub src: Aug,
 }
 
 impl Clip {
-    pub fn new(min: f64, max: f64, src: Aug) -> Aug {
+    pub fn new(min: Aug, max: Aug, src: Aug) -> Aug {
         Aug::new(UGen::new(UG::Proc(Box::new(Clip {
             min: min,
             max: max,
@@ -85,6 +87,12 @@ impl Clip {
 
 impl Walk for Clip {
     fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
+        if f(&self.min) {
+            self.min.walk(f);
+        }
+        if f(&self.max) {
+            self.max.walk(f);
+        }
         if f(&self.src) {
             self.src.walk(f);
         }
@@ -96,14 +104,23 @@ impl Dump for Clip {
         let mut slots = Vec::new();
 
         slots.push(Slot {
+            ug: self.min.clone(),
             name: "min".to_string(),
-            value: Value::Number(self.min),
+            value: match shared_ug.iter().position(|e| *e == self.min) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.min.clone()),
+            },
         });
         slots.push(Slot {
+            ug: self.max.clone(),
             name: "max".to_string(),
-            value: Value::Number(self.max),
+            value: match shared_ug.iter().position(|e| *e == self.max) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.max.clone()),
+            },
         });
         slots.push(Slot {
+            ug: self.src.clone(),
             name: "src".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.src) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -122,26 +139,28 @@ impl Setv for Clip {
 impl Proc for Clip {
     fn proc(&mut self, time: &Time) -> Signal {
         let (l, r) = self.src.proc(&time);
-        (
-            num::clamp(l, self.min, self.max),
-            num::clamp(r, self.min, self.max),
-        )
+        let min = self.min.proc(&time).0;
+        let max = self.max.proc(&time).0;
+        (num::clamp(l, min, max), num::clamp(r, min, max))
     }
 }
 
 pub struct Offset {
-    pub val: f64,
+    pub val: Aug,
     pub src: Aug,
 }
 
 impl Offset {
-    pub fn new(val: f64, src: Aug) -> Aug {
+    pub fn new(val: Aug, src: Aug) -> Aug {
         Aug::new(UGen::new(UG::Proc(Box::new(Offset { val: val, src: src }))))
     }
 }
 
 impl Walk for Offset {
     fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
+        if f(&self.val) {
+            self.val.walk(f);
+        }
         if f(&self.src) {
             self.src.walk(f);
         }
@@ -153,10 +172,15 @@ impl Dump for Offset {
         let mut slots = Vec::new();
 
         slots.push(Slot {
+            ug: self.val.clone(),
             name: "val".to_string(),
-            value: Value::Number(self.val),
+            value: match shared_ug.iter().position(|e| *e == self.val) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.val.clone()),
+            },
         });
         slots.push(Slot {
+            ug: self.src.clone(),
             name: "src".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.src) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -175,17 +199,18 @@ impl Setv for Offset {
 impl Proc for Offset {
     fn proc(&mut self, time: &Time) -> Signal {
         let (l, r) = self.src.proc(&time);
-        (l + self.val, r + self.val)
+        let val = self.val.proc(&time).0;
+        (l + val, r + val)
     }
 }
 
 pub struct Gain {
-    pub gain: f64,
+    pub gain: Aug,
     pub src: Aug,
 }
 
 impl Gain {
-    pub fn new(gain: f64, src: Aug) -> Aug {
+    pub fn new(gain: Aug, src: Aug) -> Aug {
         Aug::new(UGen::new(UG::Proc(Box::new(Gain {
             gain: gain,
             src: src,
@@ -206,10 +231,15 @@ impl Dump for Gain {
         let mut slots = Vec::new();
 
         slots.push(Slot {
+            ug: self.gain.clone(),
             name: "gain".to_string(),
-            value: Value::Number(self.gain),
+            value: match shared_ug.iter().position(|e| *e == self.gain) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.gain.clone()),
+            },
         });
         slots.push(Slot {
+            ug: self.src.clone(),
             name: "src".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.src) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -228,7 +258,8 @@ impl Setv for Gain {
 impl Proc for Gain {
     fn proc(&mut self, time: &Time) -> Signal {
         let (l, r) = self.src.proc(&time);
-        (l * self.gain, r * self.gain)
+        let gain = self.gain.proc(&time).0;
+        (l * gain, r * gain)
     }
 }
 
@@ -342,12 +373,12 @@ impl Proc for Multiply {
 }
 
 pub struct Out {
-    vol: f64,
+    vol: Aug,
     sources: Vec<Aug>,
 }
 
 impl Out {
-    pub fn new(vol: f64, sources: Vec<Aug>) -> Aug {
+    pub fn new(vol: Aug, sources: Vec<Aug>) -> Aug {
         Aug::new(UGen::new(UG::Proc(Box::new(Out {
             vol: vol,
             sources: sources,
@@ -357,6 +388,9 @@ impl Out {
 
 impl Walk for Out {
     fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
+        if f(&self.vol) {
+            self.vol.walk(f);
+        }
         for s in self.sources.iter() {
             if f(s) {
                 s.walk(f);
@@ -371,8 +405,12 @@ impl Dump for Out {
         let mut values = Vec::new();
 
         slots.push(Slot {
+            ug: self.vol.clone(),
             name: "vol".to_string(),
-            value: Value::Number(self.vol),
+            value: match shared_ug.iter().position(|e| *e == self.vol) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.vol.clone()),
+            },
         });
 
         for u in self.sources.iter() {
@@ -395,7 +433,7 @@ impl Setv for Out {
                 let mut vol = data.clone();
                 vol.retain(|c| c != '\n');
                 if let Ok(vol) = vol.parse::<f64>() {
-                    self.vol = vol;
+                    self.vol = Aug::val(vol);
                 } else {
                     println!("error while parsing out.vol");
                 }
@@ -409,11 +447,12 @@ impl Proc for Out {
     fn proc(&mut self, time: &Time) -> Signal {
         let mut l = 0.0;
         let mut r = 0.0;
+        let vol = self.vol.proc(&time).0;
         for u in self.sources.iter_mut() {
             let (l2, r2) = u.proc(&time);
             l += l2;
             r += r2;
         }
-        (l * self.vol, r * self.vol)
+        (l * vol, r * vol)
     }
 }

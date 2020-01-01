@@ -35,6 +35,7 @@ impl Dump for Trigger {
         let mut values = Vec::new();
 
         slots.push(Slot {
+            ug: self.eg.clone(),
             name: "eg".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.eg) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -127,6 +128,7 @@ impl Dump for AdsrEg {
         let mut slots = Vec::new();
 
         slots.push(Slot {
+            ug: self.a.clone(),
             name: "a".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.a) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -134,6 +136,7 @@ impl Dump for AdsrEg {
             },
         });
         slots.push(Slot {
+            ug: self.d.clone(),
             name: "d".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.d) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -141,6 +144,7 @@ impl Dump for AdsrEg {
             },
         });
         slots.push(Slot {
+            ug: self.s.clone(),
             name: "s".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.s) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -148,6 +152,7 @@ impl Dump for AdsrEg {
             },
         });
         slots.push(Slot {
+            ug: self.r.clone(),
             name: "r".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.r) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -288,6 +293,7 @@ impl Dump for Seq {
         let mut slots = Vec::new();
 
         slots.push(Slot {
+            ug: self.pattern.clone(),
             name: "pattern".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.pattern) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -295,6 +301,7 @@ impl Dump for Seq {
             },
         });
         slots.push(Slot {
+            ug: self.osc.clone(),
             name: "osc".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.osc) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -302,6 +309,7 @@ impl Dump for Seq {
             },
         });
         slots.push(Slot {
+            ug: self.eg.clone(),
             name: "eg".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.eg) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),

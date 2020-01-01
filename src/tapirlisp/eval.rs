@@ -34,16 +34,18 @@ fn make_pan(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
 
 fn make_clip(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
     if args.len() == 3 {
-        match &*args[0] {
-            Cons::Number(min) => match &*args[1] {
-                Cons::Number(max) => match eval(&args[2], env) {
-                    Ok(Value::Unit(src)) => Ok(Clip::new(*min, *max, src)),
+        match eval(&args[0], env) {
+            Ok(Value::Unit(min)) => match eval(&args[1], env) {
+                Ok(Value::Unit(max)) => match eval(&args[2], env) {
+                    Ok(Value::Unit(src)) => Ok(Clip::new(min, max, src)),
                     Ok(_v) => Err(EvalError::NotAug),
                     Err(err) => Err(err),
                 },
-                exp => Err(EvalError::NotANumber(print(&exp))),
+                Ok(_) => Err(EvalError::NotAug),
+                Err(err) => Err(err),
             },
-            exp => Err(EvalError::NotANumber(print(&exp))),
+            Ok(_) => Err(EvalError::NotAug),
+            Err(err) => Err(err),
         }
     } else {
         Err(EvalError::FnWrongParams(String::from("clip"), args))
@@ -52,13 +54,14 @@ fn make_clip(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
 
 fn make_offset(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
     if args.len() == 2 {
-        match &*args[0] {
-            Cons::Number(n) => match eval(&args[1], env) {
-                Ok(Value::Unit(src)) => Ok(Offset::new(*n, src)),
+        match eval(&args[0], env) {
+            Ok(Value::Unit(n)) => match eval(&args[1], env) {
+                Ok(Value::Unit(src)) => Ok(Offset::new(n, src)),
                 Ok(_v) => return Err(EvalError::NotAug),
                 Err(err) => return Err(err),
             },
-            exp => return Err(EvalError::NotANumber(print(&exp))),
+            Ok(_) => Err(EvalError::NotAug),
+            Err(err) => Err(err),
         }
     } else {
         Err(EvalError::FnWrongParams(String::from("offset"), args))
@@ -67,13 +70,14 @@ fn make_offset(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
 
 fn make_gain(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
     if args.len() == 2 {
-        match &*args[0] {
-            Cons::Number(n) => match eval(&args[1], env) {
-                Ok(Value::Unit(src)) => Ok(Gain::new(*n, src)),
+        match eval(&args[0], env) {
+            Ok(Value::Unit(gain)) => match eval(&args[1], env) {
+                Ok(Value::Unit(src)) => Ok(Gain::new(gain, src)),
                 Ok(_v) => return Err(EvalError::NotAug),
                 Err(err) => return Err(err),
             },
-            exp => return Err(EvalError::NotANumber(print(&exp))),
+            Ok(_) => Err(EvalError::NotAug),
+            Err(err) => return Err(err),
         }
     } else {
         Err(EvalError::FnWrongParams(String::from("gain"), args))
@@ -409,8 +413,8 @@ fn make_delay(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
 
 fn make_out(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
     if args.len() >= 1 {
-        match *args[0] {
-            Cons::Number(vol) => {
+        match eval(&args[0], env) {
+            Ok(Value::Unit(vol)) => {
                 let mut v: Vec<Aug> = Vec::new();
                 for s in args[1..].iter() {
                     match eval(s, env) {
@@ -421,7 +425,8 @@ fn make_out(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
                 }
                 Ok(Out::new(vol, v))
             }
-            _ => Err(EvalError::NotANumber(print(&args[0]))),
+            Ok(_) => Err(EvalError::NotAug),
+            Err(err) => Err(err),
         }
     } else {
         Err(EvalError::FnWrongParams(String::from("out"), args))

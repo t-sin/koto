@@ -27,10 +27,6 @@ impl Dump for Rand {
     fn dump(&self, _shared_ug: &Vec<Aug>) -> UgNode {
         let mut slots = Vec::new();
 
-        slots.push(Slot {
-            name: "v".to_string(),
-            value: Value::Number(self.v),
-        });
         UgNode::Ug("rand".to_string(), slots)
     }
 }
@@ -82,6 +78,7 @@ impl Dump for Sine {
         let mut slots = Vec::new();
 
         slots.push(Slot {
+            ug: self.init_ph.clone(),
             name: "init_ph".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.init_ph) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -89,6 +86,7 @@ impl Dump for Sine {
             },
         });
         slots.push(Slot {
+            ug: self.freq.clone(),
             name: "freq".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.freq) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -153,6 +151,7 @@ impl Dump for Tri {
         let mut slots = Vec::new();
 
         slots.push(Slot {
+            ug: self.init_ph.clone(),
             name: "init_ph".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.init_ph) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -160,6 +159,7 @@ impl Dump for Tri {
             },
         });
         slots.push(Slot {
+            ug: self.freq.clone(),
             name: "freq".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.freq) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -233,6 +233,7 @@ impl Dump for Saw {
         let mut slots = Vec::new();
 
         slots.push(Slot {
+            ug: self.init_ph.clone(),
             name: "init_ph".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.init_ph) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -240,6 +241,7 @@ impl Dump for Saw {
             },
         });
         slots.push(Slot {
+            ug: self.freq.clone(),
             name: "freq".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.freq) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -315,6 +317,7 @@ impl Dump for Pulse {
         let mut slots = Vec::new();
 
         slots.push(Slot {
+            ug: self.init_ph.clone(),
             name: "init_ph".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.init_ph) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -322,6 +325,7 @@ impl Dump for Pulse {
             },
         });
         slots.push(Slot {
+            ug: self.freq.clone(),
             name: "freq".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.freq) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -329,6 +333,7 @@ impl Dump for Pulse {
             },
         });
         slots.push(Slot {
+            ug: self.duty.clone(),
             name: "duty".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.duty) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -375,8 +380,15 @@ pub struct Phase {
 
 impl Phase {
     pub fn new(u: Aug) -> Aug {
+        let offset_val = Aug::val(1.0);
+        let gain = Aug::val(0.5);
+        let clip_min = Aug::val(-1.0);
+        let clip_max = Aug::val(1.0);
         Aug::new(UGen::new(UG::Osc(Box::new(Phase {
-            root: Offset::new(1.0, Gain::new(0.5, Clip::new(-1.0, 1.0, u.clone()))),
+            root: Offset::new(
+                offset_val,
+                Gain::new(gain, Clip::new(clip_min, clip_max, u.clone())),
+            ),
             osc: u.clone(),
         }))))
     }
@@ -395,6 +407,7 @@ impl Dump for Phase {
         let mut slots = Vec::new();
 
         slots.push(Slot {
+            ug: self.osc.clone(),
             name: "osc".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.osc) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -485,6 +498,7 @@ impl Dump for WaveTable {
         let mut slots = Vec::new();
 
         slots.push(Slot {
+            ug: self.table.clone(),
             name: "table".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.table) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
@@ -493,6 +507,7 @@ impl Dump for WaveTable {
         });
 
         slots.push(Slot {
+            ug: self.ph.clone(),
             name: "ph".to_string(),
             value: match shared_ug.iter().position(|e| *e == self.ph) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
