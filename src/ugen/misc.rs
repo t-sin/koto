@@ -4,20 +4,20 @@ use super::super::mtime::Time;
 use super::core::{Aug, Dump, Proc, Setv, Signal, Slot, UGen, UgNode, Value, Walk, UG};
 
 pub struct Pan {
-    pub v: Aug,
+    pub pan: Aug,
     pub src: Aug,
 }
 
 impl Pan {
-    pub fn new(v: Aug, src: Aug) -> Aug {
-        Aug::new(UGen::new(UG::Proc(Box::new(Pan { v: v, src: src }))))
+    pub fn new(pan: Aug, src: Aug) -> Aug {
+        Aug::new(UGen::new(UG::Proc(Box::new(Pan { pan: pan, src: src }))))
     }
 }
 
 impl Walk for Pan {
     fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
-        if f(&self.v) {
-            self.v.walk(f);
+        if f(&self.pan) {
+            self.pan.walk(f);
         }
         if f(&self.src) {
             self.src.walk(f);
@@ -30,10 +30,10 @@ impl Dump for Pan {
         let mut slots = Vec::new();
 
         slots.push(Slot {
-            name: "v".to_string(),
-            value: match shared_ug.iter().position(|e| *e == self.v) {
+            name: "pan".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.pan) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
-                None => Value::Ug(self.v.clone()),
+                None => Value::Ug(self.pan.clone()),
             },
         });
         slots.push(Slot {
@@ -55,7 +55,7 @@ impl Setv for Pan {
 impl Proc for Pan {
     fn proc(&mut self, time: &Time) -> Signal {
         let (l, r) = self.src.proc(&time);
-        let v = self.v.proc(&time).0;
+        let v = self.pan.proc(&time).0;
 
         if v > 0.0 {
             (l * (1.0 - v), r)
@@ -130,13 +130,13 @@ impl Proc for Clip {
 }
 
 pub struct Offset {
-    pub v: f64,
+    pub val: f64,
     pub src: Aug,
 }
 
 impl Offset {
-    pub fn new(v: f64, src: Aug) -> Aug {
-        Aug::new(UGen::new(UG::Proc(Box::new(Offset { v: v, src: src }))))
+    pub fn new(val: f64, src: Aug) -> Aug {
+        Aug::new(UGen::new(UG::Proc(Box::new(Offset { val: val, src: src }))))
     }
 }
 
@@ -153,8 +153,8 @@ impl Dump for Offset {
         let mut slots = Vec::new();
 
         slots.push(Slot {
-            name: "v".to_string(),
-            value: Value::Number(self.v),
+            name: "val".to_string(),
+            value: Value::Number(self.val),
         });
         slots.push(Slot {
             name: "src".to_string(),
@@ -175,18 +175,21 @@ impl Setv for Offset {
 impl Proc for Offset {
     fn proc(&mut self, time: &Time) -> Signal {
         let (l, r) = self.src.proc(&time);
-        (l + self.v, r + self.v)
+        (l + self.val, r + self.val)
     }
 }
 
 pub struct Gain {
-    pub v: f64,
+    pub gain: f64,
     pub src: Aug,
 }
 
 impl Gain {
-    pub fn new(v: f64, src: Aug) -> Aug {
-        Aug::new(UGen::new(UG::Proc(Box::new(Gain { v: v, src: src }))))
+    pub fn new(gain: f64, src: Aug) -> Aug {
+        Aug::new(UGen::new(UG::Proc(Box::new(Gain {
+            gain: gain,
+            src: src,
+        }))))
     }
 }
 
@@ -203,8 +206,8 @@ impl Dump for Gain {
         let mut slots = Vec::new();
 
         slots.push(Slot {
-            name: "v".to_string(),
-            value: Value::Number(self.v),
+            name: "gain".to_string(),
+            value: Value::Number(self.gain),
         });
         slots.push(Slot {
             name: "src".to_string(),
@@ -225,7 +228,7 @@ impl Setv for Gain {
 impl Proc for Gain {
     fn proc(&mut self, time: &Time) -> Signal {
         let (l, r) = self.src.proc(&time);
-        (l * self.v, r * self.v)
+        (l * self.gain, r * self.gain)
     }
 }
 
@@ -368,7 +371,7 @@ impl Dump for Out {
         let mut values = Vec::new();
 
         slots.push(Slot {
-            name: "v".to_string(),
+            name: "vol".to_string(),
             value: Value::Number(self.vol),
         });
 
@@ -388,7 +391,7 @@ impl Dump for Out {
 impl Setv for Out {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {
         match pname {
-            "v" => {
+            "vol" => {
                 let mut vol = data.clone();
                 vol.retain(|c| c != '\n');
                 if let Ok(vol) = vol.parse::<f64>() {
