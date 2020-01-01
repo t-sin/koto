@@ -1,4 +1,5 @@
 use std::cmp::{Eq, PartialEq};
+use std::hash::{Hash, Hasher};
 use std::sync::{Arc, Mutex};
 
 use super::super::event::{to_len, to_str, Message};
@@ -285,6 +286,12 @@ impl PartialEq for Aug {
 
 impl Eq for Aug {}
 
+impl Hash for Aug {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        Arc::into_raw(self.0.clone()).hash(state);
+    }
+}
+
 impl Walk for Aug {
     fn walk(&self, f: &mut dyn FnMut(&Aug) -> bool) {
         (*self.0.lock().unwrap()).walk(f)
@@ -302,6 +309,7 @@ impl Setv for Aug {
         self.0.lock().unwrap().setv(pname, data, shared_ug);
     }
 }
+
 impl Proc for Aug {
     fn proc(&mut self, time: &Time) -> Signal {
         self.0.lock().unwrap().proc(time)
