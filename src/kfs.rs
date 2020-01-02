@@ -330,9 +330,12 @@ impl KotoFS {
         }
     }
 
+    fn map_ug(&mut self, name: String, parent: u64) -> Ugen {
+        if let Some((paramname, typename)) = self.parse_nodename(name.clone()) {
             if let Some(parent) = self.inodes.get(&parent) {
                 if let Ugen::Mapped(aug) = &parent.lock().unwrap().ug {
                     let shared_ug = crate::ugen::util::collect_shared_ugs(aug.clone());
+
                     return match aug.dump(&shared_ug) {
                         UgNode::Val(v) => Ugen::NotMapped,
                         UgNode::Ug(name, slots) => {
