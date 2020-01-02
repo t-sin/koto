@@ -234,7 +234,7 @@ impl KotoFS {
                         shared,
                         shared_used,
                     );
-                    node.lock().unwrap().name = s.name.clone();
+                    child.lock().unwrap().name = s.name.clone();
                     let newname =
                         format!("{}.{}", s.name.clone(), child.lock().unwrap().name.clone());
                     node.lock().unwrap().children.push((newname, child.clone()));
