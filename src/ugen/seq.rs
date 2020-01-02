@@ -12,7 +12,7 @@ pub struct Trigger {
 
 impl Trigger {
     pub fn new(eg: Aug, egs: Vec<Aug>) -> Aug {
-        Aug::new(UGen::new(UG::Proc(Box::new(Trigger { eg: eg, egs: egs }))))
+        Aug::new(UGen::new(UG::Eg(Box::new(Trigger { eg: eg, egs: egs }))))
     }
 }
 
