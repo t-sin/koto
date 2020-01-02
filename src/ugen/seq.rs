@@ -260,8 +260,7 @@ impl Seq {
                             self.queue.push_back(Box::new(Event::Off(pos.clone())));
                         }
                         Pitch::Kick => {
-                            self.queue
-                                .push_back(Box::new(Event::Kick(pos.clone())));
+                            self.queue.push_back(Box::new(Event::Kick(pos.clone())));
                             pos = pos.clone().add(len.clone(), &measure);
                             self.queue.push_back(Box::new(Event::Off(pos.clone())));
                         }
