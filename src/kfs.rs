@@ -566,6 +566,7 @@ impl Filesystem for KotoFS {
                 return;
             }
         }
+        // TODO: check the node can map to aug
         reply.error(ENOENT);
     }
 
@@ -639,6 +640,7 @@ impl Filesystem for KotoFS {
                 return;
             }
         }
+        // TODO: connect ugs
         reply.error(ENOENT);
     }
 
@@ -662,6 +664,7 @@ impl Filesystem for KotoFS {
             reply.ok();
             return;
         }
+        // TODO: remove if no nodes
 
         reply.error(ENOENT);
     }
