@@ -292,33 +292,44 @@ impl KotoFS {
         }
     }
 
-    pub fn sync_ug(&mut self, ino: u64) {
-        if let Some(node) = self.inodes.get(&ino) {
-            let name = node.lock().unwrap().name.clone();
-            println!("sync Aug named as {:?}", name);
-            let data: String =
-                if let Ok(data) = String::from_utf8(node.lock().unwrap().data.clone()) {
-                    data.clone()
-                } else {
-                    panic!("invalid data for ino:{}", ino);
-                };
-
-            if let Ugen::Mapped(ref mut aug) = &mut node.lock().unwrap().ug {
-                let shared_ug = crate::ugen::util::collect_shared_ugs(aug.clone());
-                aug.setv(&name, data.clone(), &shared_ug);
-                println!("set {:?} to {:?}", data, name);
-            } else {
-                println!("ooo not mapped...");
-            }
-        }
-    }
-
-    pub fn map_ug(&mut self, name: String, parent: u64) -> Ugen {
+    fn parse_nodename(&mut self, name: String) -> Option<(String, String)> {
         let nodename: Vec<&str> = name.split('.').collect();
 
         if nodename.len() == 2 {
-            let paramname = nodename[0];
-            let typename = nodename[1];
+            let paramname = nodename[0].to_string();
+            let typename = nodename[1].to_string();
+            Some((paramname, typename))
+        } else {
+            None
+        }
+    }
+
+    fn sync_ug(&self, node: Arc<Mutex<KotoNode>>) {
+        let filetype = node.lock().unwrap().attr.kind;
+        match filetype {
+            FileType::RegularFile => {
+                let name = node.lock().unwrap().name.clone();
+                println!("sync Aug named as {:?}", name);
+                let data: String =
+                    if let Ok(data) = String::from_utf8(node.lock().unwrap().data.clone()) {
+                        data.clone()
+                    } else {
+                        panic!("invalid data for node {:?}", name);
+                    };
+
+                if let Ugen::Mapped(ref mut aug) = &mut node.lock().unwrap().ug {
+                    let shared_ug = crate::ugen::util::collect_shared_ugs(aug.clone());
+                    aug.setv(&name, data.clone(), &shared_ug);
+                    println!("set {:?} to {:?}", data, name);
+                } else {
+                    println!("ooo not mapped...");
+                }
+            }
+            FileType::Directory => {}
+            _ => (),
+        }
+    }
+
             if let Some(parent) = self.inodes.get(&parent) {
                 if let Ugen::Mapped(aug) = &parent.lock().unwrap().ug {
                     let shared_ug = crate::ugen::util::collect_shared_ugs(aug.clone());
