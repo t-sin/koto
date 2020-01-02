@@ -40,6 +40,7 @@ pub trait Dump: Walk {
 
 pub trait Setv: Dump {
     fn setv(&mut self, pname: &str, data: String, shared_ug: &Vec<Aug>);
+    //    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>);
 }
 
 pub type Signal = (f64, f64);
