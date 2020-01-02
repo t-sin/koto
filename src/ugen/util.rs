@@ -1,4 +1,4 @@
-use super::core::{Aug, Walk};
+use super::core::{Aug, Dump, UgNode, Walk};
 
 pub fn collect_shared_ugs(ug: Aug) -> Vec<Aug> {
     let mut searched_units: Vec<Aug> = Vec::new();
@@ -24,4 +24,12 @@ pub fn collect_shared_ugs(ug: Aug) -> Vec<Aug> {
     );
 
     shared_units
+}
+
+pub fn get_ug_name(ug: &Aug, shared_ug: &Vec<Aug>) -> String {
+    match ug.dump(&shared_ug) {
+        UgNode::Ug(name, _) => name,
+        UgNode::UgRest(name, _, _, _) => name,
+        UgNode::Val(_) => "val".to_string(),
+    }
 }
