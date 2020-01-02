@@ -5,6 +5,7 @@ pub type Freq = f64;
 #[derive(Debug)]
 pub enum Event {
     On(Pos, Freq),
+    Kick(Pos),
     Off(Pos),
     Loop(Pos),
 }
@@ -13,6 +14,7 @@ impl Clone for Event {
     fn clone(&self) -> Self {
         match self {
             Event::On(pos, freq) => Event::On(pos.clone(), *freq),
+            Event::Kick(pos) => Event::Kick(pos.clone()),
             Event::Off(pos) => Event::Off(pos.clone()),
             Event::Loop(pos) => Event::Loop(pos.clone()),
         }
@@ -25,6 +27,7 @@ pub type Octave = u32;
 #[derive(Debug, Clone)]
 pub enum Pitch {
     Pitch(NoteNum, Octave),
+    Kick,
     Rest,
 }
 
@@ -54,6 +57,7 @@ pub fn to_note(name: &str) -> Pitch {
         Some('e') => Pitch::Pitch(7, octave),
         Some('f') => Pitch::Pitch(8, octave),
         Some('g') => Pitch::Pitch(10, octave),
+        Some('k') => Pitch::Kick,
         Some('r') => Pitch::Rest,
         _ => panic!("invalid note name: {:?}", name),
     };
@@ -139,6 +143,7 @@ pub fn to_str(pitch: &Pitch) -> String {
             oct_fn(*o, &mut s)
         }
         Pitch::Pitch(n, _) => panic!("invalid note number: {:?}", n),
+        Pitch::Kick => s.push_str("k"),
         Pitch::Rest => s.push_str("r"),
     }
     s

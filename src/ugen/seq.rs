@@ -259,6 +259,12 @@ impl Seq {
                             pos = pos.clone().add(len.clone(), &measure);
                             self.queue.push_back(Box::new(Event::Off(pos.clone())));
                         }
+                        Pitch::Kick => {
+                            self.queue
+                                .push_back(Box::new(Event::Kick(pos.clone())));
+                            pos = pos.clone().add(len.clone(), &measure);
+                            self.queue.push_back(Box::new(Event::Off(pos.clone())));
+                        }
                         Pitch::Rest => {
                             pos = pos.clone().add(len.clone(), &measure);
                         }
@@ -338,6 +344,15 @@ impl Proc for Seq {
                             if let UG::Osc(ref mut osc) = &mut self.osc.0.lock().unwrap().ug {
                                 osc.set_freq(Aug::new(UGen::new(UG::Val(freq))));
                             }
+                            if let UG::Eg(ref mut eg) = &mut self.eg.0.lock().unwrap().ug {
+                                eg.set_state(ADSR::Attack, 0);
+                            }
+                        }
+                    }
+                }
+                Event::Kick(pos) => {
+                    if pos <= &time.pos {
+                        if let Event::Kick(_pos) = *self.queue.pop_front().unwrap() {
                             if let UG::Eg(ref mut eg) = &mut self.eg.0.lock().unwrap().ug {
                                 eg.set_state(ADSR::Attack, 0);
                             }
