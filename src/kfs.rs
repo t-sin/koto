@@ -365,7 +365,7 @@ impl KotoFS {
                                         _ => Ugen::NotMapped,
                                     }
                                 } else {
-                                    panic!("invalid name");
+                                    Ugen::NotMapped
                                 }
                             }
                         }
