@@ -568,20 +568,37 @@ impl Filesystem for KotoFS {
         reply: ReplyEmpty,
     ) {
         println!("rename() {:?} to {:?}", name, newname);
-        let ext = get_ext(newname.to_str().unwrap());
-        println!("ext: {:?}", ext);
+        let reply_ok = true;
+        let old_name = name.to_str().unwrap().to_string();
+        let new_name = newname.to_str().unwrap().to_string();
 
         if let Some(parent_node) = self.inodes.get(&parent) {
-            let children = &parent_node.lock().unwrap().children;
-            let old_name = name.to_str().unwrap();
-            if let Some((_, node)) = children.iter().find(|(nodename, _)| nodename == &old_name) {
-                node.lock().unwrap().name = newname.to_str().unwrap().to_string();
-                reply.ok();
-                return;
+            let children = &mut parent_node.lock().unwrap().children;
+            if let Some(n) = children
+                .iter()
+                .position(|(nodename, _)| nodename == &old_name)
+            {
+                children[n].0 = new_name.clone();
             }
         }
-        // TODO: check the node can map to aug
-        reply.error(ENOENT);
+
+        let ugen = self.map_ug(new_name.clone(), parent);
+        if let Some(parent_node) = self.inodes.get(&parent) {
+            let children = &mut parent_node.lock().unwrap().children;
+            if let Some(n) = children
+                .iter()
+                .position(|(nodename, _)| nodename == &new_name)
+            {
+                children[n].1.lock().unwrap().ug = ugen;
+                self.sync_ug(children[n].1.clone());
+            }
+        }
+
+        if reply_ok {
+            reply.ok();
+        } else {
+            reply.error(ENOENT);
+        }
     }
 
     fn write(
@@ -605,7 +622,10 @@ impl Filesystem for KotoFS {
                 n.lock().unwrap().data.append(&mut data.to_vec());
             }
         }
-        self.sync_ug(ino);
+
+        if let Some(n) = self.inodes.get(&ino) {
+            self.sync_ug(n.clone());
+        }
         reply.written(length as u32);
     }
 
