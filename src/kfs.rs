@@ -313,6 +313,55 @@ impl KotoFS {
         }
     }
 
+    pub fn map_ug(&mut self, name: String, parent: u64) -> Ugen {
+        let nodename: Vec<&str> = name.split('.').collect();
+
+        if nodename.len() == 2 {
+            let paramname = nodename[0];
+            let typename = nodename[1];
+            if let Some(parent) = self.inodes.get(&parent) {
+                if let Ugen::Mapped(aug) = &parent.lock().unwrap().ug {
+                    let shared_ug = crate::ugen::util::collect_shared_ugs(aug.clone());
+                    return match aug.dump(&shared_ug) {
+                        UgNode::Val(v) => Ugen::NotMapped,
+                        UgNode::Ug(name, slots) => {
+                            if let Some(slot) = slots.iter().find(|s| s.name == paramname) {
+                                let uname = crate::ugen::util::get_ug_name(&slot.ug, &shared_ug);
+                                if uname != typename {
+                                    Ugen::NotMapped
+                                } else {
+                                    Ugen::Mapped(slot.ug.clone())
+                                }
+                            } else {
+                                Ugen::NotMapped
+                            }
+                        }
+                        UgNode::UgRest(_, slots, basename, values) => {
+                            if let Some(slot) = slots.iter().find(|s| s.name == paramname) {
+                                let uname = crate::ugen::util::get_ug_name(&slot.ug, &shared_ug);
+                                if uname != typename {
+                                    Ugen::NotMapped
+                                } else {
+                                    Ugen::Mapped(slot.ug.clone())
+                                }
+                            } else {
+                                if let Ok(n) = paramname[basename.len()..].parse::<u64>() {
+                                    match &*values[n as usize] {
+                                        Value::Ug(aug) => Ugen::Mapped(aug.clone()),
+                                        _ => Ugen::NotMapped,
+                                    }
+                                } else {
+                                    panic!("invalid name");
+                                }
+                            }
+                        }
+                    };
+                }
+            }
+        }
+        return Ugen::NotMapped;
+    }
+
     pub fn init(ug: Aug) -> KotoFS {
         let mut fs = KotoFS {
             inodes: HashMap::new(),
@@ -422,20 +471,29 @@ impl Filesystem for KotoFS {
     ) {
         println!("create() with {:?}", name);
         let ino = self.inode();
+        let mut created: Option<Arc<Mutex<KotoNode>>> = None;
+        let name = name.to_str().unwrap().to_string();
 
         if let Some(parent_node) = self.inodes.get(&parent) {
-            let name = name.to_str().unwrap().to_string();
             let node = create_node(ino, name.clone(), [].to_vec(), FileType::RegularFile);
-
             let node = Arc::new(Mutex::new(node));
             node.lock().unwrap().parent = Some(parent_node.clone());
             parent_node
                 .lock()
                 .unwrap()
                 .children
-                .push((name, node.clone()));
+                .push((name.clone(), node.clone()));
+            created = Some(node.clone());
+        }
+
+        if let Some(node) = created.clone() {
             self.inodes
-                .insert(node.lock().unwrap().attr.ino, node.clone());
+                .insert(node.clone().lock().unwrap().attr.ino, node.clone());
+        }
+
+        if let Some(node) = created.clone() {
+            let ugen = self.map_ug(name.clone(), parent);
+            node.lock().unwrap().ug = ugen;
             reply.created(&TTL, &node.lock().unwrap().attr, 0, 0, 0);
         }
     }
