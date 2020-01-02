@@ -29,7 +29,6 @@
 - [ ] FUSE interfaces
     - [x] Simple in-memory filesystem
     - [x] Map unit graph into filesystem (read only)
-    - [ ] Unit manipulation
     - [ ] Unit manipulation via filesystem
 - [ ] Command line interfaces
 
