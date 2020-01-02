@@ -325,7 +325,9 @@ impl KotoFS {
                     println!("ooo not mapped...");
                 }
             }
-            FileType::Directory => {}
+            FileType::Directory => {
+                println!("it's directoryyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy");
+            }
             _ => (),
         }
     }
