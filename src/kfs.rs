@@ -304,30 +304,33 @@ impl KotoFS {
         }
     }
 
+    fn sync_ug_with_file(&self, node: Arc<Mutex<KotoNode>>) {
+        let name = node.lock().unwrap().name.clone();
+        println!("sync Aug named as {:?}", name);
+        let data: String = if let Ok(data) = String::from_utf8(node.lock().unwrap().data.clone()) {
+            data.clone()
+        } else {
+            panic!("invalid data for node {:?}", name);
+        };
+
+        if let Ugen::Mapped(ref mut aug) = &mut node.lock().unwrap().ug {
+            let shared_ug = crate::ugen::util::collect_shared_ugs(aug.clone());
+            aug.setv(&name, data.clone(), &shared_ug);
+            println!("set {:?} to {:?}", data, name);
+        } else {
+            println!("ooo not mapped...");
+        }
+    }
+
+    fn sync_ug_with_directory(&self, node: Arc<Mutex<KotoNode>>) {
+        println!("it's directoryyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy");
+    }
+
     fn sync_ug(&self, node: Arc<Mutex<KotoNode>>) {
         let filetype = node.lock().unwrap().attr.kind;
         match filetype {
-            FileType::RegularFile => {
-                let name = node.lock().unwrap().name.clone();
-                println!("sync Aug named as {:?}", name);
-                let data: String =
-                    if let Ok(data) = String::from_utf8(node.lock().unwrap().data.clone()) {
-                        data.clone()
-                    } else {
-                        panic!("invalid data for node {:?}", name);
-                    };
-
-                if let Ugen::Mapped(ref mut aug) = &mut node.lock().unwrap().ug {
-                    let shared_ug = crate::ugen::util::collect_shared_ugs(aug.clone());
-                    aug.setv(&name, data.clone(), &shared_ug);
-                    println!("set {:?} to {:?}", data, name);
-                } else {
-                    println!("ooo not mapped...");
-                }
-            }
-            FileType::Directory => {
-                println!("it's directoryyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy");
-            }
+            FileType::RegularFile => self.sync_ug_with_file(node.clone()),
+            FileType::Directory => self.sync_ug_with_directory(node.clone()),
             _ => (),
         }
     }
