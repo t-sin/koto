@@ -323,7 +323,18 @@ impl KotoFS {
     }
 
     fn sync_ug_with_directory(&self, node: Arc<Mutex<KotoNode>>) {
-        println!("it's directoryyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy");
+        let name = node.lock().unwrap().name.clone();
+        println!("hhhhhhhhhhhhhhhhh");
+        let mut parent = node.lock().unwrap().parent.as_ref().unwrap();
+
+        println!("weeeeeeeeeeeeeeeeeeeeee");
+        if let Ugen::Mapped(ref mut aug) = &mut parent.get_mut().unwrap().ug {
+            println!("wooooooooooooooooooooooooo");
+            //            let shared_ug = crate::ugen::util::collect_shared_ugs(aug.clone());
+            println!("---------------");
+            aug.setv(&name, "0.0".to_string(), &vec![]);
+            println!("aaaaaaaaaaaaaa");
+        }
     }
 
     fn sync_ug(&self, node: Arc<Mutex<KotoNode>>) {
