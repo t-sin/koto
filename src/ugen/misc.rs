@@ -438,6 +438,17 @@ impl Setv for Out {
                     println!("error while parsing out.vol");
                 }
             }
+            name if name.starts_with("src") => {
+                if let Ok(idx) = name[3..].to_string().parse::<usize>() {
+                    let mut val = data.clone();
+                    val.retain(|c| c != '\n' && c != ' ');
+                    if let Ok(val) = val.parse::<f64>() {
+                        self.sources[idx] = Aug::val(val);
+                    } else {
+                        println!("error while parsing out.vol");
+                    }
+                }
+            }
             _ => (),
         }
     }
