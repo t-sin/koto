@@ -74,6 +74,7 @@ impl Dump for LPFilter {
 
 impl Setv for LPFilter {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for LPFilter {
@@ -201,6 +202,7 @@ impl Dump for Delay {
 
 impl Setv for Delay {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 // TODO: factor out; same function is in `sequencer.rs`

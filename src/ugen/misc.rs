@@ -52,6 +52,7 @@ impl Dump for Pan {
 
 impl Setv for Pan {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for Pan {
@@ -134,6 +135,7 @@ impl Dump for Clip {
 
 impl Setv for Clip {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for Clip {
@@ -194,6 +196,7 @@ impl Dump for Offset {
 
 impl Setv for Offset {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for Offset {
@@ -253,6 +256,7 @@ impl Dump for Gain {
 
 impl Setv for Gain {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for Gain {
@@ -302,6 +306,7 @@ impl Dump for Add {
 
 impl Setv for Add {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for Add {
@@ -357,6 +362,7 @@ impl Dump for Multiply {
 
 impl Setv for Multiply {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for Multiply {
@@ -452,6 +458,8 @@ impl Setv for Out {
             _ => (),
         }
     }
+
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for Out {

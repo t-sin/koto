@@ -33,6 +33,7 @@ impl Dump for Rand {
 
 impl Setv for Rand {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for Rand {
@@ -100,6 +101,7 @@ impl Dump for Sine {
 
 impl Setv for Sine {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for Sine {
@@ -173,6 +175,7 @@ impl Dump for Tri {
 
 impl Setv for Tri {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for Tri {
@@ -255,6 +258,7 @@ impl Dump for Saw {
 
 impl Setv for Saw {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for Saw {
@@ -347,6 +351,7 @@ impl Dump for Pulse {
 
 impl Setv for Pulse {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for Pulse {
@@ -421,6 +426,7 @@ impl Dump for Phase {
 
 impl Setv for Phase {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for Phase {
@@ -521,6 +527,7 @@ impl Dump for WaveTable {
 
 impl Setv for WaveTable {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for WaveTable {

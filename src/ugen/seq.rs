@@ -56,6 +56,7 @@ impl Dump for Trigger {
 
 impl Setv for Trigger {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for Trigger {
@@ -166,6 +167,7 @@ impl Dump for AdsrEg {
 
 impl Setv for AdsrEg {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for AdsrEg {
@@ -328,6 +330,7 @@ impl Dump for Seq {
 
 impl Setv for Seq {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for Seq {

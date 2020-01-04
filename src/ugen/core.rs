@@ -40,7 +40,7 @@ pub trait Dump: Walk {
 
 pub trait Setv: Dump {
     fn setv(&mut self, pname: &str, data: String, shared_ug: &Vec<Aug>);
-    //    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>);
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>);
 }
 
 pub type Signal = (f64, f64);
@@ -170,6 +170,7 @@ impl Dump for UG {
 
 impl Setv for UG {
     fn setv(&mut self, pname: &str, data: String, shared_ug: &Vec<Aug>) {}
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for UG {
@@ -249,6 +250,8 @@ impl Setv for UGen {
             UG::Pat(_) => (),
         }
     }
+
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for UGen {
@@ -312,6 +315,7 @@ impl Setv for Aug {
     fn setv(&mut self, pname: &str, data: String, shared_ug: &Vec<Aug>) {
         self.0.lock().unwrap().setv(pname, data, shared_ug);
     }
+    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
 
 impl Proc for Aug {
