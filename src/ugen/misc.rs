@@ -520,7 +520,7 @@ impl Operate for Out {
                     while self.sources.len() <= idx {
                         self.sources.push(Aug::val(0.0));
                     }
-                    self.sources[idx] = Aug::val(val);
+                    self.sources[idx] = ug;
                     Ok(true)
                 } else {
                     Err(OperateError::ParamNotFound(format!("out/{}", pname)))
