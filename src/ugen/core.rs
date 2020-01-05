@@ -39,6 +39,7 @@ pub trait Dump: Walk {
 }
 
 pub enum OperateError {
+    NotUgen,
     CannotParseNumber(String, String),
     ParamNotFound(String),
 }
@@ -252,15 +253,29 @@ impl Operate for UGen {
     fn get(&self, pname: &str) -> Option<Aug> {
         None
     }
+
     fn get_str(&self, pname: &str) -> Option<String> {
         None
     }
+
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match &mut self.ug {
+            UG::Proc(u) => u.set(pname, ug),
+            UG::Osc(u) => u.set(pname, ug),
+            UG::Eg(u) => u.set(pname, ug),
+            _ => Err(OperateError::NotUgen),
+        }
     }
+
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
-        Ok(true)
+        match &mut self.ug {
+            UG::Proc(u) => u.set_str(pname, data),
+            UG::Osc(u) => u.set_str(pname, data),
+            UG::Eg(u) => u.set_str(pname, data),
+            _ => Err(OperateError::NotUgen),
+        }
     }
+
     fn clear(&mut self, pname: &str) {}
 }
 
@@ -329,10 +344,10 @@ impl Operate for Aug {
         None
     }
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        self.0.lock().unwrap().set(pname, ug)
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
-        Ok(true)
+        self.0.lock().unwrap().set_str(pname, data)
     }
     fn clear(&mut self, pname: &str) {}
 }
