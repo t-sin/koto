@@ -523,10 +523,10 @@ impl Operate for Out {
                     self.sources[idx] = Aug::val(val);
                     Ok(true)
                 } else {
-                    Err(OperateError::ParamNotFound)
+                    Err(OperateError::ParamNotFound(format!("out/{}", pname)))
                 }
             }
-            _ => Err(OperateError::ParamNotFound),
+            _ => Err(OperateError::ParamNotFound(format!("out/{}", pname))),
         }
     }
 
@@ -542,19 +542,19 @@ impl Operate for Out {
                 } else {
                     let err =
                         OperateError::CannotParseNumber(format!("out/{}", pname), data.clone());
-                    Error(err)
+                    Err(err)
                 }
             }
             name if name.starts_with("src") => {
                 if let Ok(val) = data.parse::<f64>() {
-                    self.set(pname, Aug::val(val));
+                    self.set(pname, Aug::val(val))
                 } else {
                     let err =
                         OperateError::CannotParseNumber(format!("out/{}", pname), data.clone());
-                    Error(err)
+                    Err(err)
                 }
             }
-            _ => Err(OperateError::ParamNotFound),
+            _ => Err(OperateError::ParamNotFound(format!("out/{}", pname))),
         }
     }
 
