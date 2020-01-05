@@ -169,8 +169,7 @@ impl KotoNode {
         };
 
         if let Ugen::Mapped(ref mut aug) = &mut node.lock().unwrap().ug {
-            let shared_ug = crate::ugen::util::collect_shared_ugs(aug.clone());
-            aug.setv(&name, data.clone(), &shared_ug);
+            aug.set_str(&name, data.clone());
             println!("set {:?} to {:?}", data, name);
         } else {
             println!("ooo not mapped...");
@@ -206,9 +205,7 @@ impl KotoNode {
                             if let Ugen::Mapped(ref mut parent_ug) = &mut parent.lock().unwrap().ug
                             {
                                 println!("bbbbbbbbbbbbbbbbb");
-                                let shared_ug =
-                                    crate::ugen::util::collect_shared_ugs(parent_ug.clone());
-                                parent_ug.setug(&paramname, new_ug.clone(), &shared_ug);
+                                parent_ug.set(&paramname, new_ug.clone());
                             }
                         }
                     }
@@ -221,10 +218,8 @@ impl KotoNode {
                     };
                     if let Some(parent) = &node.lock().unwrap().parent {
                         if let Ugen::Mapped(ref mut parent_ug) = &mut parent.lock().unwrap().ug {
-                            let shared_ug =
-                                crate::ugen::util::collect_shared_ugs(parent_ug.clone());
                             {
-                                parent_ug.setv(&paramname, "0.0".to_string(), &shared_ug);
+                                parent_ug.set_str(&paramname, "0.0".to_string());
                             }
                         }
                     }
@@ -234,8 +229,7 @@ impl KotoNode {
                 if let Some((paramname, _)) = KotoNode::parse_nodename(oldname.clone()) {
                     if let Some(parent) = &node.lock().unwrap().parent {
                         if let Ugen::Mapped(ref mut aug) = &mut parent.lock().unwrap().ug {
-                            let shared_ug = crate::ugen::util::collect_shared_ugs(aug.clone());
-                            aug.setv(&paramname, "0.0".to_string(), &shared_ug);
+                            aug.set_str(&paramname, "0.0".to_string());
                         }
                     }
                 }
