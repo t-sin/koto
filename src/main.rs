@@ -47,7 +47,7 @@ fn main() {
         lcd.run(&ad);
     });
 
-    let fs = kfs::KotoFS::init(ug.clone());
+    let fs = kfs::KotoFS::init(sample_rate, ug.clone());
     fs.mount(OsString::from("koto.test"));
 
     // somnia::run_test();

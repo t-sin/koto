@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::ffi::{OsStr, OsString};
 use std::sync::{Arc, Mutex};
 
@@ -11,6 +11,10 @@ use fuse::{
     ReplyEntry, ReplyWrite, Request,
 };
 
+use super::mtime::Time;
+use super::sexp::read;
+use super::tapirlisp::eval;
+use super::tapirlisp::types::{Env, EvalError};
 use super::ugen::core::{Aug, Dump, Setv, UgNode, Value};
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
@@ -35,8 +39,34 @@ pub struct KotoFS {
     pub root: Arc<Mutex<KotoNode>>,
     pub inodes: HashMap<u64, Arc<Mutex<KotoNode>>>,
     pub augs: HashMap<Aug, Arc<Mutex<KotoNode>>>,
+    pub sample_rate: u32,
     pub inode_count: u64,
 }
+
+// src/tapirlisp/eval.rs or ugen names
+static TYPE_NAMES: [&str; 21] = [
+    "pan",
+    "clip",
+    "offset",
+    "gain",
+    "+",
+    "*",
+    "rand",
+    "sine",
+    "tri",
+    "saw",
+    "pulse",
+    "table",
+    "phase",
+    "wavetable",
+    "pat",
+    "trig",
+    "adsr",
+    "seq",
+    "lpf",
+    "delay",
+    "out",
+];
 
 fn get_ext(name: &str) -> String {
     let mut ext = String::new();
@@ -100,7 +130,34 @@ impl KotoNode {
         }
     }
 
-    fn build_ug_from_node(node: Arc<Mutex<KotoNode>>) -> Aug {}
+    fn build_ug_from_node(node: Arc<Mutex<KotoNode>>, sample_rate: u32) -> Option<Aug> {
+        let name = node.lock().unwrap().name.clone();
+        if let Ugen::Mapped(aug) = &node.lock().unwrap().ug {
+            Some(aug.clone())
+        } else {
+            let form_str = "(aaa)".to_string();
+            let mut env = Env::init(Time::new(sample_rate));
+            match read(form_str.clone()) {
+                Ok(form) => match eval(&form[0], &mut env) {
+                    Ok(crate::tapirlisp::types::Value::Unit(aug)) => Some(aug.clone()),
+                    Ok(crate::tapirlisp::types::Value::Nil) => {
+                        println!("'build_ug_from_node' is wrong");
+                        None
+                    }
+                    Err(err) => {
+                        println!("cannot evaluate this node: {:?}", form_str);
+                        println!("{:?}", err);
+                        None
+                    }
+                },
+                Err(err) => {
+                    println!("cannot parse this node: {:?}", name);
+                    println!("{:?}", err);
+                    None
+                }
+            }
+        }
+    }
 
     fn sync_ug_with_file(node: Arc<Mutex<KotoNode>>) {
         let name = node.lock().unwrap().name.clone();
@@ -120,7 +177,7 @@ impl KotoNode {
         }
     }
 
-    fn sync_ug_with_directory(node: Arc<Mutex<KotoNode>>, oldname: String) {
+    fn sync_ug_with_directory(node: Arc<Mutex<KotoNode>>, oldname: String, sample_rate: u32) {
         let nodename = if let Some(parent) = &node.lock().unwrap().parent {
             if let Some((nodename, _)) = parent
                 .lock()
@@ -140,28 +197,37 @@ impl KotoNode {
         if let Some(name) = nodename {
             if let Some((paramname, typename)) = KotoNode::parse_nodename(name) {
                 // nodename satisfies xxx.yyy format
-                if typename != node.lock().unwrap().name {
-                    // typename (yyy of xxx.yyy) is changed
-                    if let Some(parent) = &node.lock().unwrap().parent {
-                        if let Ugen::Mapped(ref mut aug) = &mut parent.lock().unwrap().ug {
-                            let shared_ug = crate::ugen::util::collect_shared_ugs(aug.clone());
-                            aug.setv(&paramname, "0.0".to_string(), &shared_ug);
+                let set: HashSet<&str> = TYPE_NAMES.iter().cloned().collect();
+                if set.contains(&typename[..]) {
+                    // typename (yyy of xxx.yyy) is valid
+                    if let Some(new_ug) = KotoNode::build_ug_from_node(node.clone(), sample_rate) {
+                        println!("aaaaaaaaaaaaaaaaaaa");
+                        if let Some(parent) = &node.lock().unwrap().parent {
+                            if let Ugen::Mapped(ref mut parent_ug) = &mut parent.lock().unwrap().ug
+                            {
+                                println!("bbbbbbbbbbbbbbbbb");
+                                let shared_ug =
+                                    crate::ugen::util::collect_shared_ugs(parent_ug.clone());
+                                parent_ug.setug(&paramname, new_ug.clone(), &shared_ug);
+                            }
                         }
                     }
                 } else {
                     // paramname (xxx of xxx.yyy) is changed (or filename is not changed)
+                    let ug = if let Ugen::Mapped(aug) = &node.lock().unwrap().ug {
+                        Some(aug.clone())
+                    } else {
+                        None
+                    };
                     if let Some(parent) = &node.lock().unwrap().parent {
                         if let Ugen::Mapped(ref mut parent_ug) = &mut parent.lock().unwrap().ug {
                             let shared_ug =
                                 crate::ugen::util::collect_shared_ugs(parent_ug.clone());
-                            if let Ugen::Mapped(aug) = &node.lock().unwrap().ug {
-                                parent_ug.setug(&paramname, aug.clone(), &shared_ug);
-                            } else {
-                                let new_ug = KotoNode::build_ug_from_node(node.clone());
-                                parent_ug.setug(&paramname, new_ug.clone(), &shared_ug);
+                            {
+                                parent_ug.setv(&paramname, "0.0".to_string(), &shared_ug);
                             }
                         }
-                    };
+                    }
                 }
             } else {
                 // nodename not satisfies xxx.yyy format
@@ -177,11 +243,13 @@ impl KotoNode {
         }
     }
 
-    fn sync_ug(node: Arc<Mutex<KotoNode>>, oldname: String) {
+    fn sync_ug(node: Arc<Mutex<KotoNode>>, oldname: String, sample_rate: u32) {
         let filetype = node.lock().unwrap().attr.kind;
         match filetype {
             FileType::RegularFile => KotoNode::sync_ug_with_file(node.clone()),
-            FileType::Directory => KotoNode::sync_ug_with_directory(node.clone(), oldname),
+            FileType::Directory => {
+                KotoNode::sync_ug_with_directory(node.clone(), oldname, sample_rate)
+            }
             _ => (),
         }
     }
@@ -437,7 +505,7 @@ impl KotoFS {
         return Ugen::NotMapped;
     }
 
-    pub fn init(ug: Aug) -> KotoFS {
+    pub fn init(sample_rate: u32, ug: Aug) -> KotoFS {
         let mut fs = KotoFS {
             inodes: HashMap::new(),
             augs: HashMap::new(),
@@ -449,6 +517,7 @@ impl KotoFS {
                 data: "".to_string().into_bytes(),
                 attr: create_file(0, 0, FileType::RegularFile),
             })),
+            sample_rate: sample_rate,
             inode_count: 151,
         };
 
@@ -662,7 +731,7 @@ impl Filesystem for KotoFS {
         let ugen = self.map_ug(new_name.clone(), parent);
         if let Some(node) = node {
             node.lock().unwrap().ug = ugen;
-            KotoNode::sync_ug(node.clone(), old_name.clone());
+            KotoNode::sync_ug(node.clone(), old_name.clone(), self.sample_rate);
         }
 
         if reply_ok {
