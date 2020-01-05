@@ -39,8 +39,11 @@ pub trait Dump: Walk {
 }
 
 pub trait Operate: Dump {
-    fn setv(&mut self, pname: &str, data: String, shared_ug: &Vec<Aug>);
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>);
+    fn get(&self, pname: &str) -> Option<Aug>;
+    fn get_str(&self, pname: &str) -> Option<String>;
+    fn set(&mut self, pname: &str, ug: Aug);
+    fn set_str(&mut self, pname: &str, data: String);
+    fn clear(&mut self, pname: &str);
 }
 
 pub type Signal = (f64, f64);
