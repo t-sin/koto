@@ -1,7 +1,9 @@
 extern crate num;
 
 use super::super::mtime::Time;
-use super::core::{Aug, Dump, Proc, Operate, Signal, Slot, UGen, UgNode, Value, Walk, UG};
+use super::core::{
+    Aug, Dump, Operate, OperateError, Proc, Signal, Slot, UGen, UgNode, Value, Walk, UG,
+};
 
 pub struct Pan {
     pub pan: Aug,
@@ -51,8 +53,19 @@ impl Dump for Pan {
 }
 
 impl Operate for Pan {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for Pan {
@@ -134,8 +147,19 @@ impl Dump for Clip {
 }
 
 impl Operate for Clip {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for Clip {
@@ -195,8 +219,19 @@ impl Dump for Offset {
 }
 
 impl Operate for Offset {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for Offset {
@@ -255,8 +290,19 @@ impl Dump for Gain {
 }
 
 impl Operate for Gain {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for Gain {
@@ -305,8 +351,19 @@ impl Dump for Add {
 }
 
 impl Operate for Add {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for Add {
@@ -361,8 +418,19 @@ impl Dump for Multiply {
 }
 
 impl Operate for Multiply {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for Multiply {
@@ -433,33 +501,64 @@ impl Dump for Out {
 }
 
 impl Operate for Out {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
         match pname {
             "vol" => {
-                let mut vol = data.clone();
-                vol.retain(|c| c != '\n' && c != ' ');
-                if let Ok(vol) = vol.parse::<f64>() {
-                    self.vol = Aug::val(vol);
-                } else {
-                    println!("error while parsing out.vol");
-                }
+                self.vol = ug;
+                Ok(true)
             }
             name if name.starts_with("src") => {
                 if let Ok(idx) = name[3..].to_string().parse::<usize>() {
-                    let mut val = data.clone();
-                    val.retain(|c| c != '\n' && c != ' ');
-                    if let Ok(val) = val.parse::<f64>() {
-                        self.sources[idx] = Aug::val(val);
-                    } else {
-                        println!("error while parsing out.vol");
+                    while self.sources.len() <= idx {
+                        self.sources.push(Aug::val(0.0));
                     }
+                    self.sources[idx] = Aug::val(val);
+                    Ok(true)
+                } else {
+                    Err(OperateError::ParamNotFound)
                 }
             }
-            _ => (),
+            _ => Err(OperateError::ParamNotFound),
         }
     }
 
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        let mut data = data.clone();
+        data.retain(|c| c != '\n' && c != ' ');
+
+        match pname {
+            "vol" => {
+                if let Ok(vol) = data.parse::<f64>() {
+                    self.vol = Aug::val(vol);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("out/{}", pname), data.clone());
+                    Error(err)
+                }
+            }
+            name if name.starts_with("src") => {
+                if let Ok(val) = data.parse::<f64>() {
+                    self.set(pname, Aug::val(val));
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("out/{}", pname), data.clone());
+                    Error(err)
+                }
+            }
+            _ => Err(OperateError::ParamNotFound),
+        }
+    }
+
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for Out {

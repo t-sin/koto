@@ -2,7 +2,9 @@ use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
 use super::super::mtime::{Clock, Pos, Time};
-use super::core::{Aug, Dump, Osc, Proc, Operate, Signal, Slot, Table, UGen, UgNode, Value, Walk, UG};
+use super::core::{
+    Aug, Dump, Operate, OperateError, Osc, Proc, Signal, Slot, Table, UGen, UgNode, Value, Walk, UG,
+};
 use super::misc::{Clip, Gain, Offset};
 
 pub struct Rand {
@@ -32,8 +34,19 @@ impl Dump for Rand {
 }
 
 impl Operate for Rand {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for Rand {
@@ -100,8 +113,19 @@ impl Dump for Sine {
 }
 
 impl Operate for Sine {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for Sine {
@@ -174,8 +198,19 @@ impl Dump for Tri {
 }
 
 impl Operate for Tri {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for Tri {
@@ -257,8 +292,19 @@ impl Dump for Saw {
 }
 
 impl Operate for Saw {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for Saw {
@@ -350,8 +396,19 @@ impl Dump for Pulse {
 }
 
 impl Operate for Pulse {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for Pulse {
@@ -425,8 +482,19 @@ impl Dump for Phase {
 }
 
 impl Operate for Phase {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for Phase {
@@ -526,8 +594,19 @@ impl Dump for WaveTable {
 }
 
 impl Operate for WaveTable {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for WaveTable {

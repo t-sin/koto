@@ -3,7 +3,9 @@ use std::collections::VecDeque;
 use super::super::mtime::Time;
 use super::super::tapirlisp::types::Env;
 
-use super::core::{Aug, Dump, Proc, Operate, Signal, Slot, UGen, UgNode, Value, Walk, UG};
+use super::core::{
+    Aug, Dump, Operate, OperateError, Proc, Signal, Slot, UGen, UgNode, Value, Walk, UG,
+};
 
 pub struct LPFilter {
     inbuf: [Signal; 2],
@@ -73,8 +75,19 @@ impl Dump for LPFilter {
 }
 
 impl Operate for LPFilter {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for LPFilter {
@@ -201,8 +214,19 @@ impl Dump for Delay {
 }
 
 impl Operate for Delay {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 // TODO: factor out; same function is in `sequencer.rs`

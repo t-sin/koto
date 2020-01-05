@@ -177,8 +177,19 @@ impl Dump for UG {
 }
 
 impl Operate for UG {
-    fn setv(&mut self, pname: &str, data: String, shared_ug: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for UG {
@@ -238,28 +249,19 @@ impl Dump for UGen {
 }
 
 impl Operate for UGen {
-    fn setv(&mut self, pname: &str, data: String, shared_ug: &Vec<Aug>) {
-        match &mut self.ug {
-            UG::Val(v) => {
-                let mut val = data.clone();
-                val.retain(|c| c != '\n' && c != ' ');
-                if let Ok(v) = val.parse::<f64>() {
-                    self.ug = UG::Val(v);
-                } else {
-                    panic!("cannot parse {:?}", data);
-                }
-            }
-            UG::Proc(u) => {
-                u.setv(pname, data, shared_ug);
-            }
-            UG::Osc(u) => (),
-            UG::Eg(u) => (),
-            UG::Tab(_) => (),
-            UG::Pat(_) => (),
-        }
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
     }
-
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for UGen {
@@ -320,10 +322,19 @@ impl Dump for Aug {
 }
 
 impl Operate for Aug {
-    fn setv(&mut self, pname: &str, data: String, shared_ug: &Vec<Aug>) {
-        self.0.lock().unwrap().setv(pname, data, shared_ug);
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
     }
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for Aug {
