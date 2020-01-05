@@ -159,20 +159,39 @@ impl KotoNode {
         }
     }
 
-    fn sync_ug_with_file(node: Arc<Mutex<KotoNode>>) {
+    fn sync_file(node: Arc<Mutex<KotoNode>>) {
         let name = node.lock().unwrap().name.clone();
-        println!("sync Aug named as {:?}", name);
-        let data: String = if let Ok(data) = String::from_utf8(node.lock().unwrap().data.clone()) {
+        let data = node.lock().unwrap().data.clone();
+        let data: String = if let Ok(data) = String::from_utf8(data.clone()) {
             data.clone()
         } else {
-            panic!("invalid data for node {:?}", name);
+            println!("invalid data for node {:?}", name);
+            println!("data: {:?}", data.clone());
+            return;
         };
 
-        if let Ugen::Mapped(ref mut aug) = &mut node.lock().unwrap().ug {
-            aug.set_str(&name, data.clone());
-            println!("set {:?} to {:?}", data, name);
-        } else {
-            println!("ooo not mapped...");
+        let mut paramname = None;
+        if let Some(parent) = &node.lock().unwrap().parent {
+            if let Some((nodename, _)) = parent
+                .lock()
+                .unwrap()
+                .children
+                .iter()
+                .find(|(nodename, n)| Arc::ptr_eq(&n, &node))
+            {
+                paramname = Some(KotoNode::parse_nodename(nodename.clone()).unwrap().0);
+            }
+        }
+
+        if let Some(pname) = paramname {
+            if let Some(parent) = &node.lock().unwrap().parent {
+                if let Ugen::Mapped(ref mut aug) = &mut parent.lock().unwrap().ug {
+                    println!("set {:?} to {:?}", data, pname);
+                    aug.set_str(&pname, data.clone());
+                } else {
+                    println!("ooo not mapped...");
+                }
+            }
         }
     }
 
@@ -240,7 +259,7 @@ impl KotoNode {
     fn sync_ug(node: Arc<Mutex<KotoNode>>, oldname: String, sample_rate: u32) {
         let filetype = node.lock().unwrap().attr.kind;
         match filetype {
-            FileType::RegularFile => KotoNode::sync_ug_with_file(node.clone()),
+            FileType::RegularFile => KotoNode::sync_file(node.clone()),
             FileType::Directory => {
                 KotoNode::sync_ug_with_directory(node.clone(), oldname, sample_rate)
             }
@@ -758,7 +777,7 @@ impl Filesystem for KotoFS {
         }
 
         if let Some(n) = self.inodes.get(&ino) {
-            KotoNode::sync_ug_with_file(n.clone());
+            KotoNode::sync_file(n.clone());
         }
         reply.written(length as u32);
     }
