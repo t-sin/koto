@@ -99,6 +99,9 @@ impl KotoNode {
             None
         }
     }
+
+    fn build_ug_from_node(node: Arc<Mutex<KotoNode>>) -> Aug {}
+
     fn sync_ug_with_file(node: Arc<Mutex<KotoNode>>) {
         let name = node.lock().unwrap().name.clone();
         println!("sync Aug named as {:?}", name);
@@ -154,8 +157,8 @@ impl KotoNode {
                             if let Ugen::Mapped(aug) = &node.lock().unwrap().ug {
                                 parent_ug.setug(&paramname, aug.clone(), &shared_ug);
                             } else {
-                                let new_ug = parent_ug.clone();
-                                parent_ug.setug(&paramname, parent_ug.clone(), &shared_ug);
+                                let new_ug = KotoNode::build_ug_from_node(node.clone());
+                                parent_ug.setug(&paramname, new_ug.clone(), &shared_ug);
                             }
                         }
                     };
