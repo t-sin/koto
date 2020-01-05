@@ -38,11 +38,16 @@ pub trait Dump: Walk {
     fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode;
 }
 
+pub enum OperateError {
+    CannotParseNumber(String, String),
+    ParamNotFound(String),
+}
+
 pub trait Operate: Dump {
     fn get(&self, pname: &str) -> Option<Aug>;
     fn get_str(&self, pname: &str) -> Option<String>;
-    fn set(&mut self, pname: &str, ug: Aug);
-    fn set_str(&mut self, pname: &str, data: String);
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError>;
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError>;
     fn clear(&mut self, pname: &str);
 }
 
