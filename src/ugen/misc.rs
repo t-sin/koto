@@ -1,7 +1,7 @@
 extern crate num;
 
 use super::super::mtime::Time;
-use super::core::{Aug, Dump, Proc, Setv, Signal, Slot, UGen, UgNode, Value, Walk, UG};
+use super::core::{Aug, Dump, Proc, Operate, Signal, Slot, UGen, UgNode, Value, Walk, UG};
 
 pub struct Pan {
     pub pan: Aug,
@@ -50,7 +50,7 @@ impl Dump for Pan {
     }
 }
 
-impl Setv for Pan {
+impl Operate for Pan {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
@@ -133,7 +133,7 @@ impl Dump for Clip {
     }
 }
 
-impl Setv for Clip {
+impl Operate for Clip {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
@@ -194,7 +194,7 @@ impl Dump for Offset {
     }
 }
 
-impl Setv for Offset {
+impl Operate for Offset {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
@@ -254,7 +254,7 @@ impl Dump for Gain {
     }
 }
 
-impl Setv for Gain {
+impl Operate for Gain {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
@@ -304,7 +304,7 @@ impl Dump for Add {
     }
 }
 
-impl Setv for Add {
+impl Operate for Add {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
@@ -360,7 +360,7 @@ impl Dump for Multiply {
     }
 }
 
-impl Setv for Multiply {
+impl Operate for Multiply {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
@@ -432,7 +432,7 @@ impl Dump for Out {
     }
 }
 
-impl Setv for Out {
+impl Operate for Out {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {
         match pname {
             "vol" => {

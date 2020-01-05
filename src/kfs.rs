@@ -15,7 +15,7 @@ use super::mtime::Time;
 use super::sexp::read;
 use super::tapirlisp::eval;
 use super::tapirlisp::types::{Env, EvalError};
-use super::ugen::core::{Aug, Dump, Setv, UgNode, Value};
+use super::ugen::core::{Aug, Dump, Operate, UgNode, Value};
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 

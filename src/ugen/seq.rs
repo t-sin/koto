@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use super::super::event::{to_freq, Event, Message, Pitch};
 use super::super::mtime::{Measure, Pos, PosOps, Time};
 
-use super::core::{Aug, Dump, Eg, Proc, Setv, Signal, Slot, UGen, UgNode, Value, Walk, ADSR, UG};
+use super::core::{Aug, Dump, Eg, Proc, Operate, Signal, Slot, UGen, UgNode, Value, Walk, ADSR, UG};
 
 pub struct Trigger {
     eg: Aug,
@@ -54,7 +54,7 @@ impl Dump for Trigger {
     }
 }
 
-impl Setv for Trigger {
+impl Operate for Trigger {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
@@ -165,7 +165,7 @@ impl Dump for AdsrEg {
     }
 }
 
-impl Setv for AdsrEg {
+impl Operate for AdsrEg {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
@@ -328,7 +328,7 @@ impl Dump for Seq {
     }
 }
 
-impl Setv for Seq {
+impl Operate for Seq {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }

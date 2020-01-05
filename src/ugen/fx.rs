@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use super::super::mtime::Time;
 use super::super::tapirlisp::types::Env;
 
-use super::core::{Aug, Dump, Proc, Setv, Signal, Slot, UGen, UgNode, Value, Walk, UG};
+use super::core::{Aug, Dump, Proc, Operate, Signal, Slot, UGen, UgNode, Value, Walk, UG};
 
 pub struct LPFilter {
     inbuf: [Signal; 2],
@@ -72,7 +72,7 @@ impl Dump for LPFilter {
     }
 }
 
-impl Setv for LPFilter {
+impl Operate for LPFilter {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
@@ -200,7 +200,7 @@ impl Dump for Delay {
     }
 }
 
-impl Setv for Delay {
+impl Operate for Delay {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }

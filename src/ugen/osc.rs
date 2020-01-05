@@ -2,7 +2,7 @@ use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
 use super::super::mtime::{Clock, Pos, Time};
-use super::core::{Aug, Dump, Osc, Proc, Setv, Signal, Slot, Table, UGen, UgNode, Value, Walk, UG};
+use super::core::{Aug, Dump, Osc, Proc, Operate, Signal, Slot, Table, UGen, UgNode, Value, Walk, UG};
 use super::misc::{Clip, Gain, Offset};
 
 pub struct Rand {
@@ -31,7 +31,7 @@ impl Dump for Rand {
     }
 }
 
-impl Setv for Rand {
+impl Operate for Rand {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
@@ -99,7 +99,7 @@ impl Dump for Sine {
     }
 }
 
-impl Setv for Sine {
+impl Operate for Sine {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
@@ -173,7 +173,7 @@ impl Dump for Tri {
     }
 }
 
-impl Setv for Tri {
+impl Operate for Tri {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
@@ -256,7 +256,7 @@ impl Dump for Saw {
     }
 }
 
-impl Setv for Saw {
+impl Operate for Saw {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
@@ -349,7 +349,7 @@ impl Dump for Pulse {
     }
 }
 
-impl Setv for Pulse {
+impl Operate for Pulse {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
@@ -424,7 +424,7 @@ impl Dump for Phase {
     }
 }
 
-impl Setv for Phase {
+impl Operate for Phase {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
@@ -525,7 +525,7 @@ impl Dump for WaveTable {
     }
 }
 
-impl Setv for WaveTable {
+impl Operate for WaveTable {
     fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
     fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
 }
