@@ -68,17 +68,6 @@ static TYPE_NAMES: [&str; 21] = [
     "out",
 ];
 
-fn get_ext(name: &str) -> String {
-    let mut ext = String::new();
-    for c in name.chars() {
-        if c == '.' {
-            break;
-        }
-        ext.push(c);
-    }
-    ext
-}
-
 fn create_file(ino: u64, size: u64, ftype: FileType) -> FileAttr {
     let t = time::now().to_timespec();
     FileAttr {
