@@ -452,7 +452,7 @@ impl KotoFS {
                                 if uname != typename {
                                     Ugen::NotMapped
                                 } else {
-                                    Ugen::Mapped(slot.ug.clone())
+                                    Ugen::Mapped(aug.get(&slot.name).unwrap())
                                 }
                             } else {
                                 Ugen::NotMapped
@@ -464,7 +464,7 @@ impl KotoFS {
                                 if uname != typename {
                                     Ugen::NotMapped
                                 } else {
-                                    Ugen::Mapped(slot.ug.clone())
+                                    Ugen::Mapped(aug.get(&slot.name).unwrap())
                                 }
                             } else {
                                 if let Ok(n) = paramname[basename.len()..].parse::<u64>() {
