@@ -438,6 +438,9 @@ impl KotoFS {
         }
     }
 
+    // こいつバグってる？
+    // リネームでAugを正しい名前にしたとき、古いAug (Aug::Val(0.0))で上書きしてしまうため、
+    // 本来設定されてほしい既存のAugが消えてしまっている？
     fn map_ug(&mut self, name: String, parent: u64) -> Ugen {
         if let Some((paramname, typename)) = KotoNode::parse_nodename(name.clone()) {
             if let Some(parent) = self.inodes.get(&parent) {
