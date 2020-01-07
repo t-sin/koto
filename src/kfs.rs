@@ -204,11 +204,6 @@ impl KotoNode {
                 }
             } else {
                 // paramname (xxx of xxx.yyy) is changed (or filename is not changed)
-                let ug = if let Ugen::Mapped(aug) = &node.lock().unwrap().ug {
-                    Some(aug.clone())
-                } else {
-                    None
-                };
                 if let Some(parent) = &node.lock().unwrap().parent {
                     if let Ugen::Mapped(ref mut parent_ug) = &mut parent.lock().unwrap().ug {
                         {
