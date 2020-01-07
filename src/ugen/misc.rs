@@ -502,7 +502,17 @@ impl Dump for Out {
 
 impl Operate for Out {
     fn get(&self, pname: &str) -> Option<Aug> {
-        None
+        match pname {
+            "vol" => Some(self.vol.clone()),
+            name if name.starts_with("src") => {
+                if let Ok(idx) = name[3..].to_string().parse::<usize>() {
+                    Some(self.sources[idx].clone())
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
     }
 
     fn get_str(&self, pname: &str) -> Option<String> {

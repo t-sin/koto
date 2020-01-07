@@ -251,11 +251,21 @@ impl Dump for UGen {
 
 impl Operate for UGen {
     fn get(&self, pname: &str) -> Option<Aug> {
-        None
+        match &self.ug {
+            UG::Proc(u) => u.get(pname),
+            UG::Proc(u) => u.get(pname),
+            UG::Proc(u) => u.get(pname),
+            _ => None,
+        }
     }
 
     fn get_str(&self, pname: &str) -> Option<String> {
-        None
+        match &self.ug {
+            UG::Proc(u) => u.get_str(pname),
+            UG::Proc(u) => u.get_str(pname),
+            UG::Proc(u) => u.get_str(pname),
+            _ => None,
+        }
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
@@ -338,10 +348,10 @@ impl Dump for Aug {
 
 impl Operate for Aug {
     fn get(&self, pname: &str) -> Option<Aug> {
-        None
+        self.0.lock().unwrap().get(pname)
     }
     fn get_str(&self, pname: &str) -> Option<String> {
-        None
+        self.0.lock().unwrap().get_str(pname)
     }
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
         self.0.lock().unwrap().set(pname, ug)
