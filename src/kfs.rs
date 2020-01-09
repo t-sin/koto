@@ -438,55 +438,6 @@ impl KotoFS {
         }
     }
 
-    // こいつバグってる？
-    // リネームでAugを正しい名前にしたとき、古いAug (Aug::Val(0.0))で上書きしてしまうため、
-    // 本来設定されてほしい既存のAugが消えてしまっている？
-    fn map_ug(&mut self, name: String, parent: u64) -> Ugen {
-        if let Some((paramname, typename)) = KotoNode::parse_nodename(name.clone()) {
-            if let Some(parent) = self.inodes.get(&parent) {
-                if let Ugen::Mapped(aug) = &parent.lock().unwrap().ug {
-                    let shared_ug = crate::ugen::util::collect_shared_ugs(aug.clone());
-
-                    return match aug.dump(&shared_ug) {
-                        UgNode::Val(v) => Ugen::NotMapped,
-                        UgNode::Ug(name, slots) => {
-                            if let Some(slot) = slots.iter().find(|s| s.name == paramname) {
-                                let uname = crate::ugen::util::get_ug_name(&slot.ug, &shared_ug);
-                                if uname != typename {
-                                    Ugen::NotMapped
-                                } else {
-                                    Ugen::Mapped(aug.get(&slot.name).unwrap())
-                                }
-                            } else {
-                                Ugen::NotMapped
-                            }
-                        }
-                        UgNode::UgRest(_, slots, basename, values) => {
-                            if let Some(slot) = slots.iter().find(|s| s.name == paramname) {
-                                let uname = crate::ugen::util::get_ug_name(&slot.ug, &shared_ug);
-                                if uname != typename {
-                                    Ugen::NotMapped
-                                } else {
-                                    Ugen::Mapped(aug.get(&slot.name).unwrap())
-                                }
-                            } else {
-                                if let Ok(n) = paramname[basename.len()..].parse::<u64>() {
-                                    match &*values[n as usize] {
-                                        Value::Ug(aug) => Ugen::Mapped(aug.clone()),
-                                        _ => Ugen::NotMapped,
-                                    }
-                                } else {
-                                    Ugen::NotMapped
-                                }
-                            }
-                        }
-                    };
-                }
-            }
-        }
-        return Ugen::NotMapped;
-    }
-
     pub fn init(sample_rate: u32, ug: Aug) -> KotoFS {
         let mut fs = KotoFS {
             inodes: HashMap::new(),
@@ -618,8 +569,7 @@ impl Filesystem for KotoFS {
         }
 
         if let Some(node) = created.clone() {
-            let ugen = self.map_ug(name.clone(), parent);
-            node.lock().unwrap().ug = ugen;
+            KotoNode::sync_file(node.clone());
             reply.created(&TTL, &node.lock().unwrap().attr, 0, 0, 0);
         }
     }
@@ -710,9 +660,7 @@ impl Filesystem for KotoFS {
             None
         };
 
-        let ugen = self.map_ug(new_name.clone(), parent);
         if let Some(node) = node {
-            node.lock().unwrap().ug = ugen;
             KotoNode::sync_ug(node.clone(), old_name.clone(), self.sample_rate);
         }
 
