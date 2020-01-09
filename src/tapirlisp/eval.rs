@@ -346,12 +346,16 @@ fn make_adsr_eg(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
 }
 
 fn make_seq(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
-    if args.len() == 3 {
+    if args.len() == 4 {
         match eval(&args[1], env) {
             Ok(Value::Unit(osc)) => match eval(&args[2], env) {
-                Ok(Value::Unit(eg)) => match eval(&args[0], env) {
-                    Ok(Value::Unit(pat)) => Ok(Seq::new(pat, osc, eg, &env.time)),
-                    _ => Err(EvalError::NotAPattern),
+                Ok(Value::Unit(osc_mod)) => match eval(&args[3], env) {
+                    Ok(Value::Unit(eg)) => match eval(&args[0], env) {
+                        Ok(Value::Unit(pat)) => Ok(Seq::new(pat, osc, osc_mod, eg, &env.time)),
+                        _ => Err(EvalError::NotAPattern),
+                    },
+                    Ok(_v) => Err(EvalError::NotAug),
+                    Err(err) => Err(err),
                 },
                 Ok(_v) => Err(EvalError::NotAug),
                 Err(err) => Err(err),

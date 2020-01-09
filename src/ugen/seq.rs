@@ -264,16 +264,12 @@ pub struct Seq {
 }
 
 impl Seq {
-    pub fn new(pat: Aug, osc: Aug, eg: Aug, time: &Time) -> Aug {
+    pub fn new(pat: Aug, osc: Aug, osc_mod: Aug, eg: Aug, time: &Time) -> Aug {
         let mut seq = Seq {
             pattern: pat,
             queue: VecDeque::new(),
-            osc: osc.clone(),
-            osc_mod: if let UG::Osc(o) = &osc.0.lock().unwrap().ug {
-                o.get_freq()
-            } else {
-                Aug::val(0.0)
-            },
+            osc: osc,
+            osc_mod: osc_mod,
             eg: eg,
         };
         seq.fill_queue(&time.pos, &time.measure);
@@ -344,6 +340,14 @@ impl Dump for Seq {
             value: match shared_ug.iter().position(|e| *e == self.osc) {
                 Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
                 None => Value::Ug(self.osc.clone()),
+            },
+        });
+        slots.push(Slot {
+            ug: self.osc_mod.clone(),
+            name: "osc_mod".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.osc_mod) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.osc_mod.clone()),
             },
         });
         slots.push(Slot {
