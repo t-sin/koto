@@ -3,7 +3,9 @@ use std::collections::VecDeque;
 use super::super::event::{to_freq, Event, Message, Pitch};
 use super::super::mtime::{Measure, Pos, PosOps, Time};
 
-use super::core::{Aug, Dump, Eg, Proc, Setv, Signal, Slot, UGen, UgNode, Value, Walk, ADSR, UG};
+use super::core::{
+    Aug, Dump, Eg, Operate, OperateError, Proc, Signal, Slot, UGen, UgNode, Value, Walk, ADSR, UG,
+};
 
 pub struct Trigger {
     eg: Aug,
@@ -54,9 +56,20 @@ impl Dump for Trigger {
     }
 }
 
-impl Setv for Trigger {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+impl Operate for Trigger {
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for Trigger {
@@ -165,9 +178,20 @@ impl Dump for AdsrEg {
     }
 }
 
-impl Setv for AdsrEg {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+impl Operate for AdsrEg {
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for AdsrEg {
@@ -328,9 +352,20 @@ impl Dump for Seq {
     }
 }
 
-impl Setv for Seq {
-    fn setv(&mut self, pname: &str, data: String, shared: &Vec<Aug>) {}
-    fn setug(&mut self, pname: &str, ug: Aug, shared_ug: &Vec<Aug>) {}
+impl Operate for Seq {
+    fn get(&self, pname: &str) -> Option<Aug> {
+        None
+    }
+    fn get_str(&self, pname: &str) -> Option<String> {
+        None
+    }
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        Ok(true)
+    }
+    fn clear(&mut self, pname: &str) {}
 }
 
 impl Proc for Seq {
