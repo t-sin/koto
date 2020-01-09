@@ -34,6 +34,6 @@
 (out 0.3
      (seq $hat-pat $hat-osc 0 $hat-eg)
      (seq $kick-pat $kick-osc (* 300 $kick-fmod) (trig $kick-eg $kick-fmod))
-     (gain 0.4 (lpf $synth-lpfmod 20 (seq $synth-pat $synth-osc 0 $synth-eg)))
+     (gain 0.4 (delay 0.25 0.3 0.5 (lpf $synth-lpfmod 20 (seq $synth-pat $synth-osc 0 $synth-eg))))
      (lpf (+ 600 (* 200 (tri 0 1)) (* 100 $bass-eg)) 20
           (seq $bass-pat $bass-osc 0 $bass-eg)))
