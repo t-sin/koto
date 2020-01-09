@@ -621,6 +621,37 @@ impl Filesystem for KotoFS {
         reply.error(ENOENT);
     }
 
+    fn rmdir(&mut self, _req: &Request, parent: u64, name: &OsStr, reply: ReplyEmpty) {
+        let name = name.to_str().unwrap().to_string();
+        let mut inode = None;
+
+        if let Some(parent_node) = self.inodes.get(&parent) {
+            let pos = parent_node
+                .lock()
+                .unwrap()
+                .children
+                .iter()
+                .position(|(nodename, _)| nodename == &name);
+
+            if let Some(idx) = pos {
+                let (_, node) = &mut parent_node.lock().unwrap().children.remove(idx);
+                inode = Some(node.lock().unwrap().attr.ino);
+            }
+
+            if let Ugen::Mapped(ref mut aug) = &mut parent_node.lock().unwrap().ug {
+                if let Some((paramname, _)) = KotoNode::parse_nodename(name) {
+                    aug.set_str(&paramname, "0.0".to_string());
+                }
+            }
+        }
+
+        if let Some(ino) = inode {
+            self.inodes.remove(&ino);
+        }
+
+        reply.ok();
+    }
+
     fn rename(
         &mut self,
         _req: &Request,
@@ -753,13 +784,23 @@ impl Filesystem for KotoFS {
         let mut inode = None;
 
         if let Some(parent_node) = self.inodes.get(&parent) {
-            let children = &mut parent_node.lock().unwrap().children;
             let name = name.to_str().unwrap().to_string();
 
-            if let Some(pos) = children.iter().position(|(nodename, _)| nodename == &name) {
-                let (_, node) = &children[pos];
+            let pos = parent_node
+                .lock()
+                .unwrap()
+                .children
+                .iter()
+                .position(|(nodename, _)| nodename == &name);
+            if let Some(pos) = pos {
+                let (_, node) = parent_node.lock().unwrap().children.remove(pos);
                 inode = Some(node.lock().unwrap().attr.ino);
-                children.remove(pos);
+            }
+
+            if let Ugen::Mapped(ref mut aug) = &mut parent_node.lock().unwrap().ug {
+                if let Some((paramname, _)) = KotoNode::parse_nodename(name) {
+                    aug.set_str(&paramname, "0.0".to_string());
+                }
             }
         }
 
