@@ -753,32 +753,6 @@ impl Filesystem for KotoFS {
         }
     }
 
-    fn link(
-        &mut self,
-        _req: &Request,
-        ino: u64,
-        newparent: u64,
-        newname: &OsStr,
-        reply: ReplyEntry,
-    ) {
-        println!("link() {:?}", newname);
-
-        if let Some(node) = self.inodes.get(&ino) {
-            if let Some(parent) = self.inodes.get(&newparent) {
-                let attr = node.lock().unwrap().attr;
-                parent
-                    .lock()
-                    .unwrap()
-                    .children
-                    .push((newname.to_str().unwrap().to_string(), node.clone()));
-                reply.entry(&TTL, &attr, 0);
-                return;
-            }
-        }
-        // TODO: connect ugs
-        reply.error(ENOENT);
-    }
-
     fn unlink(&mut self, _req: &Request, parent: u64, name: &OsStr, reply: ReplyEmpty) {
         println!("unlink() {:?}", name);
         let mut inode = None;
@@ -809,7 +783,6 @@ impl Filesystem for KotoFS {
             reply.ok();
             return;
         }
-        // TODO: remove if no nodes
 
         reply.error(ENOENT);
     }
