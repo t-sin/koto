@@ -58,6 +58,9 @@ impl Proc for Rand {
 
 impl Osc for Rand {
     fn set_freq(&mut self, _u: Aug) {}
+    fn get_freq(&self) -> Aug {
+        Aug::val(0.0)
+    }
 }
 
 pub struct Sine {
@@ -142,6 +145,10 @@ impl Proc for Sine {
 impl Osc for Sine {
     fn set_freq(&mut self, u: Aug) {
         self.freq = u;
+    }
+
+    fn get_freq(&self) -> Aug {
+        self.freq.clone()
     }
 }
 
@@ -237,6 +244,10 @@ impl Osc for Tri {
     fn set_freq(&mut self, u: Aug) {
         self.freq = u;
     }
+
+    fn get_freq(&self) -> Aug {
+        self.freq.clone()
+    }
 }
 
 pub struct Saw {
@@ -327,6 +338,10 @@ impl Proc for Saw {
 impl Osc for Saw {
     fn set_freq(&mut self, u: Aug) {
         self.freq = u;
+    }
+
+    fn get_freq(&self) -> Aug {
+        self.freq.clone()
     }
 }
 
@@ -433,6 +448,10 @@ impl Osc for Pulse {
     fn set_freq(&mut self, u: Aug) {
         self.freq = u;
     }
+
+    fn get_freq(&self) -> Aug {
+        self.freq.clone()
+    }
 }
 
 pub struct Phase {
@@ -508,6 +527,10 @@ impl Osc for Phase {
         if let UG::Osc(ref mut osc) = &mut self.osc.0.lock().unwrap().ug {
             osc.set_freq(freq);
         }
+    }
+
+    fn get_freq(&self) -> Aug {
+        Aug::val(0.0)
     }
 }
 
@@ -630,5 +653,9 @@ impl Osc for WaveTable {
         if let UG::Osc(ref mut osc) = &mut self.ph.0.lock().unwrap().ug {
             osc.set_freq(freq);
         }
+    }
+
+    fn get_freq(&self) -> Aug {
+        Aug::val(0.0)
     }
 }

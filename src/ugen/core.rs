@@ -59,6 +59,7 @@ pub trait Proc: Operate {
 }
 
 pub trait Osc: Proc {
+    fn get_freq(&self) -> Aug;
     fn set_freq(&mut self, freq: Aug);
 }
 
@@ -211,6 +212,13 @@ impl Osc for UG {
         match self {
             UG::Osc(u) => u.set_freq(freq),
             _ => (),
+        }
+    }
+
+    fn get_freq(&self) -> Aug {
+        match self {
+            UG::Osc(u) => u.get_freq(),
+            _ => Aug::val(0.0),
         }
     }
 }

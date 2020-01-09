@@ -15,7 +15,7 @@
 (def $synth-pat (pat (c4 2) (d+4 1) (d+4 1) (d+4 2) (c4 2)
                      (c4 2) (c4 2) (c4 2) (c4 2)
                      loop))
-(def $synth-osc (saw 0 400))
+(def $synth-osc (saw 0 0))
 (def $synth-eg (adsr 0 0.3 0.3 0))
 (def $synth-lpfmod (+ 700 (* 300 (tri 0 1))))
 
@@ -24,7 +24,7 @@
                     (r 2) (c2 2) (r 2) (c2 2)
                     (r 2) (d2 2) (r 2) (d2 2)
                     loop))
-(def $bass-osc (saw 0 440))
+(def $bass-osc (saw 0 0))
 (def $bass-eg (adsr 0.05 0.3 0 0))
 
 (out 0.3

@@ -6,6 +6,7 @@ use super::super::mtime::{Measure, Pos, PosOps, Time};
 use super::core::{
     Aug, Dump, Eg, Operate, OperateError, Proc, Signal, Slot, UGen, UgNode, Value, Walk, ADSR, UG,
 };
+use super::misc::Add;
 
 pub struct Trigger {
     eg: Aug,
@@ -258,6 +259,7 @@ pub struct Seq {
     pattern: Aug,
     queue: VecDeque<Box<Event>>,
     osc: Aug,
+    osc_mod: Aug,
     eg: Aug,
 }
 
@@ -266,7 +268,12 @@ impl Seq {
         let mut seq = Seq {
             pattern: pat,
             queue: VecDeque::new(),
-            osc: osc,
+            osc: osc.clone(),
+            osc_mod: if let UG::Osc(o) = &osc.0.lock().unwrap().ug {
+                o.get_freq()
+            } else {
+                Aug::val(0.0)
+            },
             eg: eg,
         };
         seq.fill_queue(&time.pos, &time.measure);
@@ -370,16 +377,20 @@ impl Operate for Seq {
 
 impl Proc for Seq {
     fn proc(&mut self, time: &Time) -> Signal {
+        self.osc_mod.proc(&time);
         let (ol, or) = self.osc.proc(&time);
         let (el, er) = self.eg.proc(&time);
         let mut q = self.queue.iter().peekable();
+
         match q.peek() {
             Some(e) => match &***e {
                 Event::On(pos, _freq) => {
                     if pos <= &time.pos {
                         if let Event::On(_pos, freq) = *self.queue.pop_front().unwrap() {
                             if let UG::Osc(ref mut osc) = &mut self.osc.0.lock().unwrap().ug {
-                                osc.set_freq(Aug::new(UGen::new(UG::Val(freq))));
+                                let freq =
+                                    vec![self.osc_mod.clone(), Aug::new(UGen::new(UG::Val(freq)))];
+                                osc.set_freq(Add::new(freq));
                             }
                             if let UG::Eg(ref mut eg) = &mut self.eg.0.lock().unwrap().ug {
                                 eg.set_state(ADSR::Attack, 0);
