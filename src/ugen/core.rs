@@ -42,11 +42,12 @@ pub enum OperateError {
     NotUgen,
     CannotParseNumber(String, String),
     ParamNotFound(String),
+    CannotRepresentAsString(String),
 }
 
 pub trait Operate: Dump {
-    fn get(&self, pname: &str) -> Option<Aug>;
-    fn get_str(&self, pname: &str) -> Option<String>;
+    fn get(&self, pname: &str) -> Result<Aug, OperateError>;
+    fn get_str(&self, pname: &str) -> Result<String, OperateError>;
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError>;
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError>;
     fn clear(&mut self, pname: &str);
@@ -179,10 +180,10 @@ impl Dump for UG {
 }
 
 impl Operate for UG {
-    fn get(&self, pname: &str) -> Option<Aug> {
+    fn get(&self, pname: &str) -> Result<Aug, OperateError> {
         None
     }
-    fn get_str(&self, pname: &str) -> Option<String> {
+    fn get_str(&self, pname: &str) -> Result<String, OperateError> {
         None
     }
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
@@ -258,7 +259,7 @@ impl Dump for UGen {
 }
 
 impl Operate for UGen {
-    fn get(&self, pname: &str) -> Option<Aug> {
+    fn get(&self, pname: &str) -> Result<Aug, OperateError> {
         match &self.ug {
             UG::Proc(u) => u.get(pname),
             UG::Proc(u) => u.get(pname),
@@ -267,7 +268,7 @@ impl Operate for UGen {
         }
     }
 
-    fn get_str(&self, pname: &str) -> Option<String> {
+    fn get_str(&self, pname: &str) -> Result<String, OperateError> {
         match &self.ug {
             UG::Proc(u) => u.get_str(pname),
             UG::Proc(u) => u.get_str(pname),
@@ -320,6 +321,13 @@ impl Aug {
     pub fn val(v: f64) -> Aug {
         Aug::new(UGen::new(UG::Val(v)))
     }
+
+    pub fn to_val(&self) -> Option<f64> {
+        match self.0.lock().unwrap().ug {
+            UG::Val(v) => v,
+            _ => None,
+        }
+    }
 }
 
 impl Clone for Aug {
@@ -355,10 +363,10 @@ impl Dump for Aug {
 }
 
 impl Operate for Aug {
-    fn get(&self, pname: &str) -> Option<Aug> {
+    fn get(&self, pname: &str) -> Result<Aug, OperateError> {
         self.0.lock().unwrap().get(pname)
     }
-    fn get_str(&self, pname: &str) -> Option<String> {
+    fn get_str(&self, pname: &str) -> Result<String, OperateError> {
         self.0.lock().unwrap().get_str(pname)
     }
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
