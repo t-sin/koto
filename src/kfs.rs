@@ -180,7 +180,7 @@ impl KotoNode {
                 if let Some(parent) = &node.lock().unwrap().parent {
                     if let Ugen::Mapped(ref mut parent_ug) = &mut parent.lock().unwrap().ug {
                         {
-                            parent_ug.set_str(&paramname, "0.0".to_string());
+                            parent_ug.clear(&paramname);
                         }
                     }
                 }
@@ -190,7 +190,7 @@ impl KotoNode {
             if let Some((paramname, _)) = KotoNode::parse_nodename(oldname.clone()) {
                 if let Some(parent) = &node.lock().unwrap().parent {
                     if let Ugen::Mapped(ref mut aug) = &mut parent.lock().unwrap().ug {
-                        aug.set_str(&paramname, "0.0".to_string());
+                        aug.clear(&paramname);
                     }
                 }
             }
@@ -620,7 +620,7 @@ impl Filesystem for KotoFS {
 
             if let Ugen::Mapped(ref mut aug) = &mut parent_node.lock().unwrap().ug {
                 if let Some((paramname, _)) = KotoNode::parse_nodename(name) {
-                    aug.set_str(&paramname, "0.0".to_string());
+                    aug.clear(&paramname);
                 }
             }
         }
@@ -753,7 +753,7 @@ impl Filesystem for KotoFS {
 
             if let Ugen::Mapped(ref mut aug) = &mut parent_node.lock().unwrap().ug {
                 if let Some((paramname, _)) = KotoNode::parse_nodename(name) {
-                    aug.set_str(&paramname, "0.0".to_string());
+                    aug.clear(&paramname);
                 }
             }
         }
