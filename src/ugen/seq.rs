@@ -58,12 +58,26 @@ impl Dump for Trigger {
 }
 
 impl Operate for Trigger {
-    fn get(&self, pname: &str) -> Option<Aug> {
+    fn get(&self, pname: &str) -> Result<Aug, OperateError> {
         None
     }
-    fn get_str(&self, pname: &str) -> Option<String> {
-        None
+
+    fn get_str(&self, pname: &str) -> Result<String, OperateError> {
+        match self.get(pname) {
+            Ok(aug) => {
+                if let Some(v) = aug.to_val() {
+                    Ok(v.to_string())
+                } else {
+                    Err(OperateError::CannotRepresentAsString(format!(
+                        "mul/{}",
+                        pname
+                    )))
+                }
+            }
+            Err(err) => Err(err),
+        }
     }
+
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
         Ok(true)
     }
@@ -180,12 +194,26 @@ impl Dump for AdsrEg {
 }
 
 impl Operate for AdsrEg {
-    fn get(&self, pname: &str) -> Option<Aug> {
+    fn get(&self, pname: &str) -> Result<Aug, OperateError> {
         None
     }
-    fn get_str(&self, pname: &str) -> Option<String> {
-        None
+
+    fn get_str(&self, pname: &str) -> Result<String, OperateError> {
+        match self.get(pname) {
+            Ok(aug) => {
+                if let Some(v) = aug.to_val() {
+                    Ok(v.to_string())
+                } else {
+                    Err(OperateError::CannotRepresentAsString(format!(
+                        "mul/{}",
+                        pname
+                    )))
+                }
+            }
+            Err(err) => Err(err),
+        }
     }
+
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
         Ok(true)
     }
@@ -364,12 +392,26 @@ impl Dump for Seq {
 }
 
 impl Operate for Seq {
-    fn get(&self, pname: &str) -> Option<Aug> {
+    fn get(&self, pname: &str) -> Result<Aug, OperateError> {
         None
     }
-    fn get_str(&self, pname: &str) -> Option<String> {
-        None
+
+    fn get_str(&self, pname: &str) -> Result<String, OperateError> {
+        match self.get(pname) {
+            Ok(aug) => {
+                if let Some(v) = aug.to_val() {
+                    Ok(v.to_string())
+                } else {
+                    Err(OperateError::CannotRepresentAsString(format!(
+                        "mul/{}",
+                        pname
+                    )))
+                }
+            }
+            Err(err) => Err(err),
+        }
     }
+
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
         Ok(true)
     }
