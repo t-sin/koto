@@ -89,7 +89,24 @@ impl Operate for Trigger {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "eg" => {
+                self.eg = ug;
+                Ok(true)
+            }
+            name if name.starts_with("src") => {
+                if let Ok(idx) = name[3..].to_string().parse::<usize>() {
+                    while self.egs.len() <= idx {
+                        self.egs.push(Aug::val(0.0));
+                    }
+                    self.egs[idx] = ug;
+                    Ok(true)
+                } else {
+                    Err(OperateError::ParamNotFound(format!("trig/{}", pname)))
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("trig/{}", pname))),
+        }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
@@ -231,8 +248,27 @@ impl Operate for AdsrEg {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "a" => {
+                self.a = ug;
+                Ok(true)
+            }
+            "d" => {
+                self.d = ug;
+                Ok(true)
+            }
+            "s" => {
+                self.s = ug;
+                Ok(true)
+            }
+            "r" => {
+                self.r = ug;
+                Ok(true)
+            }
+            _ => Err(OperateError::ParamNotFound(format!("adsr/{}", pname))),
+        }
     }
+
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
     }
@@ -414,7 +450,7 @@ impl Operate for Seq {
             "osc" => Ok(self.osc.clone()),
             "osc_mod" => Ok(self.osc_mod.clone()),
             "eg" => Ok(self.eg.clone()),
-            _ => Err(OperateError::ParamNotFound(format!("out/{}", pname))),
+            _ => Err(OperateError::ParamNotFound(format!("seq/{}", pname))),
         }
     }
 
@@ -435,8 +471,27 @@ impl Operate for Seq {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "pattern" => {
+                self.pattern = ug;
+                Ok(true)
+            }
+            "osc" => {
+                self.osc = ug;
+                Ok(true)
+            }
+            "osc_mod" => {
+                self.osc_mod = ug;
+                Ok(true)
+            }
+            "eg" => {
+                self.eg = ug;
+                Ok(true)
+            }
+            _ => Err(OperateError::ParamNotFound(format!("seq/{}", pname))),
+        }
     }
+
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
     }
