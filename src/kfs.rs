@@ -156,10 +156,7 @@ impl KotoNode {
         if let Some((paramname, _)) = KotoNode::get_nodename(node.clone()) {
             if let Some(parent) = &node.lock().unwrap().parent {
                 if let Ugen::Mapped(ref mut aug) = &mut parent.lock().unwrap().ug {
-                    println!("set {:?} to {:?}", data, paramname);
                     aug.set_str(&paramname, data.clone());
-                } else {
-                    println!("ooo not mapped...");
                 }
             }
         }
@@ -172,10 +169,8 @@ impl KotoNode {
             if set.contains(&typename[..]) {
                 // typename (yyy of xxx.yyy) is valid
                 if let Some(new_ug) = KotoNode::build_ug_from_node(node.clone(), sample_rate) {
-                    println!("aaaaaaaaaaaaaaaaaaa");
                     if let Some(parent) = &node.lock().unwrap().parent {
                         if let Ugen::Mapped(ref mut parent_ug) = &mut parent.lock().unwrap().ug {
-                            println!("bbbbbbbbbbbbbbbbb");
                             parent_ug.set(&paramname, new_ug.clone());
                         }
                     }
