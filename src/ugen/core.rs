@@ -181,10 +181,10 @@ impl Dump for UG {
 
 impl Operate for UG {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        Err(OperateError::NotUgen)
     }
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
-        None
+        Err(OperateError::NotUgen)
     }
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
         Ok(true)
@@ -264,7 +264,7 @@ impl Operate for UGen {
             UG::Proc(u) => u.get(pname),
             UG::Proc(u) => u.get(pname),
             UG::Proc(u) => u.get(pname),
-            _ => None,
+            _ => Err(OperateError::NotUgen),
         }
     }
 
@@ -273,7 +273,7 @@ impl Operate for UGen {
             UG::Proc(u) => u.get_str(pname),
             UG::Proc(u) => u.get_str(pname),
             UG::Proc(u) => u.get_str(pname),
-            _ => None,
+            _ => Err(OperateError::NotUgen),
         }
     }
 
