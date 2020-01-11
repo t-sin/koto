@@ -69,7 +69,7 @@ impl Operate for Trigger {
                     Ok(v.to_string())
                 } else {
                     Err(OperateError::CannotRepresentAsString(format!(
-                        "mul/{}",
+                        "trig/{}",
                         pname
                     )))
                 }
@@ -205,7 +205,7 @@ impl Operate for AdsrEg {
                     Ok(v.to_string())
                 } else {
                     Err(OperateError::CannotRepresentAsString(format!(
-                        "mul/{}",
+                        "adsr/{}",
                         pname
                     )))
                 }
@@ -403,7 +403,7 @@ impl Operate for Seq {
                     Ok(v.to_string())
                 } else {
                     Err(OperateError::CannotRepresentAsString(format!(
-                        "mul/{}",
+                        "seq/{}",
                         pname
                     )))
                 }

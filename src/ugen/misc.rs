@@ -64,7 +64,7 @@ impl Operate for Pan {
                     Ok(v.to_string())
                 } else {
                     Err(OperateError::CannotRepresentAsString(format!(
-                        "mul/{}",
+                        "pan/{}",
                         pname
                     )))
                 }
@@ -172,7 +172,7 @@ impl Operate for Clip {
                     Ok(v.to_string())
                 } else {
                     Err(OperateError::CannotRepresentAsString(format!(
-                        "mul/{}",
+                        "clip/{}",
                         pname
                     )))
                 }
@@ -258,7 +258,7 @@ impl Operate for Offset {
                     Ok(v.to_string())
                 } else {
                     Err(OperateError::CannotRepresentAsString(format!(
-                        "mul/{}",
+                        "offset/{}",
                         pname
                     )))
                 }
@@ -343,7 +343,7 @@ impl Operate for Gain {
                     Ok(v.to_string())
                 } else {
                     Err(OperateError::CannotRepresentAsString(format!(
-                        "mul/{}",
+                        "gain/{}",
                         pname
                     )))
                 }
@@ -418,7 +418,7 @@ impl Operate for Add {
                     Ok(v.to_string())
                 } else {
                     Err(OperateError::CannotRepresentAsString(format!(
-                        "mul/{}",
+                        "add/{}",
                         pname
                     )))
                 }
