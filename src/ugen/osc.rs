@@ -35,7 +35,9 @@ impl Dump for Rand {
 
 impl Operate for Rand {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            _ => Err(OperateError::ParamNotFound(format!("out/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
@@ -131,7 +133,11 @@ impl Dump for Sine {
 
 impl Operate for Sine {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            "init_ph" => Ok(self.init_ph.clone()),
+            "freq" => Ok(self.freq.clone()),
+            _ => Err(OperateError::ParamNotFound(format!("sine/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
@@ -234,7 +240,11 @@ impl Dump for Tri {
 
 impl Operate for Tri {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            "init_ph" => Ok(self.init_ph.clone()),
+            "freq" => Ok(self.freq.clone()),
+            _ => Err(OperateError::ParamNotFound(format!("tri/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
@@ -346,7 +356,11 @@ impl Dump for Saw {
 
 impl Operate for Saw {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            "init_ph" => Ok(self.init_ph.clone()),
+            "freq" => Ok(self.freq.clone()),
+            _ => Err(OperateError::ParamNotFound(format!("saw/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
@@ -468,7 +482,12 @@ impl Dump for Pulse {
 
 impl Operate for Pulse {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            "init_ph" => Ok(self.init_ph.clone()),
+            "freq" => Ok(self.freq.clone()),
+            "duty" => Ok(self.duty.clone()),
+            _ => Err(OperateError::ParamNotFound(format!("pulse/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
@@ -572,7 +591,10 @@ impl Dump for Phase {
 
 impl Operate for Phase {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            "osc" => Ok(self.osc.clone()),
+            _ => Err(OperateError::ParamNotFound(format!("phase/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
@@ -702,7 +724,11 @@ impl Dump for WaveTable {
 
 impl Operate for WaveTable {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            "table" => Ok(self.table.clone()),
+            "ph" => Ok(self.ph.clone()),
+            _ => Err(OperateError::ParamNotFound(format!("wavetable/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {

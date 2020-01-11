@@ -54,7 +54,11 @@ impl Dump for Pan {
 
 impl Operate for Pan {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            "pan" => Ok(self.pan.clone()),
+            "src" => Ok(self.src.clone()),
+            _ => Err(OperateError::ParamNotFound(format!("pan/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
@@ -162,7 +166,12 @@ impl Dump for Clip {
 
 impl Operate for Clip {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            "min" => Ok(self.min.clone()),
+            "max" => Ok(self.max.clone()),
+            "src" => Ok(self.src.clone()),
+            _ => Err(OperateError::ParamNotFound(format!("clip/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
@@ -248,7 +257,11 @@ impl Dump for Offset {
 
 impl Operate for Offset {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            "val" => Ok(self.val.clone()),
+            "src" => Ok(self.src.clone()),
+            _ => Err(OperateError::ParamNotFound(format!("offset/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
@@ -333,7 +346,11 @@ impl Dump for Gain {
 
 impl Operate for Gain {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            "gain" => Ok(self.gain.clone()),
+            "src" => Ok(self.src.clone()),
+            _ => Err(OperateError::ParamNotFound(format!("gain/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
@@ -408,7 +425,16 @@ impl Dump for Add {
 
 impl Operate for Add {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            name if name.starts_with("src") => {
+                if let Ok(idx) = name[3..].to_string().parse::<usize>() {
+                    Ok(self.sources[idx].clone())
+                } else {
+                    Err(OperateError::ParamNotFound(format!("add/{}", pname)))
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("add/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
@@ -489,7 +515,16 @@ impl Dump for Multiply {
 
 impl Operate for Multiply {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            name if name.starts_with("src") => {
+                if let Ok(idx) = name[3..].to_string().parse::<usize>() {
+                    Ok(self.sources[idx].clone())
+                } else {
+                    Err(OperateError::ParamNotFound(format!("mul/{}", pname)))
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("mul/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
@@ -666,8 +701,13 @@ impl Operate for Out {
 
     fn clear(&mut self, pname: &str) {
         match pname {
-            "vol" => self.set(pname, Aug::val(0.0)),
-            name if name.starts_with("src") => self.set(pname, Aug::val(0.0)),
+            "vol" => {
+                self.set(pname, Aug::val(0.0));
+            }
+            name if name.starts_with("src") => {
+                self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
         };
     }
 }

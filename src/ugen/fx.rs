@@ -76,7 +76,12 @@ impl Dump for LPFilter {
 
 impl Operate for LPFilter {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            "freq" => Ok(self.freq.clone()),
+            "q" => Ok(self.q.clone()),
+            "src" => Ok(self.src.clone()),
+            _ => Err(OperateError::ParamNotFound(format!("lpf/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
@@ -229,7 +234,13 @@ impl Dump for Delay {
 
 impl Operate for Delay {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            "time" => Ok(self.time.clone()),
+            "feedback" => Ok(self.feedback.clone()),
+            "mix" => Ok(self.mix.clone()),
+            "src" => Ok(self.src.clone()),
+            _ => Err(OperateError::ParamNotFound(format!("delay/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
