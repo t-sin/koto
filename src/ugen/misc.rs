@@ -587,7 +587,7 @@ impl Dump for Out {
 impl Operate for Out {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
         match pname {
-            "vol" => Some(self.vol.clone()),
+            "vol" => Ok(self.vol.clone()),
             name if name.starts_with("src") => {
                 if let Ok(idx) = name[3..].to_string().parse::<usize>() {
                     Ok(self.sources[idx].clone())
