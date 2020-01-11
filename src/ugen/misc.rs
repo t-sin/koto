@@ -78,7 +78,17 @@ impl Operate for Pan {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "pan" => {
+                self.pan = ug;
+                Ok(true)
+            }
+            "src" => {
+                self.src = ug;
+                Ok(true)
+            }
+            _ => Err(OperateError::ParamNotFound(format!("pan/{}", pname))),
+        }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
@@ -191,7 +201,21 @@ impl Operate for Clip {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "min" => {
+                self.min = ug;
+                Ok(true)
+            }
+            "max" => {
+                self.max = ug;
+                Ok(true)
+            }
+            "src" => {
+                self.src = ug;
+                Ok(true)
+            }
+            _ => Err(OperateError::ParamNotFound(format!("clip/{}", pname))),
+        }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
@@ -281,7 +305,17 @@ impl Operate for Offset {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "val" => {
+                self.val = ug;
+                Ok(true)
+            }
+            "src" => {
+                self.src = ug;
+                Ok(true)
+            }
+            _ => Err(OperateError::ParamNotFound(format!("offset/{}", pname))),
+        }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
@@ -370,7 +404,17 @@ impl Operate for Gain {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "gain" => {
+                self.gain = ug;
+                Ok(true)
+            }
+            "src" => {
+                self.src = ug;
+                Ok(true)
+            }
+            _ => Err(OperateError::ParamNotFound(format!("gain/{}", pname))),
+        }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
@@ -454,7 +498,20 @@ impl Operate for Add {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            name if name.starts_with("src") => {
+                if let Ok(idx) = name[3..].to_string().parse::<usize>() {
+                    while self.sources.len() <= idx {
+                        self.sources.push(Aug::val(0.0));
+                    }
+                    self.sources[idx] = ug;
+                    Ok(true)
+                } else {
+                    Err(OperateError::ParamNotFound(format!("add/{}", pname)))
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("add/{}", pname))),
+        }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
@@ -544,7 +601,20 @@ impl Operate for Multiply {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            name if name.starts_with("src") => {
+                if let Ok(idx) = name[3..].to_string().parse::<usize>() {
+                    while self.sources.len() <= idx {
+                        self.sources.push(Aug::val(0.0));
+                    }
+                    self.sources[idx] = ug;
+                    Ok(true)
+                } else {
+                    Err(OperateError::ParamNotFound(format!("mul/{}", pname)))
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("mul/{}", pname))),
+        }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
