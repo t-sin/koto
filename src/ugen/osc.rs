@@ -45,7 +45,7 @@ impl Operate for Rand {
                     Ok(v.to_string())
                 } else {
                     Err(OperateError::CannotRepresentAsString(format!(
-                        "mul/{}",
+                        "rand/{}",
                         pname
                     )))
                 }
@@ -141,7 +141,7 @@ impl Operate for Sine {
                     Ok(v.to_string())
                 } else {
                     Err(OperateError::CannotRepresentAsString(format!(
-                        "mul/{}",
+                        "sine/{}",
                         pname
                     )))
                 }
@@ -244,7 +244,7 @@ impl Operate for Tri {
                     Ok(v.to_string())
                 } else {
                     Err(OperateError::CannotRepresentAsString(format!(
-                        "mul/{}",
+                        "tri/{}",
                         pname
                     )))
                 }
@@ -356,7 +356,7 @@ impl Operate for Saw {
                     Ok(v.to_string())
                 } else {
                     Err(OperateError::CannotRepresentAsString(format!(
-                        "mul/{}",
+                        "saw/{}",
                         pname
                     )))
                 }
@@ -478,7 +478,7 @@ impl Operate for Pulse {
                     Ok(v.to_string())
                 } else {
                     Err(OperateError::CannotRepresentAsString(format!(
-                        "mul/{}",
+                        "pulse/{}",
                         pname
                     )))
                 }
@@ -582,7 +582,7 @@ impl Operate for Phase {
                     Ok(v.to_string())
                 } else {
                     Err(OperateError::CannotRepresentAsString(format!(
-                        "mul/{}",
+                        "phase/{}",
                         pname
                     )))
                 }
@@ -712,7 +712,7 @@ impl Operate for WaveTable {
                     Ok(v.to_string())
                 } else {
                     Err(OperateError::CannotRepresentAsString(format!(
-                        "mul/{}",
+                        "wavetable/{}",
                         pname
                     )))
                 }

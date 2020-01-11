@@ -86,7 +86,7 @@ impl Operate for LPFilter {
                     Ok(v.to_string())
                 } else {
                     Err(OperateError::CannotRepresentAsString(format!(
-                        "mul/{}",
+                        "lpf/{}",
                         pname
                     )))
                 }
@@ -239,7 +239,7 @@ impl Operate for Delay {
                     Ok(v.to_string())
                 } else {
                     Err(OperateError::CannotRepresentAsString(format!(
-                        "mul/{}",
+                        "delay/{}",
                         pname
                     )))
                 }
