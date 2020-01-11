@@ -568,7 +568,12 @@ impl Operate for Out {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            "vol" => self.set(pname, Aug::val(0.0)),
+            name if name.starts_with("src") => self.set(pname, Aug::val(0.0)),
+        };
+    }
 }
 
 impl Proc for Out {
