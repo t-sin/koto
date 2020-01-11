@@ -101,8 +101,23 @@ impl Operate for LPFilter {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "freq" => {
+                self.freq = ug;
+                Ok(true)
+            }
+            "q" => {
+                self.q = ug;
+                Ok(true)
+            }
+            "src" => {
+                self.src = ug;
+                Ok(true)
+            }
+            _ => Err(OperateError::ParamNotFound(format!("lpf/{}", pname))),
+        }
     }
+
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
     }
@@ -260,8 +275,27 @@ impl Operate for Delay {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "time" => {
+                self.time = ug;
+                Ok(true)
+            }
+            "feedback" => {
+                self.feedback = ug;
+                Ok(true)
+            }
+            "mix" => {
+                self.mix = ug;
+                Ok(true)
+            }
+            "src" => {
+                self.src = ug;
+                Ok(true)
+            }
+            _ => Err(OperateError::ParamNotFound(format!("delay/{}", pname))),
+        }
     }
+
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
     }
