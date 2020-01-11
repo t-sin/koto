@@ -324,7 +324,7 @@ impl Aug {
 
     pub fn to_val(&self) -> Option<f64> {
         match self.0.lock().unwrap().ug {
-            UG::Val(v) => v,
+            UG::Val(v) => Some(v),
             _ => None,
         }
     }
