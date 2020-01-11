@@ -36,7 +36,7 @@ impl Dump for Rand {
 impl Operate for Rand {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
         match pname {
-            _ => Err(OperateError::ParamNotFound(format!("out/{}", pname))),
+            _ => Err(OperateError::ParamNotFound(format!("rand/{}", pname))),
         }
     }
 
@@ -57,7 +57,9 @@ impl Operate for Rand {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            _ => Err(OperateError::ParamNotFound(format!("rand/{}", pname))),
+        }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
@@ -157,7 +159,17 @@ impl Operate for Sine {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "init_ph" => {
+                self.init_ph = ug;
+                Ok(true)
+            }
+            "freq" => {
+                self.freq = ug;
+                Ok(true)
+            }
+            _ => Err(OperateError::ParamNotFound(format!("sine/{}", pname))),
+        }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
@@ -264,7 +276,17 @@ impl Operate for Tri {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "init_ph" => {
+                self.init_ph = ug;
+                Ok(true)
+            }
+            "freq" => {
+                self.freq = ug;
+                Ok(true)
+            }
+            _ => Err(OperateError::ParamNotFound(format!("tri/{}", pname))),
+        }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
@@ -380,7 +402,17 @@ impl Operate for Saw {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "init_ph" => {
+                self.init_ph = ug;
+                Ok(true)
+            }
+            "freq" => {
+                self.freq = ug;
+                Ok(true)
+            }
+            _ => Err(OperateError::ParamNotFound(format!("saw/{}", pname))),
+        }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
@@ -507,7 +539,21 @@ impl Operate for Pulse {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "init_ph" => {
+                self.init_ph = ug;
+                Ok(true)
+            }
+            "freq" => {
+                self.freq = ug;
+                Ok(true)
+            }
+            "duty" => {
+                self.duty = ug;
+                Ok(true)
+            }
+            _ => Err(OperateError::ParamNotFound(format!("pulse/{}", pname))),
+        }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
@@ -614,7 +660,13 @@ impl Operate for Phase {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "osc" => {
+                self.osc = ug;
+                Ok(true)
+            }
+            _ => Err(OperateError::ParamNotFound(format!("phase/{}", pname))),
+        }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
@@ -748,7 +800,17 @@ impl Operate for WaveTable {
     }
 
     fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "table" => {
+                self.table = ug;
+                Ok(true)
+            }
+            "ph" => {
+                self.ph = ug;
+                Ok(true)
+            }
+            _ => Err(OperateError::ParamNotFound(format!("wavetable/{}", pname))),
+        }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         Ok(true)
