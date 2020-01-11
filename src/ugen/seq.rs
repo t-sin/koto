@@ -59,7 +59,17 @@ impl Dump for Trigger {
 
 impl Operate for Trigger {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            "eg" => Ok(self.eg.clone()),
+            name if name.starts_with("src") => {
+                if let Ok(idx) = name[3..].to_string().parse::<usize>() {
+                    Ok(self.egs[idx].clone())
+                } else {
+                    Err(OperateError::ParamNotFound(format!("trig/{}", pname)))
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("trig/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
@@ -195,7 +205,13 @@ impl Dump for AdsrEg {
 
 impl Operate for AdsrEg {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            "a" => Ok(self.a.clone()),
+            "d" => Ok(self.d.clone()),
+            "s" => Ok(self.s.clone()),
+            "r" => Ok(self.r.clone()),
+            _ => Err(OperateError::ParamNotFound(format!("out/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
@@ -393,7 +409,13 @@ impl Dump for Seq {
 
 impl Operate for Seq {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
-        None
+        match pname {
+            "pattern" => Ok(self.pattern.clone()),
+            "osc" => Ok(self.osc.clone()),
+            "osc_mod" => Ok(self.osc_mod.clone()),
+            "eg" => Ok(self.eg.clone()),
+            _ => Err(OperateError::ParamNotFound(format!("out/{}", pname))),
+        }
     }
 
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
