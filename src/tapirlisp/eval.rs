@@ -11,6 +11,30 @@ use super::super::ugen::seq::{AdsrEg, Seq, Trigger};
 
 use super::types::{Env, EvalError, Value};
 
+pub static TYPE_NAMES: [&str; 21] = [
+    "pan",
+    "clip",
+    "offset",
+    "gain",
+    "+",
+    "*",
+    "rand",
+    "sine",
+    "tri",
+    "saw",
+    "pulse",
+    "table",
+    "phase",
+    "wavetable",
+    "pat",
+    "trig",
+    "adsr",
+    "seq",
+    "lpf",
+    "delay",
+    "out",
+];
+
 // core units
 
 fn make_pan(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {

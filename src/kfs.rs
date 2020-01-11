@@ -14,8 +14,8 @@ use fuse::{
 
 use super::mtime::Time;
 use super::sexp::read;
-use super::tapirlisp::eval;
 use super::tapirlisp::types::{Env, EvalError};
+use super::tapirlisp::{eval, TYPE_NAMES};
 use super::ugen::core::{Aug, Dump, Operate, UgNode, Value};
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
@@ -44,31 +44,6 @@ pub struct KotoFS {
     pub sample_rate: u32,
     pub inode_count: u64,
 }
-
-// src/tapirlisp/eval.rs or ugen names
-static TYPE_NAMES: [&str; 21] = [
-    "pan",
-    "clip",
-    "offset",
-    "gain",
-    "+",
-    "*",
-    "rand",
-    "sine",
-    "tri",
-    "saw",
-    "pulse",
-    "table",
-    "phase",
-    "wavetable",
-    "pat",
-    "trig",
-    "adsr",
-    "seq",
-    "lpf",
-    "delay",
-    "out",
-];
 
 fn create_file(ino: u64, size: u64, ftype: FileType) -> FileAttr {
     let t = time::now().to_timespec();
