@@ -32,7 +32,7 @@ fn main() {
 
     let mut f = File::open("./configure.lisp").unwrap();
     let mut text = String::new();
-    f.read_to_string(&mut text);
+    let _ = f.read_to_string(&mut text);
 
     let ug = match tlisp::eval_all(sexp::read(text).unwrap(), &mut env) {
         Ok(Value::Unit(ug)) => ug,
