@@ -156,7 +156,7 @@ impl KotoNode {
         if let Some((paramname, _)) = KotoNode::get_nodename(node.clone()) {
             if let Some(parent) = &node.lock().unwrap().parent {
                 if let Ugen::Mapped(ref mut aug) = &mut parent.lock().unwrap().ug {
-                    aug.set_str(&paramname, data.clone());
+                    let _ = aug.set_str(&paramname, data.clone());
                 }
             }
         }
@@ -171,7 +171,7 @@ impl KotoNode {
                 if let Some(new_ug) = KotoNode::build_ug_from_node(node.clone(), sample_rate) {
                     if let Some(parent) = &node.lock().unwrap().parent {
                         if let Ugen::Mapped(ref mut parent_ug) = &mut parent.lock().unwrap().ug {
-                            parent_ug.set(&paramname, new_ug.clone());
+                            let _ = parent_ug.set(&paramname, new_ug.clone());
                         }
                     }
                 }
@@ -180,7 +180,7 @@ impl KotoNode {
                 if let Some(parent) = &node.lock().unwrap().parent {
                     if let Ugen::Mapped(ref mut parent_ug) = &mut parent.lock().unwrap().ug {
                         {
-                            parent_ug.clear(&paramname);
+                            let _ = parent_ug.clear(&paramname);
                         }
                     }
                 }
