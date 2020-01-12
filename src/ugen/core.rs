@@ -262,8 +262,8 @@ impl Operate for UGen {
     fn get(&self, pname: &str) -> Result<Aug, OperateError> {
         match &self.ug {
             UG::Proc(u) => u.get(pname),
-            UG::Proc(u) => u.get(pname),
-            UG::Proc(u) => u.get(pname),
+            UG::Osc(u) => u.get(pname),
+            UG::Eg(u) => u.get(pname),
             _ => Err(OperateError::NotUgen),
         }
     }
@@ -271,8 +271,8 @@ impl Operate for UGen {
     fn get_str(&self, pname: &str) -> Result<String, OperateError> {
         match &self.ug {
             UG::Proc(u) => u.get_str(pname),
-            UG::Proc(u) => u.get_str(pname),
-            UG::Proc(u) => u.get_str(pname),
+            UG::Osc(u) => u.get_str(pname),
+            UG::Eg(u) => u.get_str(pname),
             _ => Err(OperateError::NotUgen),
         }
     }
