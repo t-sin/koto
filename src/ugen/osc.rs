@@ -56,13 +56,13 @@ impl Operate for Rand {
         }
     }
 
-    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+    fn set(&mut self, pname: &str, _ug: Aug) -> Result<bool, OperateError> {
         match pname {
             _ => Err(OperateError::ParamNotFound(format!("rand/{}", pname))),
         }
     }
 
-    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+    fn set_str(&mut self, pname: &str, _data: String) -> Result<bool, OperateError> {
         match pname {
             _ => Err(OperateError::ParamNotFound(format!("rand/{}", pname))),
         }

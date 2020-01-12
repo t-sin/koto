@@ -180,19 +180,19 @@ impl Dump for UG {
 }
 
 impl Operate for UG {
-    fn get(&self, pname: &str) -> Result<Aug, OperateError> {
+    fn get(&self, _pname: &str) -> Result<Aug, OperateError> {
         Err(OperateError::NotUgen)
     }
-    fn get_str(&self, pname: &str) -> Result<String, OperateError> {
+    fn get_str(&self, _pname: &str) -> Result<String, OperateError> {
         Err(OperateError::NotUgen)
     }
-    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
+    fn set(&mut self, _pname: &str, _ug: Aug) -> Result<bool, OperateError> {
         Ok(true)
     }
-    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+    fn set_str(&mut self, _pname: &str, _data: String) -> Result<bool, OperateError> {
         Ok(true)
     }
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, _pname: &str) {}
 }
 
 impl Proc for UG {
