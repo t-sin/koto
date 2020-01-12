@@ -91,8 +91,31 @@ impl Operate for Pan {
         }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "pan" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.pan = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("delay/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            "src" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.src = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("delay/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("delay/{}", pname))),
+        }
     }
+
     fn clear(&mut self, pname: &str) {}
 }
 
@@ -218,8 +241,41 @@ impl Operate for Clip {
         }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "min" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.min = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("clip/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            "max" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.max = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("clip/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            "src" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.src = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("clip/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("clip/{}", pname))),
+        }
     }
+
     fn clear(&mut self, pname: &str) {}
 }
 
@@ -317,9 +373,33 @@ impl Operate for Offset {
             _ => Err(OperateError::ParamNotFound(format!("offset/{}", pname))),
         }
     }
+
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "val" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.val = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("offset/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            "src" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.src = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("offset/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("offset/{}", pname))),
+        }
     }
+
     fn clear(&mut self, pname: &str) {}
 }
 
@@ -417,8 +497,31 @@ impl Operate for Gain {
         }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "gain" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.gain = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("gain/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            "src" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.src = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("gain/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("gain/{}", pname))),
+        }
     }
+
     fn clear(&mut self, pname: &str) {}
 }
 
@@ -513,9 +616,22 @@ impl Operate for Add {
             _ => Err(OperateError::ParamNotFound(format!("add/{}", pname))),
         }
     }
+
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            name if name.starts_with("src") => {
+                if let Ok(val) = data.parse::<f64>() {
+                    self.set(pname, Aug::val(val))
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("add/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("add/{}", pname))),
+        }
     }
+
     fn clear(&mut self, pname: &str) {}
 }
 
@@ -616,9 +732,22 @@ impl Operate for Multiply {
             _ => Err(OperateError::ParamNotFound(format!("mul/{}", pname))),
         }
     }
+
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            name if name.starts_with("src") => {
+                if let Ok(val) = data.parse::<f64>() {
+                    self.set(pname, Aug::val(val))
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("mul/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("mul/{}", pname))),
+        }
     }
+
     fn clear(&mut self, pname: &str) {}
 }
 

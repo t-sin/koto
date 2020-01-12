@@ -119,8 +119,44 @@ impl Operate for LPFilter {
     }
 
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
-        Ok(true)
+        let mut data = data.clone();
+        data.retain(|c| c != '\n' && c != ' ');
+
+        match pname {
+            "freq" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.freq = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("lpf/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            "q" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.q = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("lpf/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            "src" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.src = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("lpf/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("lpf/{}", pname))),
+        }
     }
+
     fn clear(&mut self, pname: &str) {}
 }
 
@@ -297,8 +333,51 @@ impl Operate for Delay {
     }
 
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "time" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.time = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("delay/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            "feedback" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.feedback = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("delay/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            "mix" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.mix = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("delay/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            "src" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.src = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("delay/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("delay/{}", pname))),
+        }
     }
+
     fn clear(&mut self, pname: &str) {}
 }
 

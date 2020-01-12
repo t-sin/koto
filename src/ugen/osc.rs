@@ -61,9 +61,13 @@ impl Operate for Rand {
             _ => Err(OperateError::ParamNotFound(format!("rand/{}", pname))),
         }
     }
+
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            _ => Err(OperateError::ParamNotFound(format!("rand/{}", pname))),
+        }
     }
+
     fn clear(&mut self, pname: &str) {}
 }
 
@@ -171,9 +175,33 @@ impl Operate for Sine {
             _ => Err(OperateError::ParamNotFound(format!("sine/{}", pname))),
         }
     }
+
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "init_ph" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.init_ph = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("sine/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            "freq" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.freq = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("sine/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("sine/{}", pname))),
+        }
     }
+
     fn clear(&mut self, pname: &str) {}
 }
 
@@ -288,9 +316,33 @@ impl Operate for Tri {
             _ => Err(OperateError::ParamNotFound(format!("tri/{}", pname))),
         }
     }
+
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "init_ph" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.init_ph = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("tri/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            "freq" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.freq = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("tri/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("tri/{}", pname))),
+        }
     }
+
     fn clear(&mut self, pname: &str) {}
 }
 
@@ -414,9 +466,33 @@ impl Operate for Saw {
             _ => Err(OperateError::ParamNotFound(format!("saw/{}", pname))),
         }
     }
+
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "init_ph" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.init_ph = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("saw/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            "freq" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.freq = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("saw/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("saw/{}", pname))),
+        }
     }
+
     fn clear(&mut self, pname: &str) {}
 }
 
@@ -555,9 +631,43 @@ impl Operate for Pulse {
             _ => Err(OperateError::ParamNotFound(format!("pulse/{}", pname))),
         }
     }
+
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "init_ph" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.init_ph = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("pulse/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            "freq" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.freq = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("pulse/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            "duty" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.duty = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("pulse/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("pulse/{}", pname))),
+        }
     }
+
     fn clear(&mut self, pname: &str) {}
 }
 
@@ -668,9 +778,23 @@ impl Operate for Phase {
             _ => Err(OperateError::ParamNotFound(format!("phase/{}", pname))),
         }
     }
+
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "osc" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.osc = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("phase/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("phase/{}", pname))),
+        }
     }
+
     fn clear(&mut self, pname: &str) {}
 }
 
@@ -812,9 +936,37 @@ impl Operate for WaveTable {
             _ => Err(OperateError::ParamNotFound(format!("wavetable/{}", pname))),
         }
     }
+
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
-        Ok(true)
+        match pname {
+            "table" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.table = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err = OperateError::CannotParseNumber(
+                        format!("wavetable/{}", pname),
+                        data.clone(),
+                    );
+                    Err(err)
+                }
+            }
+            "ph" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.ph = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err = OperateError::CannotParseNumber(
+                        format!("wavetable/{}", pname),
+                        data.clone(),
+                    );
+                    Err(err)
+                }
+            }
+            _ => Err(OperateError::ParamNotFound(format!("wavetable/{}", pname))),
+        }
     }
+
     fn clear(&mut self, pname: &str) {}
 }
 
