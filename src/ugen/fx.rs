@@ -157,7 +157,20 @@ impl Operate for LPFilter {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            "freq" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "q" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "src" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
+        };
+    }
 }
 
 impl Proc for LPFilter {
@@ -378,7 +391,23 @@ impl Operate for Delay {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            "time" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "feedback" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "mix" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "src" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
+        };
+    }
 }
 
 // TODO: factor out; same function is in `sequencer.rs`

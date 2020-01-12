@@ -125,7 +125,17 @@ impl Operate for Trigger {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            "eg" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            name if name.starts_with("src") => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
+        };
+    }
 }
 
 impl Proc for Trigger {
@@ -329,7 +339,23 @@ impl Operate for AdsrEg {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            "a" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "d" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "s" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "r" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
+        };
+    }
 }
 
 impl Proc for AdsrEg {
@@ -595,7 +621,23 @@ impl Operate for Seq {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            "pattern" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "osc" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "osc_mod" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "eg" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
+        };
+    }
 }
 
 impl Proc for Seq {

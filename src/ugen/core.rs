@@ -295,7 +295,14 @@ impl Operate for UGen {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match &mut self.ug {
+            UG::Proc(u) => u.clear(pname),
+            UG::Osc(u) => u.clear(pname),
+            UG::Eg(u) => u.clear(pname),
+            _ => (),
+        }
+    }
 }
 
 impl Proc for UGen {
@@ -375,7 +382,9 @@ impl Operate for Aug {
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         self.0.lock().unwrap().set_str(pname, data)
     }
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        self.0.lock().unwrap().clear(pname)
+    }
 }
 
 impl Proc for Aug {

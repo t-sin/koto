@@ -116,7 +116,17 @@ impl Operate for Pan {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            "pan" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "src" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
+        };
+    }
 }
 
 impl Proc for Pan {
@@ -276,7 +286,20 @@ impl Operate for Clip {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            "min" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "max" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "src" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
+        };
+    }
 }
 
 impl Proc for Clip {
@@ -400,7 +423,17 @@ impl Operate for Offset {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            "val" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "src" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
+        };
+    }
 }
 
 impl Proc for Offset {
@@ -522,7 +555,17 @@ impl Operate for Gain {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            "gain" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "src" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
+        };
+    }
 }
 
 impl Proc for Gain {
@@ -632,7 +675,14 @@ impl Operate for Add {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            name if name.starts_with("src") => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
+        };
+    }
 }
 
 impl Proc for Add {
@@ -748,7 +798,14 @@ impl Operate for Multiply {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            name if name.starts_with("src") => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
+        };
+    }
 }
 
 impl Proc for Multiply {
@@ -901,10 +958,10 @@ impl Operate for Out {
     fn clear(&mut self, pname: &str) {
         match pname {
             "vol" => {
-                self.set(pname, Aug::val(0.0));
+                let _ = self.set(pname, Aug::val(0.0));
             }
             name if name.starts_with("src") => {
-                self.set(pname, Aug::val(0.0));
+                let _ = self.set(pname, Aug::val(0.0));
             }
             _ => (),
         };

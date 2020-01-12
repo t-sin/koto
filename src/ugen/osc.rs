@@ -68,7 +68,11 @@ impl Operate for Rand {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            _ => (),
+        };
+    }
 }
 
 impl Proc for Rand {
@@ -202,7 +206,17 @@ impl Operate for Sine {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            "init_ph" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "freq" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
+        };
+    }
 }
 
 impl Proc for Sine {
@@ -343,7 +357,17 @@ impl Operate for Tri {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            "init_ph" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "freq" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
+        };
+    }
 }
 
 impl Proc for Tri {
@@ -493,7 +517,17 @@ impl Operate for Saw {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            "init_ph" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "freq" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
+        };
+    }
 }
 
 impl Proc for Saw {
@@ -668,7 +702,20 @@ impl Operate for Pulse {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            "init_ph" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "freq" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "duty" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
+        };
+    }
 }
 
 impl Proc for Pulse {
@@ -795,7 +842,17 @@ impl Operate for Phase {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            "vol" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            name if name.starts_with("src") => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
+        };
+    }
 }
 
 impl Proc for Phase {
@@ -967,7 +1024,17 @@ impl Operate for WaveTable {
         }
     }
 
-    fn clear(&mut self, pname: &str) {}
+    fn clear(&mut self, pname: &str) {
+        match pname {
+            "table" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            "ph" => {
+                let _ = self.set(pname, Aug::val(0.0));
+            }
+            _ => (),
+        };
+    }
 }
 
 impl Proc for WaveTable {
