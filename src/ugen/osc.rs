@@ -181,6 +181,9 @@ impl Operate for Sine {
     }
 
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        let mut data = data.clone();
+        data.retain(|c| c != '\n' && c != ' ');
+
         match pname {
             "init_ph" => {
                 if let Ok(v) = data.parse::<f64>() {
@@ -332,6 +335,9 @@ impl Operate for Tri {
     }
 
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        let mut data = data.clone();
+        data.retain(|c| c != '\n' && c != ' ');
+
         match pname {
             "init_ph" => {
                 if let Ok(v) = data.parse::<f64>() {
@@ -492,6 +498,9 @@ impl Operate for Saw {
     }
 
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        let mut data = data.clone();
+        data.retain(|c| c != '\n' && c != ' ');
+
         match pname {
             "init_ph" => {
                 if let Ok(v) = data.parse::<f64>() {
@@ -667,6 +676,9 @@ impl Operate for Pulse {
     }
 
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        let mut data = data.clone();
+        data.retain(|c| c != '\n' && c != ' ');
+
         match pname {
             "init_ph" => {
                 if let Ok(v) = data.parse::<f64>() {
@@ -827,6 +839,9 @@ impl Operate for Phase {
     }
 
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        let mut data = data.clone();
+        data.retain(|c| c != '\n' && c != ' ');
+
         match pname {
             "osc" => {
                 if let Ok(v) = data.parse::<f64>() {
@@ -1009,6 +1024,9 @@ impl Operate for WaveTable {
                 }
             }
             "ph" => {
+                let mut data = data.clone();
+                data.retain(|c| c != '\n' && c != ' ');
+
                 if let Ok(v) = data.parse::<f64>() {
                     self.ph = Aug::val(v);
                     Ok(true)

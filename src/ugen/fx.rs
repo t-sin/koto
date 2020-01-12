@@ -346,6 +346,9 @@ impl Operate for Delay {
     }
 
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        let mut data = data.clone();
+        data.retain(|c| c != '\n' && c != ' ');
+
         match pname {
             "time" => {
                 if let Ok(v) = data.parse::<f64>() {

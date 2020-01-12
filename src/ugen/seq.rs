@@ -110,6 +110,9 @@ impl Operate for Trigger {
     }
 
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        let mut data = data.clone();
+        data.retain(|c| c != '\n' && c != ' ');
+
         match pname {
             "eg" => {
                 if let Ok(v) = data.parse::<f64>() {
@@ -294,6 +297,9 @@ impl Operate for AdsrEg {
     }
 
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        let mut data = data.clone();
+        data.retain(|c| c != '\n' && c != ' ');
+
         match pname {
             "a" => {
                 if let Ok(v) = data.parse::<f64>() {
@@ -588,6 +594,9 @@ impl Operate for Seq {
                 }
             }
             "osc" => {
+                let mut data = data.clone();
+                data.retain(|c| c != '\n' && c != ' ');
+
                 if let Ok(v) = data.parse::<f64>() {
                     self.osc = Aug::val(v);
                     Ok(true)
@@ -598,6 +607,9 @@ impl Operate for Seq {
                 }
             }
             "osc_mod" => {
+                let mut data = data.clone();
+                data.retain(|c| c != '\n' && c != ' ');
+
                 if let Ok(v) = data.parse::<f64>() {
                     self.osc_mod = Aug::val(v);
                     Ok(true)
@@ -608,6 +620,9 @@ impl Operate for Seq {
                 }
             }
             "eg" => {
+                let mut data = data.clone();
+                data.retain(|c| c != '\n' && c != ' ');
+
                 if let Ok(v) = data.parse::<f64>() {
                     self.eg = Aug::val(v);
                     Ok(true)

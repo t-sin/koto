@@ -91,6 +91,9 @@ impl Operate for Pan {
         }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        let mut data = data.clone();
+        data.retain(|c| c != '\n' && c != ' ');
+
         match pname {
             "pan" => {
                 if let Ok(v) = data.parse::<f64>() {
@@ -251,6 +254,9 @@ impl Operate for Clip {
         }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        let mut data = data.clone();
+        data.retain(|c| c != '\n' && c != ' ');
+
         match pname {
             "min" => {
                 if let Ok(v) = data.parse::<f64>() {
@@ -398,6 +404,9 @@ impl Operate for Offset {
     }
 
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        let mut data = data.clone();
+        data.retain(|c| c != '\n' && c != ' ');
+
         match pname {
             "val" => {
                 if let Ok(v) = data.parse::<f64>() {
@@ -530,6 +539,9 @@ impl Operate for Gain {
         }
     }
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        let mut data = data.clone();
+        data.retain(|c| c != '\n' && c != ' ');
+
         match pname {
             "gain" => {
                 if let Ok(v) = data.parse::<f64>() {
@@ -661,6 +673,9 @@ impl Operate for Add {
     }
 
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        let mut data = data.clone();
+        data.retain(|c| c != '\n' && c != ' ');
+
         match pname {
             name if name.starts_with("src") => {
                 if let Ok(val) = data.parse::<f64>() {
@@ -784,6 +799,9 @@ impl Operate for Multiply {
     }
 
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
+        let mut data = data.clone();
+        data.retain(|c| c != '\n' && c != ' ');
+
         match pname {
             name if name.starts_with("src") => {
                 if let Ok(val) = data.parse::<f64>() {
