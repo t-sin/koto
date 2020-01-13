@@ -27,7 +27,7 @@ impl Walk for Rand {
 
 impl Dump for Rand {
     fn dump(&self, _shared_ug: &Vec<Aug>) -> UgNode {
-        let mut slots = Vec::new();
+        let slots = Vec::new();
 
         UgNode::Ug("rand".to_string(), slots)
     }
