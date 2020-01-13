@@ -293,7 +293,6 @@ impl KotoFS {
                 node
             }
             Value::Shared(_, aug) => {
-                println!("shared-aug: {:?}", Arc::into_raw(aug.0.clone()));
                 let idx = shared.iter().position(|saug| *saug == aug).unwrap();
                 if shared_used[idx] == false {
                     shared_used[idx] = true;
@@ -441,11 +440,6 @@ impl KotoFS {
         fs.root = root.clone();
         fs.root.lock().unwrap().attr.ino = 1;
         fs.inodes.insert(1, fs.root.clone());
-        for (_ino, node) in fs.inodes.iter() {
-            let ino = node.lock().unwrap().attr.ino;
-            let name = node.lock().unwrap().name.clone();
-            println!("({}: '{}')", ino, name);
-        }
         fs
     }
 
