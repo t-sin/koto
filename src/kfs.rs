@@ -104,7 +104,7 @@ impl KotoNode {
                 .unwrap()
                 .children
                 .iter()
-                .find(|(nodename, n)| Arc::ptr_eq(&n, &node))
+                .find(|(_, n)| Arc::ptr_eq(&n, &node))
             {
                 KotoNode::parse_nodename(nodename.clone())
             } else {
