@@ -43,4 +43,5 @@
      (gain 0.4 (delay 0.25 0.3 0.5 (lpf $synth-lpfmod 20 (seq $synth-pat $synth-osc 0 $synth-eg))))
      (lpf (+ 600 (* 200 (tri 0 1)) (* 100 $bass-eg)) 20
           (seq $bass-pat $bass-osc 0 $bass-eg))
-     (gain 0.5 (seq $synth2-pat $synth2-osc 0 $synth2-eg)))
+     (pan (sine 0 0.5)
+          (gain 0.5 (seq $synth2-pat $synth2-osc 0 $synth2-eg))))
