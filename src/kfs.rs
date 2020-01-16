@@ -156,7 +156,10 @@ impl KotoNode {
         if let Some((paramname, _)) = KotoNode::get_nodename(node.clone()) {
             if let Some(parent) = &node.lock().unwrap().parent {
                 if let Ugen::Mapped(ref mut aug) = &mut parent.lock().unwrap().ug {
-                    let _ = aug.set_str(&paramname, data.clone());
+                    if let Err(err) = aug.set_str(&paramname, data.clone()) {
+                        println!("Error while setting '{}'", data.clone());
+                        println!("{:?}", err);
+                    }
                 }
             }
         }
