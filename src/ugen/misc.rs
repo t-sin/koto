@@ -140,7 +140,7 @@ impl Proc for Pan {
         if v > 0.0 {
             (l * (1.0 - v), r)
         } else if v < 0.0 {
-            (l, r * (1.0 - v))
+            (l, r * (1.0 + v))
         } else {
             (l, r)
         }
