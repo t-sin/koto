@@ -129,26 +129,35 @@ impl Pattern {
         Pattern(Arc::new(Mutex::new(data)))
     }
 
+    pub fn parse_str_1(token: &str) -> Result<Message, bool> {
+        match token {
+            "loop" => Ok(Message::Loop),
+            s => {
+                let n: Vec<&str> = s.split(':').collect();
+                if n.len() != 2 {
+                    Err(false)
+                } else {
+                    if let Some(pitch) = to_note(n[0]) {
+                        if let Ok(len) = n[1].parse::<u32>() {
+                            Ok(Message::Note(pitch, to_pos(len)))
+                        } else {
+                            Err(false)
+                        }
+                    } else {
+                        Err(false)
+                    }
+                }
+            }
+        }
+    }
+
     pub fn parse_str(data: String) -> Result<Vec<Box<Message>>, bool> {
         let mut msgs = Vec::new();
         for token in data.split(' ') {
-            match token {
-                "loop" => msgs.push(Box::new(Message::Loop)),
-                s => {
-                    let n: Vec<&str> = s.split(':').collect();
-                    if n.len() != 2 {
-                        continue;
-                    }
-                    if let Some(pitch) = to_note(n[0]) {
-                        if let Ok(len) = n[1].parse::<u32>() {
-                            msgs.push(Box::new(Message::Note(pitch, to_pos(len))))
-                        } else {
-                            return Err(false);
-                        }
-                    } else {
-                        return Err(false);
-                    }
-                }
+            if let Ok(msg) = Pattern::parse_str_1(token) {
+                msgs.push(Box::new(msg));
+            } else {
+                return Err(false);
             }
         }
         Ok(msgs)
