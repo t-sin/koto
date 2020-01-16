@@ -31,9 +31,16 @@
 (def $bass-osc (saw 0 0))
 (def $bass-eg (adsr 0.05 0.3 0 0))
 
+(def $synth2-pat (pat (r 2) (g+5 1) (r 1) (r 2) (g+5 1) (r 1) (r 2)
+                      (g4 2) (r 2) (g4 2) (r 2)1
+                      loop))
+(def $synth2-osc (wavetable (pulse 0 1 0.25) (phase (saw 0 440))))
+(def $synth2-eg (adsr 0.05 0 1 0.15))
+
 (out 0.3
      (seq $hat-pat $hat-osc 0 $hat-eg)
      (seq $kick-pat $kick-osc (* 300 $kick-fmod) (trig $kick-eg $kick-fmod))
      (gain 0.4 (delay 0.25 0.3 0.5 (lpf $synth-lpfmod 20 (seq $synth-pat $synth-osc 0 $synth-eg))))
      (lpf (+ 600 (* 200 (tri 0 1)) (* 100 $bass-eg)) 20
-          (seq $bass-pat $bass-osc 0 $bass-eg)))
+          (seq $bass-pat $bass-osc 0 $bass-eg))
+     (gain 0.5 (seq $synth2-pat $synth2-osc 0 $synth2-eg)))
