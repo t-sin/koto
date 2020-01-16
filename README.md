@@ -44,6 +44,13 @@ Upcomming...
 
 Upcomming...
 
+```sh
+$ git clone https://github.com/t-sin/koto
+$ cd /path/to/koto
+$ mkdir koto.test
+$ cargo run
+```
+
 ### Tapir Lisp
 
 Tapir Lisp is a Lisp-like language for describing synthesizer signal flow.
