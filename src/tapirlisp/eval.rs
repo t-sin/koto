@@ -303,6 +303,13 @@ pub fn make_msg(e: &Cons, _env: &mut Env) -> Result<Vec<Box<Message>>, EvalError
         }
         Cons::Symbol(name) => match &name[..] {
             "loop" => ev.push(Box::new(Message::Loop)),
+            name if name.contains(':') => {
+                if let Ok(msg) = Pattern::parse_str_1(name.clone()) {
+                    ev.push(Box::new(msg));
+                } else {
+                    return Err(EvalError::EvMalformedEvent(name.to_string()));
+                }
+            }
             name => return Err(EvalError::EvUnknown(name.to_string())),
         },
         sexp => return Err(EvalError::EvMalformedEvent(print(sexp))),
