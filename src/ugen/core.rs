@@ -165,7 +165,7 @@ impl Pattern {
 
     pub fn parse_str(data: String) -> Result<Vec<Box<Message>>, bool> {
         let mut msgs = Vec::new();
-        for token in data.split(' ') {
+        for token in data.trim().split(' ') {
             if let Ok(msg) = Pattern::parse_str_1(token) {
                 msgs.push(Box::new(msg));
             } else {
