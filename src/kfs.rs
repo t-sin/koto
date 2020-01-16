@@ -144,7 +144,7 @@ impl KotoNode {
         }
     }
 
-    fn sync_file(node: Arc<Mutex<KotoNode>>) {
+    fn sync_file(node: Arc<Mutex<KotoNode>>, oldname: String) {
         let data = node.lock().unwrap().data.clone();
         let data: String = if let Ok(data) = String::from_utf8(data.clone()) {
             data.clone()
@@ -159,6 +159,14 @@ impl KotoNode {
                     if let Err(err) = aug.set_str(&paramname, data.clone()) {
                         println!("Error while setting '{}'", data.clone());
                         println!("{:?}", err);
+                    }
+                }
+            }
+        } else {
+            if let Some((paramname, _)) = KotoNode::parse_nodename(oldname.clone()) {
+                if let Some(parent) = &node.lock().unwrap().parent {
+                    if let Ugen::Mapped(ref mut aug) = &mut parent.lock().unwrap().ug {
+                        aug.clear(&paramname);
                     }
                 }
             }
@@ -203,7 +211,7 @@ impl KotoNode {
     fn sync_ug(node: Arc<Mutex<KotoNode>>, oldname: String, sample_rate: u32) {
         let filetype = node.lock().unwrap().attr.kind;
         match filetype {
-            FileType::RegularFile => KotoNode::sync_file(node.clone()),
+            FileType::RegularFile => KotoNode::sync_file(node.clone(), oldname),
             FileType::Directory => {
                 KotoNode::sync_ug_with_directory(node.clone(), oldname, sample_rate)
             }
@@ -546,7 +554,7 @@ impl Filesystem for KotoFS {
         }
 
         if let Some(node) = created.clone() {
-            KotoNode::sync_file(node.clone());
+            KotoNode::sync_file(node.clone(), "".to_string());
             reply.created(&TTL, &node.lock().unwrap().attr, 0, 0, 0);
         }
     }
@@ -702,7 +710,7 @@ impl Filesystem for KotoFS {
         }
 
         if let Some(n) = self.inodes.get(&ino) {
-            KotoNode::sync_file(n.clone());
+            KotoNode::sync_file(n.clone(), "".to_string());
         }
         reply.written(length as u32);
     }
