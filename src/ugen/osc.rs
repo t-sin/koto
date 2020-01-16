@@ -1048,7 +1048,8 @@ impl Operate for WaveTable {
     fn clear(&mut self, pname: &str) {
         match pname {
             "table" => {
-                let _ = self.set(pname, Aug::val(0.0));
+                let table = Aug::new(UGen::new(UG::Tab(Table::new(vec![0.0, 0.0]))));
+                let _ = self.set(pname, table);
             }
             "ph" => {
                 let _ = self.set(pname, Aug::val(0.0));
