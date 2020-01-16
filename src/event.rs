@@ -37,7 +37,7 @@ pub enum Message {
     Loop,
 }
 
-pub fn to_note(name: &str) -> Pitch {
+pub fn to_note(name: &str) -> Option<Pitch> {
     let octave = match name.chars().nth(name.len() - 1) {
         // default octave is 4
         Some(c) => {
@@ -59,9 +59,9 @@ pub fn to_note(name: &str) -> Pitch {
         Some('g') => Pitch::Pitch(10, octave),
         Some('k') => Pitch::Kick,
         Some('r') => Pitch::Rest,
-        _ => panic!("invalid note name: {:?}", name),
+        _ => return None,
     };
-    if let Pitch::Rest = pitch {
+    let pitch = if let Pitch::Rest = pitch {
         pitch
     } else {
         match name.chars().nth(1) {
@@ -81,7 +81,9 @@ pub fn to_note(name: &str) -> Pitch {
             }
             _ => pitch,
         }
-    }
+    };
+
+    Some(pitch)
 }
 
 pub fn to_str(pitch: &Pitch) -> String {

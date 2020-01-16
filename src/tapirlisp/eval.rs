@@ -289,7 +289,11 @@ pub fn make_msg(e: &Cons, _env: &mut Env) -> Result<Vec<Box<Message>>, EvalError
                         Cons::Number(l) => to_pos(*l as u32),
                         _ => to_pos(4),
                     };
-                    ev.push(Box::new(Message::Note(to_note(pitch), len)));
+                    if let Some(note) = to_note(pitch) {
+                        ev.push(Box::new(Message::Note(note, len)));
+                    } else {
+                        return Err(EvalError::EvWrongParams(print(e)));
+                    }
                 } else {
                     // without length
                 }
