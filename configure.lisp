@@ -32,7 +32,7 @@
 (def $bass-eg (adsr 0.05 0.3 0 0))
 
 (def $synth2-pat (pat (r 2) (g+5 1) (r 1) (r 2) (g+5 1) (r 1) (r 2)
-                      (g4 2) (r 2) (g4 2) (r 2)1
+                      (g4 2) (r 2) (g4 2) (r 2)
                       loop))
 (def $synth2-osc (wavetable (pulse 0 1 0.25) (phase (saw 0 440))))
 (def $synth2-eg (adsr 0.05 0 1 0.15))
