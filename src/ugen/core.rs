@@ -106,6 +106,18 @@ impl Table {
     pub fn new(data: Vec<f64>) -> Table {
         Table(Arc::new(Mutex::new(data)))
     }
+
+    pub fn parse_str(data: String) -> Option<Vec<f64>> {
+        let mut table = Vec::new();
+        for s in data.trim().split(' ') {
+            if let Ok(n) = s.parse::<f64>() {
+                table.push(n);
+            } else {
+                return None;
+            }
+        }
+        Some(table)
+    }
 }
 
 impl Walk for Table {

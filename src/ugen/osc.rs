@@ -1012,8 +1012,11 @@ impl Operate for WaveTable {
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         match pname {
             "table" => {
-                if let Ok(v) = data.parse::<f64>() {
-                    self.table = Aug::val(v);
+                let mut data = data.clone();
+                data.retain(|c| c != '\n');
+
+                if let Some(data) = Table::parse_str(data.clone()) {
+                    self.table = Aug::new(UGen::new(UG::Tab(Table::new(data))));
                     Ok(true)
                 } else {
                     let err = OperateError::CannotParseNumber(
