@@ -4,7 +4,8 @@ use super::super::event::{to_freq, Event, Message, Pitch};
 use super::super::mtime::{Measure, Pos, PosOps, Time};
 
 use super::core::{
-    Aug, Dump, Eg, Operate, OperateError, Proc, Signal, Slot, UGen, UgNode, Value, Walk, ADSR, UG,
+    Aug, Dump, Eg, Operate, OperateError, Pattern, Proc, Signal, Slot, UGen, UgNode, Value, Walk,
+    ADSR, UG,
 };
 use super::misc::Add;
 
@@ -584,12 +585,15 @@ impl Operate for Seq {
     fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         match pname {
             "pattern" => {
-                if let Ok(v) = data.parse::<f64>() {
-                    self.pattern = Aug::val(v);
+                let mut data = data.clone();
+                data.retain(|c| c != '\n');
+
+                if let Ok(msgs) = Pattern::parse_str(data.clone()) {
+                    self.pattern = Aug::new(UGen::new(UG::Pat(Pattern::new(msgs))));
                     Ok(true)
                 } else {
                     let err =
-                        OperateError::CannotParseNumber(format!("seq/{}", pname), data.clone());
+                        OperateError::CannotParsePattern(format!("seq/{}", pname), data.clone());
                     Err(err)
                 }
             }

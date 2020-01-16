@@ -2,7 +2,7 @@ use std::cmp::{Eq, PartialEq};
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, Mutex};
 
-use super::super::event::{to_len, to_str, Message};
+use super::super::event::{to_len, to_note, to_pos, to_str, Message};
 use super::super::mtime::{Measure, Time};
 
 //// types and traits
@@ -38,8 +38,10 @@ pub trait Dump: Walk {
     fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode;
 }
 
+#[derive(Debug)]
 pub enum OperateError {
     NotUgen,
+    CannotParsePattern(String, String),
     CannotParseNumber(String, String),
     ParamNotFound(String),
     CannotRepresentAsString(String),
@@ -126,6 +128,31 @@ impl Pattern {
     pub fn new(data: Vec<Box<Message>>) -> Pattern {
         Pattern(Arc::new(Mutex::new(data)))
     }
+
+    pub fn parse_str(data: String) -> Result<Vec<Box<Message>>, bool> {
+        let mut msgs = Vec::new();
+        for token in data.split(' ') {
+            match token {
+                "loop" => msgs.push(Box::new(Message::Loop)),
+                s => {
+                    let n: Vec<&str> = s.split(':').collect();
+                    if n.len() != 2 {
+                        continue;
+                    }
+                    if let Some(pitch) = to_note(n[0]) {
+                        if let Ok(len) = n[1].parse::<u32>() {
+                            msgs.push(Box::new(Message::Note(pitch, to_pos(len))))
+                        } else {
+                            return Err(false);
+                        }
+                    } else {
+                        return Err(false);
+                    }
+                }
+            }
+        }
+        Ok(msgs)
+    }
 }
 
 impl Walk for Pattern {
@@ -142,7 +169,7 @@ impl Dump for Pattern {
                 Message::Note(pitch, len) => {
                     let pitch_s = to_str(&pitch);
                     let len_s = to_len(&len, &m);
-                    vec.push(format!("({} {})", pitch_s, len_s));
+                    vec.push(format!("{}:{}", pitch_s, len_s));
                 }
                 Message::Loop => vec.push("loop".to_string()),
             }
