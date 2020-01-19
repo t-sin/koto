@@ -115,6 +115,36 @@ impl KotoNode {
         }
     }
 
+    fn get_path_to_root(node: Arc<Mutex<KotoNode>>) -> String {
+        if let Some(parent) = &node.lock().unwrap().parent {
+            let mut parent_path = "../".to_string();
+            parent_path.push_str(&KotoNode::get_path_to_root(parent.clone()));
+            parent_path
+        } else {
+            "".to_string()
+        }
+    }
+
+    fn get_path_from_root(node: Arc<Mutex<KotoNode>>) -> String {
+        if let Some(parent) = &node.lock().unwrap().parent {
+            let mut parent_path = KotoNode::get_path_from_root(parent.clone());
+            if let Some((name, _)) = parent
+                .lock()
+                .unwrap()
+                .children
+                .iter()
+                .find(|(_, n)| Arc::ptr_eq(&n, &node))
+            {
+                parent_path.push_str("");
+                parent_path.to_string()
+            } else {
+                "".to_string()
+            }
+        } else {
+            format!("/{}", node.lock().unwrap().name)
+        }
+    }
+
     fn build_ug_from_node(node: Arc<Mutex<KotoNode>>, sample_rate: u32) -> Option<Aug> {
         let name = node.lock().unwrap().name.clone();
         if let Ugen::Mapped(aug) = &node.lock().unwrap().ug {
