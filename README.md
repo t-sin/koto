@@ -36,6 +36,12 @@
     - [ ] Unit manipulation via filesystem
 - [ ] Command line interfaces
 
+## Requirements
+
+- pkg-config
+- libasound (ALSA)
+- libfuse (>= 2.6.0)
+
 ## Installation
 
 Upcomming...
