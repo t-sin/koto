@@ -352,7 +352,18 @@ impl KotoFS {
                     node
                 } else {
                     if let Some(node) = self.augs.get(&aug) {
-                        node.clone()
+                        let node = Arc::new(Mutex::new(KotoNode {
+                            ug: Ugen::Mapped(aug.clone()),
+                            parent: Some(parent),
+                            children: [].to_vec(),
+                            name: "shared".to_string(),
+                            data: [].to_vec(),
+                            link: None,
+                            attr: create_file(self.inode(), 0, FileType::Symlink),
+                        }));
+                        self.inodes
+                            .insert(node.lock().unwrap().attr.ino, node.clone());
+                        node
                     } else {
                         panic!("problem about shared ugens... why not found in self.augs...?")
                     }
@@ -402,6 +413,18 @@ impl KotoFS {
                     );
                     let newname =
                         format!("{}.{}", s.name.clone(), child.lock().unwrap().name.clone());
+                    let mut is_symlink = false;
+                    if let FileType::Symlink = child.lock().unwrap().attr.kind {
+                        is_symlink = true;
+                    }
+                    if is_symlink {
+                        //child.lock().unwrap().link =
+                        println!(
+                            "{} : {}",
+                            KotoNode::get_path_to_root(child.clone()),
+                            KotoNode::get_path_from_root(child.clone())
+                        );
+                    }
                     node.lock().unwrap().children.push((newname, child.clone()));
                 }
                 node
@@ -447,6 +470,18 @@ impl KotoFS {
                         child.lock().unwrap().name.clone(),
                         typename.clone()
                     );
+                    let mut is_symlink = false;
+                    if let FileType::Symlink = child.lock().unwrap().attr.kind {
+                        is_symlink = true;
+                    }
+                    if is_symlink {
+                        //child.lock().unwrap().link =
+                        println!(
+                            "{} : {}",
+                            KotoNode::get_path_to_root(child.clone()),
+                            KotoNode::get_path_from_root(child.clone())
+                        );
+                    }
                     node.lock()
                         .unwrap()
                         .children
