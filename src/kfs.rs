@@ -125,6 +125,24 @@ impl KotoNode {
         }
     }
 
+    fn modify_symlink(node: Arc<Mutex<KotoNode>>) {
+        let mut is_symlink = false;
+        if let FileType::Symlink = node.lock().unwrap().attr.kind {
+            is_symlink = true;
+        }
+        if is_symlink {
+            // deadlock by recursion
+            let mut to_root = KotoNode::get_path_to_root(node.clone());
+            let from_root = KotoNode::get_path_from_root(node.clone());
+            to_root.push_str(&from_root);
+            node.lock().unwrap().link = Some(PathBuf::from("hooo"));
+        }
+
+        for (_, child) in node.lock().unwrap().children.iter() {
+            KotoNode::modify_symlink(child.clone());
+        }
+    }
+
     fn get_path_from_root(node: Arc<Mutex<KotoNode>>) -> String {
         if let Some(parent) = &node.lock().unwrap().parent {
             let mut parent_path = KotoNode::get_path_from_root(parent.clone());
@@ -135,13 +153,14 @@ impl KotoNode {
                 .iter()
                 .find(|(_, n)| Arc::ptr_eq(&n, &node))
             {
-                parent_path.push_str("");
+                parent_path.push_str("/");
+                parent_path.push_str(name);
                 parent_path.to_string()
             } else {
-                "".to_string()
+                parent_path.to_string()
             }
         } else {
-            format!("/{}", node.lock().unwrap().name)
+            "".to_string()
         }
     }
 
@@ -351,22 +370,18 @@ impl KotoFS {
                         .insert(node.lock().unwrap().attr.ino, node.clone());
                     node
                 } else {
-                    if let Some(node) = self.augs.get(&aug) {
-                        let node = Arc::new(Mutex::new(KotoNode {
-                            ug: Ugen::Mapped(aug.clone()),
-                            parent: Some(parent),
-                            children: [].to_vec(),
-                            name: "shared".to_string(),
-                            data: [].to_vec(),
-                            link: None,
-                            attr: create_file(self.inode(), 0, FileType::Symlink),
-                        }));
-                        self.inodes
-                            .insert(node.lock().unwrap().attr.ino, node.clone());
-                        node
-                    } else {
-                        panic!("problem about shared ugens... why not found in self.augs...?")
-                    }
+                    let node = Arc::new(Mutex::new(KotoNode {
+                        ug: Ugen::Mapped(aug.clone()),
+                        parent: Some(parent),
+                        children: [].to_vec(),
+                        name: "shared".to_string(),
+                        data: [].to_vec(),
+                        link: None,
+                        attr: create_file(self.inode(), 0, FileType::Symlink),
+                    }));
+                    self.inodes
+                        .insert(node.lock().unwrap().attr.ino, node.clone());
+                    node
                 }
             }
         }
@@ -413,18 +428,6 @@ impl KotoFS {
                     );
                     let newname =
                         format!("{}.{}", s.name.clone(), child.lock().unwrap().name.clone());
-                    let mut is_symlink = false;
-                    if let FileType::Symlink = child.lock().unwrap().attr.kind {
-                        is_symlink = true;
-                    }
-                    if is_symlink {
-                        //child.lock().unwrap().link =
-                        println!(
-                            "{} : {}",
-                            KotoNode::get_path_to_root(child.clone()),
-                            KotoNode::get_path_from_root(child.clone())
-                        );
-                    }
                     node.lock().unwrap().children.push((newname, child.clone()));
                 }
                 node
@@ -470,18 +473,6 @@ impl KotoFS {
                         child.lock().unwrap().name.clone(),
                         typename.clone()
                     );
-                    let mut is_symlink = false;
-                    if let FileType::Symlink = child.lock().unwrap().attr.kind {
-                        is_symlink = true;
-                    }
-                    if is_symlink {
-                        //child.lock().unwrap().link =
-                        println!(
-                            "{} : {}",
-                            KotoNode::get_path_to_root(child.clone()),
-                            KotoNode::get_path_from_root(child.clone())
-                        );
-                    }
                     node.lock()
                         .unwrap()
                         .children
@@ -513,6 +504,10 @@ impl KotoFS {
         let mut shared_used: Vec<bool> = shared_ug.iter().map(|_| false).collect();
 
         let root = fs.build_node(ug, None, &shared_ug, &mut shared_used);
+        println!("before symlink");
+        KotoNode::modify_symlink(root.clone());
+        println!("after symlink");
+        fs.augs.clear();
         fs.root = root.clone();
         fs.root.lock().unwrap().attr.ino = 1;
         fs.inodes.insert(1, fs.root.clone());
