@@ -486,6 +486,9 @@ impl Walk for Seq {
         if f(&self.osc) {
             self.osc.walk(f);
         }
+        if f(&self.osc_mod) {
+            self.osc_mod.walk(f);
+        }
         if f(&self.eg) {
             self.eg.walk(f);
         }
