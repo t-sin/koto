@@ -115,6 +115,57 @@ impl KotoNode {
         }
     }
 
+    fn resolve_symlink_1(
+        path: &[&str],
+        node: Arc<Mutex<KotoNode>>,
+    ) -> Option<Arc<Mutex<KotoNode>>> {
+        if path.len() == 0 {
+            Some(node.clone())
+        } else {
+            match path[0] {
+                ".." => {
+                    if let Some(parent) = &node.lock().unwrap().parent {
+                        KotoNode::resolve_symlink_1(&path[1..], parent.clone())
+                    } else {
+                        None
+                    }
+                }
+                name => {
+                    if let Some((_, next)) = node
+                        .lock()
+                        .unwrap()
+                        .children
+                        .iter()
+                        .find(|(n, _)| name == n)
+                    {
+                        KotoNode::resolve_symlink_1(&path[1..], next.clone())
+                    } else {
+                        None
+                    }
+                }
+            }
+        }
+    }
+
+    fn resolve_symlink(node: Arc<Mutex<KotoNode>>) -> Option<Arc<Mutex<KotoNode>>> {
+        let link = node
+            .lock()
+            .unwrap()
+            .link
+            .as_ref()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string();
+        let path: Vec<&str> = link.split('/').collect();
+        let parent = &node.lock().unwrap().parent;
+        if let Some(parent) = parent {
+            KotoNode::resolve_symlink_1(&path[..path.len() - 1], parent.clone())
+        } else {
+            None
+        }
+    }
+
     fn build_pathmap(
         node: Arc<Mutex<KotoNode>>,
         path: String,
@@ -198,6 +249,19 @@ impl KotoNode {
                         }
                     }
                 }
+            } else if &typename[..] == "shared" {
+                println!("aaaaaaaaaaaaa");
+                let mut aug = None;
+                if let Ugen::Mapped(ug) = &node.lock().unwrap().ug {
+                    aug = Some(ug.clone());
+                }
+                if let Some(ug) = &aug {
+                    if let Some(parent) = &node.lock().unwrap().parent {
+                        if let Ugen::Mapped(ref mut parent_ug) = &mut parent.lock().unwrap().ug {
+                            let _ = parent_ug.set(&paramname, ug.clone());
+                        }
+                    }
+                }
             } else {
                 // paramname (xxx of xxx.yyy) is changed (or filename is not changed)
                 if let Some(parent) = &node.lock().unwrap().parent {
@@ -226,6 +290,12 @@ impl KotoNode {
             FileType::RegularFile => KotoNode::sync_file(node.clone(), oldname),
             FileType::Directory => {
                 KotoNode::sync_ug_with_directory(node.clone(), oldname, sample_rate)
+            }
+            FileType::Symlink => {
+                let target = KotoNode::resolve_symlink(node.clone());
+                if let Some(target) = target {
+                    KotoNode::sync_ug(target.clone(), oldname, sample_rate);
+                }
             }
             _ => (),
         }
@@ -865,6 +935,7 @@ impl Filesystem for KotoFS {
                 .push((name.clone(), node.clone()));
             self.inodes
                 .insert(node.lock().unwrap().attr.ino, node.clone());
+            KotoNode::sync_ug(node.clone(), "".to_string(), self.sample_rate);
             reply.entry(&TTL, &node.lock().unwrap().attr, 0);
             return;
         }
