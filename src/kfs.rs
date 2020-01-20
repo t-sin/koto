@@ -319,15 +319,7 @@ impl KotoFS {
                 let idx = shared.iter().position(|saug| *saug == aug).unwrap();
                 if shared_used[idx] == false {
                     shared_used[idx] = true;
-                    let node = Arc::new(Mutex::new(KotoNode {
-                        ug: Ugen::Mapped(aug.clone()),
-                        parent: Some(parent),
-                        children: [].to_vec(),
-                        name: "shared".to_string(),
-                        data: [].to_vec(),
-                        link: None,
-                        attr: create_file(self.inode(), 0, FileType::RegularFile),
-                    }));
+                    let node = self.build_node(aug.clone(), Some(parent), shared, shared_used);
                     self.augs.insert(aug.clone(), node.clone());
                     self.inodes
                         .insert(node.lock().unwrap().attr.ino, node.clone());
