@@ -34,6 +34,12 @@
     - [x] Simple in-memory filesystem
     - [x] Map unit graph into filesystem (read only)
     - [ ] Unit manipulation via filesystem
+        - [x] write value
+        - [x] detach value (with renaming)
+        - [x] attach value (with renaming)
+        - [x] share value (with symlink)
+        - [x] remap value (with symlink)
+        - [ ] create value (with renaming, mkdir-ing, ...)
 - [ ] Command line interfaces
 
 ## Requirements
