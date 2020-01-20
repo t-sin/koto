@@ -115,52 +115,15 @@ impl KotoNode {
         }
     }
 
-    fn get_path_to_root(node: Arc<Mutex<KotoNode>>) -> String {
-        if let Some(parent) = &node.lock().unwrap().parent {
-            let mut parent_path = "../".to_string();
-            parent_path.push_str(&KotoNode::get_path_to_root(parent.clone()));
-            parent_path
-        } else {
-            "".to_string()
-        }
-    }
-
-    fn modify_symlink(node: Arc<Mutex<KotoNode>>) {
-        let mut is_symlink = false;
-        if let FileType::Symlink = node.lock().unwrap().attr.kind {
-            is_symlink = true;
-        }
-        if is_symlink {
-            // deadlock by recursion
-            let mut to_root = KotoNode::get_path_to_root(node.clone());
-            let from_root = KotoNode::get_path_from_root(node.clone());
-            to_root.push_str(&from_root);
-            node.lock().unwrap().link = Some(PathBuf::from("hooo"));
-        }
-
-        for (_, child) in node.lock().unwrap().children.iter() {
-            KotoNode::modify_symlink(child.clone());
-        }
-    }
-
-    fn get_path_from_root(node: Arc<Mutex<KotoNode>>) -> String {
-        if let Some(parent) = &node.lock().unwrap().parent {
-            let mut parent_path = KotoNode::get_path_from_root(parent.clone());
-            if let Some((name, _)) = parent
-                .lock()
-                .unwrap()
-                .children
-                .iter()
-                .find(|(_, n)| Arc::ptr_eq(&n, &node))
-            {
-                parent_path.push_str("/");
-                parent_path.push_str(name);
-                parent_path.to_string()
-            } else {
-                parent_path.to_string()
-            }
-        } else {
-            "".to_string()
+    fn build_pathmap(
+        node: Arc<Mutex<KotoNode>>,
+        path: String,
+        pathmap: &mut Vec<(Arc<Mutex<KotoNode>>, String)>,
+    ) {
+        for (name, child) in node.lock().unwrap().children.iter() {
+            let child_path = format!("{}/{}", path, name);
+            pathmap.push((child.clone(), child_path.clone()));
+            KotoNode::build_pathmap(child.clone(), child_path.clone(), pathmap);
         }
     }
 
@@ -483,6 +446,36 @@ impl KotoFS {
         }
     }
 
+    fn modify_symlink(&self, pathmap: &Vec<(Arc<Mutex<KotoNode>>, String)>) {
+        for (node, path) in pathmap.iter() {
+            let mut is_symlink = false;
+            if let FileType::Symlink = node.lock().unwrap().attr.kind {
+                is_symlink = true;
+            }
+            if is_symlink {
+                let aug = if let Ugen::Mapped(aug) = &node.lock().unwrap().ug {
+                    Some(aug.clone())
+                } else {
+                    None
+                };
+                if let Some(aug) = aug {
+                    if let Some((_, target_path)) = pathmap
+                        .iter()
+                        .find(|(n, _)| Arc::ptr_eq(n, &self.augs.get(&aug).unwrap()))
+                    {
+                        let path: Vec<&str> = path.split('/').collect();
+                        let mut to_root = String::new();
+                        for _ in 0..(path.len() - 2) {
+                            to_root.push_str("../");
+                        }
+                        let link_path = format!("{}{}", to_root, target_path.split_at(1).1);
+                        node.lock().unwrap().link = Some(PathBuf::from(link_path));
+                    }
+                }
+            }
+        }
+    }
+
     pub fn init(sample_rate: u32, ug: Aug) -> KotoFS {
         let mut fs = KotoFS {
             inodes: HashMap::new(),
@@ -504,10 +497,12 @@ impl KotoFS {
         let mut shared_used: Vec<bool> = shared_ug.iter().map(|_| false).collect();
 
         let root = fs.build_node(ug, None, &shared_ug, &mut shared_used);
-        println!("before symlink");
-        KotoNode::modify_symlink(root.clone());
-        println!("after symlink");
+
+        let mut pathmap = Vec::new();
+        KotoNode::build_pathmap(root.clone(), "".to_string(), &mut pathmap);
+        fs.modify_symlink(&pathmap);
         fs.augs.clear();
+
         fs.root = root.clone();
         fs.root.lock().unwrap().attr.ino = 1;
         fs.inodes.insert(1, fs.root.clone());
