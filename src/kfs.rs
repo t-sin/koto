@@ -181,28 +181,110 @@ impl KotoNode {
     fn build_ug_from_node(node: Arc<Mutex<KotoNode>>, sample_rate: u32) -> Option<Aug> {
         let name = node.lock().unwrap().name.clone();
         if let Ugen::Mapped(aug) = &node.lock().unwrap().ug {
-            Some(aug.clone())
-        } else {
-            let form_str = "(aaa)".to_string();
-            let mut env = Env::init(Time::new(sample_rate));
-            match read(form_str.clone()) {
-                Ok(form) => match eval(&form[0], &mut env) {
-                    Ok(crate::tapirlisp::types::Value::Unit(aug)) => Some(aug.clone()),
-                    Ok(crate::tapirlisp::types::Value::Nil) => {
-                        println!("'build_ug_from_node' is wrong");
-                        None
-                    }
-                    Err(err) => {
-                        println!("cannot evaluate this node: {:?}", form_str);
-                        println!("{:?}", err);
-                        None
-                    }
-                },
+            return Some(aug.clone());
+        }
+
+        println!("building {}.", name.clone());
+        let (_, name) = KotoNode::parse_nodename(name.clone()).unwrap();
+        let mut env = Env::init(Time::new(sample_rate));
+        let form_str = match &name[..] {
+            "pan" => "(pan 0 0)",
+            "clip" => "(clip 0 0 0)",
+            "offset" => "(offset 0 0)",
+            "gain" => "(gain 0 0)",
+            "+" => "(+)",
+            "*" => "(*)",
+            "rand" => "(rand)",
+            "sine" => "(sine 0 0)",
+            "tri" => "(tri 0 0)",
+            "saw" => "(saw 0 0)",
+            "pulse" => "(pulse 0 0 0)",
+            "table" => "(table 0 0)",
+            "wavetable" => "(wavetable 0 0)",
+            "pat" => "(pat)",
+            "trig" => "(trig 0 0)",
+            "adsr" => "(adsr 0 0 0 0)",
+            "seq" => "(seq 0 0 0 0)",
+            "lpf" => "(lpf 0 0 0)",
+            "delay" => "(delay 0 0 0 0)",
+            "out" => "(out 0 0)",
+            _ => "0",
+        };
+
+        match read(form_str.to_string()) {
+            Ok(form) => match eval(&form[0], &mut env) {
+                Ok(crate::tapirlisp::types::Value::Unit(mut aug)) => {
+                    node.lock().unwrap().ug = Ugen::Mapped(aug.clone());
+                    let dump = aug.dump(&vec![]);
+                    println!("sexp = {}", form_str);
+                    match dump {
+                        UgNode::Val(_val) => (),
+                        UgNode::Ug(_, _slots) => {
+                            let mut children = Vec::new();
+                            for (name, child) in node.lock().unwrap().children.iter() {
+                                children.push((name.clone(), child.clone()));
+                            }
+
+                            for (name, child) in children.iter() {
+                                if let Some((paramname, _)) = KotoNode::parse_nodename(name.clone())
+                                {
+                                    KotoNode::sync_ug(child.clone(), "".to_string(), sample_rate);
+                                    if let Ugen::Mapped(child_ug) = &child.lock().unwrap().ug {
+                                        let _ = aug.set(&paramname, child_ug.clone());
+                                    }
+                                }
+                            }
+                        }
+                        UgNode::UgRest(_, _slots, paramname, _values) => {
+                            let mut children = Vec::new();
+                            for (name, child) in node.lock().unwrap().children.iter() {
+                                children.push((name.clone(), child.clone()));
+                            }
+
+                            for (name, child) in children.iter() {
+                                if let Some((paramname, _)) = KotoNode::parse_nodename(name.clone())
+                                {
+                                    KotoNode::sync_ug(child.clone(), "".to_string(), sample_rate);
+                                    if let Ugen::Mapped(child_ug) = &child.lock().unwrap().ug {
+                                        let _ = aug.set(&paramname, child_ug.clone());
+                                    }
+                                }
+                            }
+
+                            for (name, child) in children.iter() {
+                                if let Some((child_paramname, _)) =
+                                    KotoNode::parse_nodename(name.clone())
+                                {
+                                    if child_paramname.starts_with(&paramname) {
+                                        KotoNode::sync_ug(
+                                            child.clone(),
+                                            "".to_string(),
+                                            sample_rate,
+                                        );
+                                        if let Ugen::Mapped(child_ug) = &child.lock().unwrap().ug {
+                                            let _ = aug.set(&paramname, child_ug.clone());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    };
+                    Some(aug.clone())
+                }
+                Ok(crate::tapirlisp::types::Value::Nil) => {
+                    println!("'build_ug_from_node' is wrong");
+                    None
+                }
                 Err(err) => {
-                    println!("cannot parse this node: {:?}", name);
+                    println!("cannot evaluate this node: {:?}", form_str);
                     println!("{:?}", err);
                     None
                 }
+            },
+            Err(err) => {
+                println!("cannot parse this node: {:?}", name);
+                println!("{:?}", err);
+                None
             }
         }
     }
