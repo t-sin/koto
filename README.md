@@ -39,7 +39,7 @@
         - [x] attach value (with renaming)
         - [x] share value (with symlink)
         - [x] remap value (with symlink)
-        - [ ] create value (with renaming, mkdir-ing, ...)
+        - [x] create value (with renaming, mkdir-ing, ...)
 - [ ] Command line interfaces
 
 ## Requirements
