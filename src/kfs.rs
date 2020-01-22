@@ -693,7 +693,10 @@ impl Filesystem for KotoFS {
     ) {
         println!("setattr() with {:?}", ino);
         match self.inodes.get(&ino) {
-            Some(n) => reply.attr(&TTL, &n.lock().unwrap().attr),
+            Some(node) => {
+                KotoNode::sync_ug(node.clone(), "".to_string(), self.sample_rate);
+                reply.attr(&TTL, &node.lock().unwrap().attr);
+            }
             None => reply.error(EACCES),
         }
     }
