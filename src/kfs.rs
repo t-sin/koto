@@ -236,7 +236,7 @@ impl KotoNode {
         }
     }
 
-    fn sync_ug_with_directory(node: Arc<Mutex<KotoNode>>, oldname: String, sample_rate: u32) {
+    fn sync_directory(node: Arc<Mutex<KotoNode>>, oldname: String, sample_rate: u32) {
         if let Some((paramname, typename)) = KotoNode::get_nodename(node.clone()) {
             // nodename satisfies xxx.yyy format
             let set: HashSet<&str> = TYPE_NAMES.iter().cloned().collect();
@@ -288,9 +288,7 @@ impl KotoNode {
         let filetype = node.lock().unwrap().attr.kind;
         match filetype {
             FileType::RegularFile => KotoNode::sync_file(node.clone(), oldname),
-            FileType::Directory => {
-                KotoNode::sync_ug_with_directory(node.clone(), oldname, sample_rate)
-            }
+            FileType::Directory => KotoNode::sync_directory(node.clone(), oldname, sample_rate),
             FileType::Symlink => {
                 let target = KotoNode::resolve_symlink(node.clone());
                 if let Some(target) = target {
