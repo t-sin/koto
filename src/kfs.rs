@@ -773,6 +773,7 @@ impl Filesystem for KotoFS {
                 .position(|(nodename, _)| nodename == &old_name)
             {
                 children[n].0 = new_name.clone();
+                children[n].1.lock().unwrap().name = new_name.clone();
             }
         }
 
