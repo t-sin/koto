@@ -41,7 +41,7 @@ pub struct KotoFS {
     pub root: Arc<Mutex<KotoNode>>,
     pub inodes: HashMap<u64, Arc<Mutex<KotoNode>>>,
     pub augs: HashMap<Aug, Arc<Mutex<KotoNode>>>,
-    pub sample_rate: u32,
+    pub time: Arc<Mutex<Time>>,
     pub inode_count: u64,
 }
 
@@ -178,7 +178,7 @@ impl KotoNode {
         }
     }
 
-    fn build_ug_from_node(node: Arc<Mutex<KotoNode>>, sample_rate: u32) -> Option<Aug> {
+    fn build_ug_from_node(node: Arc<Mutex<KotoNode>>, time: Arc<Mutex<Time>>) -> Option<Aug> {
         let name = node.lock().unwrap().name.clone();
         if let Ugen::Mapped(aug) = &node.lock().unwrap().ug {
             return Some(aug.clone());
@@ -186,7 +186,7 @@ impl KotoNode {
 
         println!("building {}.", name.clone());
         let (_, name) = KotoNode::parse_nodename(name.clone()).unwrap();
-        let mut env = Env::init(Time::new(sample_rate));
+        let mut env = Env::init(Time::new(time.lock().unwrap().sample_rate));
         let form_str = match &name[..] {
             "pan" => "(pan 0 0)",
             "clip" => "(clip 0 0 0)",
@@ -228,7 +228,7 @@ impl KotoNode {
                             for (name, child) in children.iter() {
                                 if let Some((paramname, _)) = KotoNode::parse_nodename(name.clone())
                                 {
-                                    KotoNode::sync_ug(child.clone(), "".to_string(), sample_rate);
+                                    KotoNode::sync_ug(child.clone(), "".to_string(), time.clone());
                                     if let Ugen::Mapped(child_ug) = &child.lock().unwrap().ug {
                                         let _ = aug.set(&paramname, child_ug.clone());
                                     }
@@ -244,7 +244,7 @@ impl KotoNode {
                             for (name, child) in children.iter() {
                                 if let Some((paramname, _)) = KotoNode::parse_nodename(name.clone())
                                 {
-                                    KotoNode::sync_ug(child.clone(), "".to_string(), sample_rate);
+                                    KotoNode::sync_ug(child.clone(), "".to_string(), time.clone());
                                     if let Ugen::Mapped(child_ug) = &child.lock().unwrap().ug {
                                         let _ = aug.set(&paramname, child_ug.clone());
                                     }
@@ -259,7 +259,7 @@ impl KotoNode {
                                         KotoNode::sync_ug(
                                             child.clone(),
                                             "".to_string(),
-                                            sample_rate,
+                                            time.clone(),
                                         );
                                         if let Ugen::Mapped(child_ug) = &child.lock().unwrap().ug {
                                             let _ = aug.set(&paramname, child_ug.clone());
@@ -318,13 +318,13 @@ impl KotoNode {
         }
     }
 
-    fn sync_directory(node: Arc<Mutex<KotoNode>>, oldname: String, sample_rate: u32) {
+    fn sync_directory(node: Arc<Mutex<KotoNode>>, oldname: String, time: Arc<Mutex<Time>>) {
         if let Some((paramname, typename)) = KotoNode::get_nodename(node.clone()) {
             // nodename satisfies xxx.yyy format
             let set: HashSet<&str> = TYPE_NAMES.iter().cloned().collect();
             if set.contains(&typename[..]) {
                 // typename (yyy of xxx.yyy) is valid
-                if let Some(new_ug) = KotoNode::build_ug_from_node(node.clone(), sample_rate) {
+                if let Some(new_ug) = KotoNode::build_ug_from_node(node.clone(), time.clone()) {
                     if let Some(parent) = &node.lock().unwrap().parent {
                         if let Ugen::Mapped(ref mut parent_ug) = &mut parent.lock().unwrap().ug {
                             let _ = parent_ug.set(&paramname, new_ug.clone());
@@ -366,15 +366,15 @@ impl KotoNode {
         }
     }
 
-    fn sync_ug(node: Arc<Mutex<KotoNode>>, oldname: String, sample_rate: u32) {
+    fn sync_ug(node: Arc<Mutex<KotoNode>>, oldname: String, time: Arc<Mutex<Time>>) {
         let filetype = node.lock().unwrap().attr.kind;
         match filetype {
             FileType::RegularFile => KotoNode::sync_file(node.clone(), oldname),
-            FileType::Directory => KotoNode::sync_directory(node.clone(), oldname, sample_rate),
+            FileType::Directory => KotoNode::sync_directory(node.clone(), oldname, time.clone()),
             FileType::Symlink => {
                 let target = KotoNode::resolve_symlink(node.clone());
                 if let Some(target) = target {
-                    KotoNode::sync_ug(target.clone(), oldname, sample_rate);
+                    KotoNode::sync_ug(target.clone(), oldname, time.clone());
                 }
             }
             _ => (),
@@ -618,7 +618,7 @@ impl KotoFS {
         }
     }
 
-    pub fn init(sample_rate: u32, ug: Aug) -> KotoFS {
+    pub fn init(time: Arc<Mutex<Time>>, ug: Aug) -> KotoFS {
         let mut fs = KotoFS {
             inodes: HashMap::new(),
             augs: HashMap::new(),
@@ -631,7 +631,7 @@ impl KotoFS {
                 link: None,
                 attr: create_file(0, 0, FileType::RegularFile),
             })),
-            sample_rate: sample_rate,
+            time: time,
             inode_count: 151,
         };
 
@@ -776,7 +776,7 @@ impl Filesystem for KotoFS {
         println!("setattr() with {:?}", ino);
         match self.inodes.get(&ino) {
             Some(node) => {
-                KotoNode::sync_ug(node.clone(), "".to_string(), self.sample_rate);
+                KotoNode::sync_ug(node.clone(), "".to_string(), self.time.clone());
                 reply.attr(&TTL, &node.lock().unwrap().attr);
             }
             None => reply.error(EACCES),
@@ -878,7 +878,7 @@ impl Filesystem for KotoFS {
         };
 
         if let Some(node) = node {
-            KotoNode::sync_ug(node.clone(), old_name.clone(), self.sample_rate);
+            KotoNode::sync_ug(node.clone(), old_name.clone(), self.time.clone());
         }
 
         if reply_ok {
@@ -1019,7 +1019,7 @@ impl Filesystem for KotoFS {
                 .push((name.clone(), node.clone()));
             self.inodes
                 .insert(node.lock().unwrap().attr.ino, node.clone());
-            KotoNode::sync_ug(node.clone(), "".to_string(), self.sample_rate);
+            KotoNode::sync_ug(node.clone(), "".to_string(), self.time.clone());
             reply.entry(&TTL, &node.lock().unwrap().attr, 0);
             return;
         }

@@ -17,6 +17,7 @@ mod ugen;
 use std::ffi::OsString;
 use std::fs::File;
 use std::io::prelude::*;
+use std::sync::{Arc, Mutex};
 
 use audiodevice::AudioDevice;
 use mtime::Time;
@@ -41,13 +42,14 @@ fn main() {
     };
     println!("{}", tlisp::dump(ug.clone(), &env));
 
+    let time = Arc::new(Mutex::new(env.time));
     let ad = AudioDevice::open(sample_rate);
-    let mut lcd = SoundSystem::new(env.time, ug.clone());
+    let mut lcd = SoundSystem::new(time.clone(), ug.clone());
     std::thread::spawn(move || {
         lcd.run(&ad);
     });
 
-    let fs = kfs::KotoFS::init(sample_rate, ug.clone());
+    let fs = kfs::KotoFS::init(time.clone(), ug.clone());
     fs.mount(OsString::from("koto.test"));
 
     // somnia::run_test();
