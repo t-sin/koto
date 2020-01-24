@@ -42,14 +42,15 @@ fn main() {
     };
     println!("{}", tlisp::dump(ug.clone(), &env));
 
+    let lock = Arc::new(Mutex::new(true));
     let time = Arc::new(Mutex::new(env.time));
     let ad = AudioDevice::open(sample_rate);
-    let mut lcd = SoundSystem::new(time.clone(), ug.clone());
+    let mut lcd = SoundSystem::new(time.clone(), ug.clone(), lock.clone());
     std::thread::spawn(move || {
         lcd.run(&ad);
     });
 
-    let fs = kfs::KotoFS::init(time.clone(), ug.clone());
+    let fs = kfs::KotoFS::init(time.clone(), ug.clone(), lock.clone());
     fs.mount(OsString::from("koto.test"));
 
     // somnia::run_test();

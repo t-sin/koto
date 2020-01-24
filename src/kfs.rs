@@ -42,6 +42,7 @@ pub struct KotoFS {
     pub inodes: HashMap<u64, Arc<Mutex<KotoNode>>>,
     pub augs: HashMap<Aug, Arc<Mutex<KotoNode>>>,
     pub time: Arc<Mutex<Time>>,
+    pub lock: Arc<Mutex<bool>>,
     pub inode_count: u64,
 }
 
@@ -618,7 +619,7 @@ impl KotoFS {
         }
     }
 
-    pub fn init(time: Arc<Mutex<Time>>, ug: Aug) -> KotoFS {
+    pub fn init(time: Arc<Mutex<Time>>, ug: Aug, lock: Arc<Mutex<bool>>) -> KotoFS {
         let mut fs = KotoFS {
             inodes: HashMap::new(),
             augs: HashMap::new(),
@@ -632,6 +633,7 @@ impl KotoFS {
                 attr: create_file(0, 0, FileType::RegularFile),
             })),
             time: time,
+            lock: lock,
             inode_count: 151,
         };
 
@@ -957,9 +959,15 @@ impl Filesystem for KotoFS {
                 inode = Some(node.lock().unwrap().attr.ino);
             }
 
-            if let Ugen::Mapped(ref mut aug) = &mut parent_node.lock().unwrap().ug {
-                if let Some((paramname, _)) = KotoNode::parse_nodename(name) {
-                    aug.clear(&paramname);
+            println!("0000000000000000000000");
+            if let Ok(_) = self.lock.lock() {
+                println!("11111111111111111111111111111");
+                if let Ugen::Mapped(ref mut aug) = &mut parent_node.lock().unwrap().ug {
+                    if let Some((paramname, _)) = KotoNode::parse_nodename(name) {
+                        println!("2222222222222222222222");
+                        aug.clear(&paramname);
+                        println!("333333333333333333333");
+                    }
                 }
             }
         }
