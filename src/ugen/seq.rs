@@ -569,6 +569,7 @@ impl Operate for Seq {
         match pname {
             "pattern" => {
                 self.pattern = ug;
+                self.fill = true;
                 Ok(true)
             }
             "osc" => {
@@ -595,6 +596,7 @@ impl Operate for Seq {
 
                 if let Ok(msgs) = Pattern::parse_str(data.clone()) {
                     self.pattern = Aug::new(UGen::new(UG::Pat(Pattern::new(msgs))));
+                    self.fill = true;
                     Ok(true)
                 } else {
                     let err =
