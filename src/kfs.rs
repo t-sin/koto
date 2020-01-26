@@ -772,12 +772,6 @@ impl Filesystem for KotoFS {
         if let Some(node) = created.clone() {
             self.inodes
                 .insert(node.clone().lock().unwrap().attr.ino, node.clone());
-        }
-
-        if let Some(node) = created.clone() {
-            if let Ok(_) = self.lock.lock() {
-                KotoNode::sync_file(node.clone(), "".to_string());
-            }
             reply.created(&TTL, &node.lock().unwrap().attr, 0, 0, 0);
         }
     }
