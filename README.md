@@ -30,16 +30,10 @@
     - [x] Construct unit graph (with cheap `eval`)
     - [x] Global binding and `def` (with unit sharing)
     - [x] SAVE the graph
-- [ ] FUSE interfaces
+- [x] FUSE interfaces
     - [x] Simple in-memory filesystem
     - [x] Map unit graph into filesystem (read only)
-    - [ ] Unit manipulation via filesystem
-        - [x] write value
-        - [x] detach value (with renaming)
-        - [x] attach value (with renaming)
-        - [x] share value (with symlink)
-        - [x] remap value (with symlink)
-        - [x] create value (with renaming, mkdir-ing, ...)
+    - [x] Unit manipulation via filesystem
 - [ ] Command line interfaces
 
 ## Requirements
