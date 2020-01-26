@@ -116,6 +116,14 @@ impl KotoNode {
         }
     }
 
+    fn get_children(node: Arc<Mutex<KotoNode>>) -> Vec<(String, Arc<Mutex<KotoNode>>)> {
+        let mut children = Vec::new();
+        for (name, child) in node.lock().unwrap().children.iter() {
+            children.push((name.clone(), child.clone()));
+        }
+        children
+    }
+
     fn resolve_symlink_1(
         path: &[&str],
         node: Arc<Mutex<KotoNode>>,
@@ -125,17 +133,19 @@ impl KotoNode {
         } else {
             match path[0] {
                 ".." => {
-                    if let Some(parent) = &node.lock().unwrap().parent {
+                    let mut parent = None;
+                    if let Some(parent_node) = &node.lock().unwrap().parent {
+                        parent = Some(parent_node.clone())
+                    }
+                    if let Some(parent) = parent {
                         KotoNode::resolve_symlink_1(&path[1..], parent.clone())
                     } else {
                         None
                     }
                 }
                 name => {
-                    if let Some((_, next)) = node
-                        .lock()
-                        .unwrap()
-                        .children
+                    println!("symlink name = {}", name);
+                    if let Some((_, next)) = KotoNode::get_children(node.clone())
                         .iter()
                         .find(|(n, _)| name == n)
                     {
