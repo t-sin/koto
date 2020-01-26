@@ -753,7 +753,9 @@ impl Filesystem for KotoFS {
         }
 
         if let Some(node) = created.clone() {
-            KotoNode::sync_file(node.clone(), "".to_string());
+            if let Ok(_) = self.lock.lock() {
+                KotoNode::sync_file(node.clone(), "".to_string());
+            }
             reply.created(&TTL, &node.lock().unwrap().attr, 0, 0, 0);
         }
     }
@@ -778,7 +780,9 @@ impl Filesystem for KotoFS {
         println!("setattr() with {:?}", ino);
         match self.inodes.get(&ino) {
             Some(node) => {
-                KotoNode::sync_ug(node.clone(), "".to_string(), self.time.clone());
+                if let Ok(_) = self.lock.lock() {
+                    KotoNode::sync_ug(node.clone(), "".to_string(), self.time.clone());
+                }
                 reply.attr(&TTL, &node.lock().unwrap().attr);
             }
             None => reply.error(EACCES),
@@ -880,7 +884,9 @@ impl Filesystem for KotoFS {
         };
 
         if let Some(node) = node {
-            KotoNode::sync_ug(node.clone(), old_name.clone(), self.time.clone());
+            if let Ok(_) = self.lock.lock() {
+                KotoNode::sync_ug(node.clone(), old_name.clone(), self.time.clone());
+            }
         }
 
         if reply_ok {
@@ -913,7 +919,9 @@ impl Filesystem for KotoFS {
         }
 
         if let Some(n) = self.inodes.get(&ino) {
-            KotoNode::sync_file(n.clone(), "".to_string());
+            if let Ok(_) = self.lock.lock() {
+                KotoNode::sync_file(n.clone(), "".to_string());
+            }
         }
         reply.written(length as u32);
     }
@@ -1023,7 +1031,9 @@ impl Filesystem for KotoFS {
                 .push((name.clone(), node.clone()));
             self.inodes
                 .insert(node.lock().unwrap().attr.ino, node.clone());
-            KotoNode::sync_ug(node.clone(), "".to_string(), self.time.clone());
+            if let Ok(_) = self.lock.lock() {
+                KotoNode::sync_ug(node.clone(), "".to_string(), self.time.clone());
+            }
             reply.entry(&TTL, &node.lock().unwrap().attr, 0);
             return;
         }
