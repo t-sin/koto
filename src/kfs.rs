@@ -959,14 +959,10 @@ impl Filesystem for KotoFS {
                 inode = Some(node.lock().unwrap().attr.ino);
             }
 
-            println!("0000000000000000000000");
             if let Ok(_) = self.lock.lock() {
-                println!("11111111111111111111111111111");
                 if let Ugen::Mapped(ref mut aug) = &mut parent_node.lock().unwrap().ug {
                     if let Some((paramname, _)) = KotoNode::parse_nodename(name) {
-                        println!("2222222222222222222222");
                         aug.clear(&paramname);
-                        println!("333333333333333333333");
                     }
                 }
             }
