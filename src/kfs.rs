@@ -300,13 +300,20 @@ impl KotoNode {
         };
 
         if let Some((paramname, _)) = KotoNode::get_nodename(node.clone()) {
+            let mut node_ug = None;
             if let Some(parent) = &node.lock().unwrap().parent {
                 if let Ugen::Mapped(ref mut aug) = &mut parent.lock().unwrap().ug {
                     if let Err(err) = aug.set_str(&paramname, data.clone()) {
                         println!("Error while setting '{}'", data.clone());
                         println!("{:?}", err);
                     }
+                    if let Ok(ug) = aug.get(&paramname) {
+                        node_ug = Some(ug.clone());
+                    }
                 }
+            }
+            if let Some(ug) = node_ug {
+                node.lock().unwrap().ug = Ugen::Mapped(ug.clone());
             }
         } else {
             if let Some((paramname, _)) = KotoNode::parse_nodename(oldname.clone()) {
