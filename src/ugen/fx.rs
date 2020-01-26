@@ -430,7 +430,7 @@ impl Proc for Delay {
 
         let (mut dl, mut dr) = (0.0, 0.0);
         let mut n = 1;
-        while n * dt < self.buffer.len() as u64 {
+        while dt != 0 && n * dt < self.buffer.len() as u64 {
             let (l, r) = **self.buffer.get((n * dt) as usize).unwrap();
             let fbr = fb.powi(n as i32);
             dl += l * fbr;
