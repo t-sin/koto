@@ -888,7 +888,7 @@ impl Filesystem for KotoFS {
         _req: &Request,
         parent: u64,
         name: &OsStr,
-        _newparent: u64,
+        _newparent: u64, // oh!!!!
         newname: &OsStr,
         reply: ReplyEmpty,
     ) {
