@@ -383,17 +383,39 @@ impl KotoNode {
         }
     }
 
+    fn sync_symlink(node: Arc<Mutex<KotoNode>>) {
+        let target = KotoNode::resolve_symlink(node.clone());
+        if let Some((paramname, _)) = KotoNode::get_nodename(node.clone()) {
+            if let Some(target) = target {
+                let mut target_aug = None;
+                if let Ugen::Mapped(aug) = &target.lock().unwrap().ug {
+                    target_aug = Some(aug.clone());
+                }
+
+                if let Some(aug) = target_aug {
+                    let mut parent = None;
+                    if let Some(parent_node) = &node.lock().unwrap().parent {
+                        parent = Some(parent_node.clone());
+                    }
+
+                    if let Some(parent) = parent {
+                        if let Ugen::Mapped(ref mut parent_aug) = &mut parent.lock().unwrap().ug {
+                            // this Aug.set() causes deadlock but why...???
+                            let _ = parent_aug.set(&paramname, aug.clone());
+                            node.lock().unwrap().ug = Ugen::Mapped(aug.clone());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     fn sync_ug(node: Arc<Mutex<KotoNode>>, oldname: String, time: Arc<Mutex<Time>>) {
         let filetype = node.lock().unwrap().attr.kind;
         match filetype {
             FileType::RegularFile => KotoNode::sync_file(node.clone(), oldname),
             FileType::Directory => KotoNode::sync_directory(node.clone(), oldname, time.clone()),
-            FileType::Symlink => {
-                let target = KotoNode::resolve_symlink(node.clone());
-                if let Some(target) = target {
-                    KotoNode::sync_ug(target.clone(), oldname, time.clone());
-                }
-            }
+            FileType::Symlink => KotoNode::sync_symlink(node.clone()),
             _ => (),
         }
     }
