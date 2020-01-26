@@ -158,7 +158,7 @@ impl KotoNode {
     }
 
     fn resolve_symlink(node: Arc<Mutex<KotoNode>>) -> Option<Arc<Mutex<KotoNode>>> {
-        let link = node
+        let mut link = node
             .lock()
             .unwrap()
             .link
@@ -167,10 +167,13 @@ impl KotoNode {
             .to_str()
             .unwrap()
             .to_string();
-        let path: Vec<&str> = link.split('/').collect();
+        if link.chars().nth(link.len() - 1).unwrap() == '/' {
+            link = link[..link.len() - 1].to_string();
+        }
+        let mut path: Vec<&str> = link.split('/').collect();
         let parent = &node.lock().unwrap().parent;
         if let Some(parent) = parent {
-            KotoNode::resolve_symlink_1(&path[..path.len() - 1], parent.clone())
+            KotoNode::resolve_symlink_1(&path, parent.clone())
         } else {
             None
         }
