@@ -702,17 +702,22 @@ impl Filesystem for KotoFS {
             return;
         }
 
-        if let Some(parent) = self.inodes.get(&ino) {
+        if let Some(dirnode) = self.inodes.get(&ino) {
             reply.add(ino, 0, FileType::Directory, ".");
+
+            let mut parent_ino = 1;
+            if let Some(ref parent) = &dirnode.lock().unwrap().parent {
+                parent_ino = parent.lock().unwrap().attr.ino as i64
+            }
             reply.add(
-                parent.lock().unwrap().attr.ino,
-                1,
+                dirnode.lock().unwrap().attr.ino,
+                parent_ino,
                 FileType::Directory,
                 "..",
             );
             let mut reply_add_offset = 2;
 
-            for (name, node) in parent.lock().unwrap().children.iter() {
+            for (name, node) in dirnode.lock().unwrap().children.iter() {
                 let attr = node.lock().unwrap().attr;
                 reply.add(attr.ino, reply_add_offset, attr.kind, name);
                 reply_add_offset += 1;
