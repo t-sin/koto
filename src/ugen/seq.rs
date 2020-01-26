@@ -473,7 +473,7 @@ impl Seq {
                 }
             }
         } else {
-            panic!("not a pattern!!");
+            println!("aug is not a pattern!!");
         }
     }
 }
