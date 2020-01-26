@@ -144,7 +144,6 @@ impl KotoNode {
                     }
                 }
                 name => {
-                    println!("symlink name = {}", name);
                     if let Some((_, next)) = KotoNode::get_children(node.clone())
                         .iter()
                         .find(|(n, _)| name == n)
