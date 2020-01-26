@@ -431,6 +431,7 @@ pub struct Seq {
     osc: Aug,
     osc_mod: Aug,
     eg: Aug,
+    fill: bool,
 }
 
 impl Seq {
@@ -441,6 +442,7 @@ impl Seq {
             osc: osc,
             osc_mod: osc_mod,
             eg: eg,
+            fill: false,
         };
         seq.fill_queue(&time.pos, &time.measure);
         Aug::new(UGen::new(UG::Proc(Box::new(seq))))
@@ -705,18 +707,24 @@ impl Proc for Seq {
                 }
                 Event::Loop(pos) => {
                     if pos <= &time.pos {
-                        let base = Pos {
-                            bar: time.pos.bar,
-                            beat: 0,
-                            pos: 0.0,
-                        };
                         self.queue.pop_front().unwrap();
-                        self.fill_queue(&base, &time.measure);
+                        self.fill = true;
                     }
                 }
             },
             None => (),
         }
+
+        if self.fill {
+            let base = Pos {
+                bar: time.pos.bar,
+                beat: 0,
+                pos: 0.0,
+            };
+            self.fill_queue(&base, &time.measure);
+        }
+        self.fill = false;
+
         ((ol * el), (or * er))
     }
 }
