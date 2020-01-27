@@ -888,7 +888,7 @@ impl Filesystem for KotoFS {
         _req: &Request,
         parent: u64,
         name: &OsStr,
-        _newparent: u64, // oh!!!!
+        newparent: u64,
         newname: &OsStr,
         reply: ReplyEmpty,
     ) {
@@ -897,31 +897,60 @@ impl Filesystem for KotoFS {
         let old_name = name.to_str().unwrap().to_string();
         let new_name = newname.to_str().unwrap().to_string();
 
-        if let Some(parent_node) = self.inodes.get(&parent) {
-            let children = &mut parent_node.lock().unwrap().children;
-            if let Some(n) = children
-                .iter()
-                .position(|(nodename, _)| nodename == &old_name)
-            {
-                children[n].0 = new_name.clone();
-                children[n].1.lock().unwrap().name = new_name.clone();
+        if parent == newparent {
+            if let Some(parent_node) = self.inodes.get(&parent) {
+                let children = &mut parent_node.lock().unwrap().children;
+                if let Some(n) = children
+                    .iter()
+                    .position(|(nodename, _)| nodename == &old_name)
+                {
+                    children[n].0 = new_name.clone();
+                    children[n].1.lock().unwrap().name = new_name.clone();
+                }
+            }
+        } else {
+            let mut node = None;
+            if let Some(parent_node) = self.inodes.get(&parent) {
+                let children = KotoNode::get_children(parent_node.clone());
+                let mut pos = None;
+                if let Some(n) = children
+                    .iter()
+                    .position(|(nodename, _)| nodename == &old_name)
+                {
+                    pos = Some(n);
+                    node = Some(children[n].1.clone());
+                }
+                if let Some(pos) = pos {
+                    parent_node.lock().unwrap().children.remove(pos);
+                }
+            }
+
+            if let Some(node) = node {
+                if let Some(new_parent) = self.inodes.get(&newparent) {
+                    node.lock().unwrap().parent = Some(new_parent.clone());
+                    new_parent
+                        .lock()
+                        .unwrap()
+                        .children
+                        .push((new_name.clone(), node.clone()));
+                }
             }
         }
 
-        let node: Option<Arc<Mutex<KotoNode>>> = if let Some(parent_node) = self.inodes.get(&parent)
-        {
-            let children = &mut parent_node.lock().unwrap().children;
-            if let Some(pos) = children
-                .iter()
-                .position(|(nodename, _)| nodename == &new_name)
-            {
-                Some(children[pos].1.clone())
+        let node: Option<Arc<Mutex<KotoNode>>> =
+            if let Some(parent_node) = self.inodes.get(&newparent) {
+                let children = &mut parent_node.lock().unwrap().children;
+                if let Some(pos) = children
+                    .iter()
+                    .position(|(nodename, _)| nodename == &new_name)
+                {
+                    Some(children[pos].1.clone())
+                } else {
+                    None
+                }
             } else {
                 None
-            }
-        } else {
-            None
-        };
+            };
 
         if let Some(node) = node {
             if let Ok(_) = self.lock.lock() {
