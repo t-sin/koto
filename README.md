@@ -7,6 +7,7 @@
 ## Demo
 
 - [simple performance (without filesystem feature)](https://www.youtube.com/watch?v=W_rGWa86TZg)
+- [filesystem performance](https://www.youtube.com/watch?v=Rxh-msWrj6o)
 
 ## TODOs
 
@@ -38,9 +39,15 @@
 
 ## Requirements
 
+### GNU/Linux
+
 - pkg-config
 - libasound (ALSA)
 - libfuse (>= 2.6.0)
+
+### macOS
+
+- FUSE for macOS
 
 ## Installation
 
