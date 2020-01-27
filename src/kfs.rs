@@ -922,6 +922,13 @@ impl Filesystem for KotoFS {
                 }
                 if let Some(pos) = pos {
                     parent_node.lock().unwrap().children.remove(pos);
+                    if let Ok(_) = self.lock.lock() {
+                        if let Some((paramname, _)) = KotoNode::parse_nodename(new_name.clone()) {
+                            if let Ugen::Mapped(ref mut aug) = &mut parent_node.lock().unwrap().ug {
+                                aug.clear(&paramname);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -933,6 +940,13 @@ impl Filesystem for KotoFS {
                         .unwrap()
                         .children
                         .push((new_name.clone(), node.clone()));
+                    if let Ok(_) = self.lock.lock() {
+                        if let Some((paramname, _)) = KotoNode::get_nodename(new_parent.clone()) {
+                            if let Ugen::Mapped(ref mut aug) = &mut new_parent.lock().unwrap().ug {
+                                aug.clear(&paramname);
+                            }
+                        }
+                    }
                 }
             }
         }
