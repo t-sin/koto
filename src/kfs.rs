@@ -14,7 +14,7 @@ use fuse::{
 
 use super::mtime::Time;
 use super::sexp::read;
-use super::tapirlisp::types::{Env, EvalError};
+use super::tapirlisp::types::Env;
 use super::tapirlisp::{eval, TYPE_NAMES};
 use super::ugen::core::{Aug, Dump, Operate, UgNode, Value};
 
@@ -170,7 +170,7 @@ impl KotoNode {
         if link.chars().nth(link.len() - 1).unwrap() == '/' {
             link = link[..link.len() - 1].to_string();
         }
-        let mut path: Vec<&str> = link.split('/').collect();
+        let path: Vec<&str> = link.split('/').collect();
         let parent = &node.lock().unwrap().parent;
         if let Some(parent) = parent {
             KotoNode::resolve_symlink_1(&path, parent.clone())
