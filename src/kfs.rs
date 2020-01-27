@@ -701,8 +701,6 @@ impl KotoFS {
 
 impl Filesystem for KotoFS {
     fn getattr(&mut self, _req: &Request, ino: u64, reply: ReplyAttr) {
-        println!("getattr() with {:?}", ino);
-
         if let Some(node) = self.inodes.get(&ino) {
             reply.attr(&TTL, &node.lock().unwrap().attr);
             return;
@@ -720,7 +718,6 @@ impl Filesystem for KotoFS {
         offset: i64,
         mut reply: ReplyDirectory,
     ) {
-        println!("readdir() from {:?}", ino);
         if offset > 0 {
             reply.ok();
             return;
@@ -751,8 +748,6 @@ impl Filesystem for KotoFS {
     }
 
     fn lookup(&mut self, _req: &Request, parent: u64, name: &OsStr, reply: ReplyEntry) {
-        println!("lookup() by {:?}", name);
-
         if let Some(parent_node) = self.inodes.get(&parent) {
             let children = &mut parent_node.lock().unwrap().children;
             let name = name.to_str().unwrap().to_string();
@@ -776,7 +771,6 @@ impl Filesystem for KotoFS {
         _flag: u32,
         reply: ReplyCreate,
     ) {
-        println!("create() with {:?}", name);
         let ino = self.inode();
         let mut created: Option<Arc<Mutex<KotoNode>>> = None;
         let name = name.to_str().unwrap().to_string();
@@ -817,7 +811,6 @@ impl Filesystem for KotoFS {
         _flags: Option<u32>,
         reply: ReplyAttr,
     ) {
-        println!("setattr() with {:?}", ino);
         match self.inodes.get(&ino) {
             Some(node) => {
                 if let Ok(_) = self.lock.lock() {
@@ -830,7 +823,6 @@ impl Filesystem for KotoFS {
     }
 
     fn mkdir(&mut self, _req: &Request, parent: u64, name: &OsStr, _mode: u32, reply: ReplyEntry) {
-        println!("mkdir() with {:?}", name);
         let ino = self.inode();
         if let Some(parent_node) = self.inodes.get(&parent) {
             let name = name.to_str().unwrap().to_string();
@@ -892,7 +884,6 @@ impl Filesystem for KotoFS {
         newname: &OsStr,
         reply: ReplyEmpty,
     ) {
-        println!("rename() {:?} to {:?}", name, newname);
         let reply_ok = true;
         let old_name = name.to_str().unwrap().to_string();
         let new_name = newname.to_str().unwrap().to_string();
@@ -989,7 +980,6 @@ impl Filesystem for KotoFS {
         _flags: u32,
         reply: ReplyWrite,
     ) {
-        println!("write() to {:?} with offset {:?}", ino, offset);
         let length: usize = data.len();
         if let Some(n) = self.inodes.get_mut(&ino) {
             if offset == 0 {
@@ -1018,7 +1008,6 @@ impl Filesystem for KotoFS {
         size: u32,
         reply: ReplyData,
     ) {
-        println!("read() from {:?}", ino);
         match self.inodes.get(&ino) {
             Some(n) => {
                 let data_rest = &n.lock().unwrap().data[offset as usize..];
@@ -1033,7 +1022,6 @@ impl Filesystem for KotoFS {
     }
 
     fn unlink(&mut self, _req: &Request, parent: u64, name: &OsStr, reply: ReplyEmpty) {
-        println!("unlink() {:?}", name);
         let mut inode = None;
 
         if let Some(parent_node) = self.inodes.get(&parent) {
@@ -1069,8 +1057,6 @@ impl Filesystem for KotoFS {
     }
 
     fn readlink(&mut self, _req: &Request, ino: u64, reply: ReplyData) {
-        println!("readlink() from {:?}", ino);
-
         if let Some(node) = self.inodes.get(&ino) {
             let mut is_link = false;
             match node.lock().unwrap().attr.kind {
@@ -1096,7 +1082,6 @@ impl Filesystem for KotoFS {
         link: &Path,
         reply: ReplyEntry,
     ) {
-        println!("symlink() with {:?}", name);
         let ino = self.inode();
 
         if let Some(parent_node) = self.inodes.get(&parent) {
