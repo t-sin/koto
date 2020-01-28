@@ -57,7 +57,10 @@ fn main() {
         init_config = "(out 0 0)".to_string();
     }
 
-    let mountpoint = matches.value_of("mountpoint").unwrap_or("koto.test");
+    let mountpoint = matches
+        .value_of("mountpoint")
+        .unwrap_or("koto.test")
+        .to_string();
 
     let sample_rate = 44100u32;
     let time = Time::new(sample_rate);
