@@ -55,13 +55,10 @@ Upcomming...
 
 ## Usage
 
-Upcomming...
+To launch *Koto*, type like this:
 
 ```sh
-$ git clone https://github.com/t-sin/koto
-$ cd /path/to/koto
-$ mkdir koto.test
-$ cargo run
+$ /path/to/koto /path/to/mountpoint
 ```
 
 ### Tapir Lisp
