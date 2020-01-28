@@ -36,6 +36,17 @@
     - [x] Map unit graph into filesystem (read only)
     - [x] Unit manipulation via filesystem
 - [ ] Command line interfaces
+    - [x] initial configuration
+    - [x] mountpoint
+    - [ ] dump current configuration by signals
+- [ ] Module & Crate separating
+    - Tapirus (unit generators & TapirLisp)
+    - KFS (types, KotoNode, Filesystem trait)
+- [ ] Documentation
+    - Koto concept
+    - Sound modules
+    - Filesystem representations
+    - Configurations and Tapir Lisp
 
 ## Requirements
 
