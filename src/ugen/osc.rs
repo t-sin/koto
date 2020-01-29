@@ -9,13 +9,15 @@ use super::misc::{Clip, Gain, Offset};
 
 pub struct Rand {
     rng: SmallRng,
+    freq: Aug,
     v: f64,
 }
 
 impl Rand {
-    pub fn new(seed: u64) -> Aug {
+    pub fn new(freq: Aug) -> Aug {
         Aug::new(UGen::new(UG::Osc(Box::new(Rand {
-            rng: SmallRng::seed_from_u64(seed),
+            rng: SmallRng::seed_from_u64(0),
+            freq: freq,
             v: 0.15,
         }))))
     }
@@ -83,7 +85,9 @@ impl Proc for Rand {
 }
 
 impl Osc for Rand {
-    fn set_freq(&mut self, _u: Aug) {}
+    fn set_freq(&mut self, u: Aug) {
+        self.freq = u.clone()
+    }
     fn get_freq(&self) -> Aug {
         Aug::val(0.0)
     }

@@ -137,13 +137,7 @@ fn make_multiply(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> 
 fn make_rand(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
     if args.len() == 1 {
         match eval(&args[0], env) {
-            Ok(Value::Unit(unit)) => {
-                if let UG::Val(v) = unit.0.lock().unwrap().ug {
-                    Ok(Rand::new(v as u64))
-                } else {
-                    Ok(Rand::new(0))
-                }
-            }
+            Ok(Value::Unit(unit)) => Ok(Rand::new(unit.clone())),
             Ok(_v) => Err(EvalError::NotAug),
             Err(err) => Err(err),
         }
