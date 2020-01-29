@@ -35,10 +35,10 @@
     - [x] Simple in-memory filesystem
     - [x] Map unit graph into filesystem (read only)
     - [x] Unit manipulation via filesystem
-- [ ] Command line interfaces
+- [x] Command line interfaces
     - [x] initial configuration
     - [x] mountpoint
-    - [ ] dump current configuration by signals
+    - [x] dump current configuration by signals
 - [ ] Module & Crate separating
     - Tapirus (unit generators & TapirLisp)
     - KFS (types, KotoNode, Filesystem trait)
