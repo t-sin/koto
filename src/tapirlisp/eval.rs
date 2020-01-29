@@ -148,7 +148,7 @@ fn make_rand(args: Vec<Box<Cons>>, env: &mut Env) -> Result<Aug, EvalError> {
             Err(err) => Err(err),
         }
     } else {
-        Err(EvalError::FnWrongParams(String::from("wavetable"), args))
+        Err(EvalError::FnWrongParams(String::from("rand"), args))
     }
 }
 
