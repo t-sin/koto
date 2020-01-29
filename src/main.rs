@@ -3,6 +3,7 @@ extern crate fuse;
 extern crate libc;
 extern crate num;
 extern crate rand;
+extern crate signal_hook;
 extern crate users;
 
 extern crate clap;
@@ -71,7 +72,21 @@ fn main() {
         Ok(_v) => panic!("Oh, unit graph is not a unit!!"),
         Err(err) => panic!("Error!!! {:?}", err),
     };
-    println!("{}", tlisp::dump(ug.clone(), &env));
+
+    let ug_clone = ug.clone();
+    let env_clone = env.clone();
+    let signal = unsafe {
+        signal_hook::register(signal_hook::SIGUSR1, move || {
+            let filename = format!(
+                "koto.{}.lisp",
+                time::strftime("%Y%m%dT%H%M%S", &time::now()).unwrap()
+            );
+            let mut f = File::create(filename).unwrap();
+            let config = tlisp::dump(ug_clone.clone(), &env_clone);
+            let _ = f.write_all(config.as_bytes());
+        })
+    }
+    .unwrap();
 
     let lock = Arc::new(Mutex::new(true));
     let time = Arc::new(Mutex::new(env.time));
@@ -85,4 +100,6 @@ fn main() {
     fs.mount(OsString::from(mountpoint));
 
     // somnia::run_test();
+
+    signal_hook::unregister(signal);
 }

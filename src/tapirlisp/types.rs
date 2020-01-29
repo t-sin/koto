@@ -14,6 +14,7 @@ pub enum Value {
     Nil,
 }
 
+#[derive(Clone)]
 pub struct Env {
     pub time: Time,
     pub binding: HashMap<Name, Box<Value>>,
