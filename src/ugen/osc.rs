@@ -10,6 +10,7 @@ use super::misc::{Clip, Gain, Offset};
 pub struct Rand {
     rng: SmallRng,
     freq: Aug,
+    count: u64,
     v: f64,
 }
 
@@ -18,6 +19,7 @@ impl Rand {
         Aug::new(UGen::new(UG::Osc(Box::new(Rand {
             rng: SmallRng::seed_from_u64(0),
             freq: freq,
+            count: 0,
             v: 0.15,
         }))))
     }
@@ -28,8 +30,17 @@ impl Walk for Rand {
 }
 
 impl Dump for Rand {
-    fn dump(&self, _shared_ug: &Vec<Aug>) -> UgNode {
-        let slots = Vec::new();
+    fn dump(&self, shared_ug: &Vec<Aug>) -> UgNode {
+        let mut slots = Vec::new();
+
+        slots.push(Slot {
+            ug: self.freq.clone(),
+            name: "freq".to_string(),
+            value: match shared_ug.iter().position(|e| *e == self.freq) {
+                Some(n) => Value::Shared(n, shared_ug.iter().nth(n).unwrap().clone()),
+                None => Value::Ug(self.freq.clone()),
+            },
+        });
 
         UgNode::Ug("rand".to_string(), slots)
     }
@@ -58,14 +69,28 @@ impl Operate for Rand {
         }
     }
 
-    fn set(&mut self, pname: &str, _ug: Aug) -> Result<bool, OperateError> {
+    fn set(&mut self, pname: &str, ug: Aug) -> Result<bool, OperateError> {
         match pname {
+            "freq" => {
+                self.freq = ug;
+                Ok(true)
+            }
             _ => Err(OperateError::ParamNotFound(format!("rand/{}", pname))),
         }
     }
 
-    fn set_str(&mut self, pname: &str, _data: String) -> Result<bool, OperateError> {
+    fn set_str(&mut self, pname: &str, data: String) -> Result<bool, OperateError> {
         match pname {
+            "freq" => {
+                if let Ok(v) = data.parse::<f64>() {
+                    self.freq = Aug::val(v);
+                    Ok(true)
+                } else {
+                    let err =
+                        OperateError::CannotParseNumber(format!("sine/{}", pname), data.clone());
+                    Err(err)
+                }
+            }
             _ => Err(OperateError::ParamNotFound(format!("rand/{}", pname))),
         }
     }
@@ -78,8 +103,13 @@ impl Operate for Rand {
 }
 
 impl Proc for Rand {
-    fn proc(&mut self, _time: &Time) -> Signal {
-        self.v = self.rng.gen();
+    fn proc(&mut self, time: &Time) -> Signal {
+        if self.count >= self.freq.proc(time).0 as u64 {
+            self.v = self.rng.gen();
+            self.count = 0;
+        } else {
+            self.count += 1;
+        }
         (self.v, self.v)
     }
 }
