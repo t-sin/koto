@@ -315,6 +315,8 @@ impl KotoNode {
             let mut node_ug = None;
             if let Some(parent) = &node.lock().unwrap().parent {
                 if let Ugen::Mapped(ref mut aug) = &mut parent.lock().unwrap().ug {
+                    let mut data = data.clone();
+                    data.retain(|c| c != '\n');
                     if let Err(err) = aug.set_str(&paramname, data.clone()) {
                         println!("Error while setting '{}'", data.clone());
                         println!("{:?}", err);
