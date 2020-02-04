@@ -585,8 +585,8 @@ checksum = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
 
 [[package]]
 name = "tapirus"
-version = "0.1.0"
-source = "git+https://github.com/t-sin/tapirus#06c1e22c62d9a1c698b9edb5926791f70cf1ceab"
+version = "1.0.0"
+source = "git+https://github.com/t-sin/tapirus#7a00fca7cdd25d864c926346ff77e1b7c4f8b24b"
 dependencies = [
  "cpal",
  "num",

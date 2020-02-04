@@ -6,7 +6,7 @@ license = "GPL-3.0"
 edition = "2018"
 
 [dependencies]
-tapirus = { git = "https://github.com/t-sin/tapirus", branch = "master", version = "*" }
+tapirus = { git = "https://github.com/t-sin/tapirus", version = "1.0.0" }
 clap = "2.33.0"
 fuse = "0.3.1"
 libc = "0.2.62"
