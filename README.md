@@ -41,8 +41,8 @@
     - [x] mountpoint
     - [x] dump current configuration by signals
 - [ ] Module & Crate separating
-    - Tapirus (unit generators & TapirLisp)
-    - KFS (types, KotoNode, Filesystem trait)
+    - [x] Tapirus (unit generators & TapirLisp)
+    - [ ] KFS (types, KotoNode, Filesystem trait)
 - [ ] Documentation
     - Koto concept
     - Sound modules
