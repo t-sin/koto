@@ -6,7 +6,8 @@ extern crate users;
 
 extern crate tapirus;
 
-mod kfs;
+mod kotofs;
+mod kotonode;
 
 use std::ffi::OsString;
 use std::fs::File;
@@ -86,7 +87,7 @@ fn main() {
         lcd.run(&ad);
     });
 
-    let fs = kfs::KotoFS::init(transport.clone(), ug.clone(), lock.clone());
+    let fs = kotofs::KotoFS::init(transport.clone(), ug.clone(), lock.clone());
     fs.mount(OsString::from(mountpoint));
 
     // somnia::run_test();
