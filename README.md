@@ -40,14 +40,14 @@
     - [x] initial configuration
     - [x] mountpoint
     - [x] dump current configuration by signals
-- [ ] Module & Crate separating
+- [x] Module & Crate separating
     - [x] Tapirus (unit generators & TapirLisp)
-    - [ ] KFS (types, KotoNode, Filesystem trait)
+    - [x] KFS (types, KotoNode, Filesystem trait)
 - [ ] Documentation
-    - Koto concept
-    - Sound modules
-    - Filesystem representations
-    - Configurations and Tapir Lisp
+    - [ ] Koto concept
+    - [ ] Sound modules
+    - [ ] Filesystem representations
+    - [ ] Configurations and Tapir Lisp
 
 ## Requirements
 
