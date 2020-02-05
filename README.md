@@ -69,7 +69,9 @@ Upcomming...
 
 ## Usage
 
-To start and stop *Koto*, type like this:
+### Basic usage
+
+Koto uses FUSE filesystem as user interface, so, we should create mountpoint and mount it at first. To start and stop *Koto* simply, type like this:
 
 ```sh
 # start koto
@@ -78,6 +80,17 @@ $ /path/to/koto /path/to/mountpoint
 # stop koto
 $ fusermount -u /path/to/mountpoint
 ```
+
+Koto takes one positional arg `MOUNTPOINT` and some options. Important option in those is `-c` (`--config`). This specified initial configuration of synthesizer modules. Because of this *Koto* can start music by specified configuration. If you try it, type like this:
+
+```sh
+$ cd /path/to/koto
+$ ./koto /path/to/mountpoint -c ./configure.lisp
+```
+
+### Intaract with Koto
+
+Upcomming...
 
 ## Author
 
