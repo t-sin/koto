@@ -8,6 +8,8 @@
 - [filesystem performance 2](https://youtube.com/watch?v=dV0xoK5ARfI)
 - [simple performance (without filesystem feature)](https://www.youtube.com/watch?v=W_rGWa86TZg)
 
+*Koto* uses and depends on [Tapirus](https://github.com/t-sin/tapirus) sound synthesizer modules.
+
 [Dedicated](https://twitter.com/tobuzoo7/status/999061314818359296) [with](https://twitter.com/tobuzoo7/status/1021623019465146368) [you](https://mobile.twitter.com/sin_clav/status/1069065073912496130).
 
 ## TODOs
@@ -67,17 +69,15 @@ Upcomming...
 
 ## Usage
 
-To launch *Koto*, type like this:
+To start and stop *Koto*, type like this:
 
 ```sh
+# start koto
 $ /path/to/koto /path/to/mountpoint
+
+# stop koto
+$ fusermount -u /path/to/mountpoint
 ```
-
-### Tapir Lisp
-
-Tapir Lisp is a Lisp-like language for describing synthesizer signal flow.
-It's used to save and load synthesizer configuration that created interactively by a user.
-For details, see [Tapir Lisp's README](src/tapirlisp/README.md).
 
 ## Author
 
