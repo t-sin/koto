@@ -46,9 +46,9 @@
     - [x] Tapirus (unit generators & TapirLisp)
     - [x] KFS (types, KotoNode, Filesystem trait)
 - [ ] Documentation
-    - [ ] Koto concept
+    - [x] Koto concept
     - [ ] Sound modules
-    - [ ] Filesystem representations
+    - [x] Filesystem representations
     - [ ] Configurations and Tapir Lisp
 
 ## Requirements
@@ -69,7 +69,7 @@ Upcomming...
 
 ## Usage
 
-### Basic usage
+### Command line usage
 
 Koto uses FUSE filesystem as user interface, so, we should create mountpoint and mount it at first. To start and stop *Koto* simply, type like this:
 
@@ -90,7 +90,55 @@ $ ./koto /path/to/mountpoint -c ./configure.lisp
 
 When you think about to stop performace with *Koto*, you might want to save current configuration, to resume performance after like drinking a cup of tea. It's times like these, you can save entire synthesizer configuration (includeing sequencer pattern and wavetable values). To save the configuration, send a `SIGUSR1` signal to the running *Koto* process, so a file `koto.yyyymmddThhmmss.lisp` is created in the directory placed *Koto* binary. Note that **this feature has some problems** (TapirLisp in Tapirus does not support `;` comments, or dumped config cannot be load, and so on).
 
-### Intaract with Koto
+### Basic concepts of Koto
+
+Koto is a real-time sound processing system and we can interact via user interface. The UI is a filesystem. Koto has sound processing modules in it, these construct a graph that has a root as speaker output. Each sound processing modules, are like oscillators, effects or sequencers, have some parameters (e.g. delay time, etc.).
+
+In Koto, one sound module are mapped as a directory. And, one parameter of sound module are mapped as a file or a diretory in the sound module directory.
+
+### Interact with Koto
+
+Let's see some examples.
+
+If you launch Koto with no configuration file, Koto mount specified directory, then start sound processing with no sound.
+
+```sh
+$ koto ./mountpoint
+$ ls ./mountpoint
+src0.val  vol.val
+$ cat ./mountpoint/src0.val ; echo
+0
+$ cat ./mountpoint/vol.val ; echo
+0
+```
+
+This is initial configuration. In this case, the root module has two parameters: `src0` and `vol`. File extension `.val` tells to Koto that "it's a static value." In Koto, filename is important thing to know what kind of sound module the file/directory is. `vol.val` is zero, so we should change this value. To change value, simply write, like this:
+
+```sh
+$ cat ./mountpoint/vol.val ; echo
+0
+$ echo 0.3 > ./mountpoint/vol.val
+$ cat ./mountpoint/vol.val ; echo
+0.3
+```
+
+`vol.val` is changed but still no sound. So let's play sine wave. Because this filesystem is a user interface, we can add sine wave with manipulating filesystem. So we will delete `src0.val`, create a directory named `src0.sine`, set frequency as a file and request updation to Koto. Like this:
+
+```sh
+$ cd ./mountpoint
+# delete value module
+$ rm src0.val
+# create sine module (but not connected)
+$ mkdir src0.sine
+# set frequency of sine module
+$ echo 440 > src0.sine/freq.val
+# tell koto a request to connect sine module
+$ touch src0.sine/
+```
+
+Now we have 440 Hz sine wave.
+
+### Sound modules
 
 Upcomming...
 
