@@ -26,7 +26,9 @@
 
 ## Installation
 
-Upcomming...
+Pre-built binaries are available from [here](https://github.com/t-sin/koto/releases).
+
+If you want to build, clone and type `cargo build`.
 
 ## Usage
 
