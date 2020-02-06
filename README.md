@@ -50,7 +50,7 @@ $ cd /path/to/koto
 $ ./koto /path/to/mountpoint -c ./configure.lisp
 ```
 
-When you think about to stop performace with *Koto*, you might want to save current configuration, to resume performance after like drinking a cup of tea. It's times like these, you can save entire synthesizer configuration (includeing sequencer pattern and wavetable values). To save the configuration, send a `SIGUSR1` signal to the running *Koto* process, so a file `koto.yyyymmddThhmmss.lisp` is created in the directory placed *Koto* binary. Note that **this feature has some problems** (TapirLisp in Tapirus does not support `;` comments, or dumped config cannot be load, and so on).
+When you think about to stop performace with *Koto*, you might want to save current configuration, to resume performance after like drinking a cup of tea. It's times like these, you can save entire synthesizer configuration (includeing sequencer pattern and wavetable values). To save the configuration, send a `SIGUSR1` signal to the running *Koto* process, so a file `koto.yyyymmddThhmmss.lisp` is created in the directory placed *Koto* binary.
 
 ### Basic concepts of Koto
 
