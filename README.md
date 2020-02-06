@@ -16,13 +16,12 @@
 
 ### GNU/Linux
 
-- pkg-config
 - libasound (ALSA)
 - libfuse (>= 2.6.0)
 
 ### macOS
 
-- FUSE for macOS
+- osxfuse
 
 ## Installation
 
