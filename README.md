@@ -12,44 +12,6 @@
 
 [Dedicated](https://twitter.com/tobuzoo7/status/999061314818359296) [with](https://twitter.com/tobuzoo7/status/1021623019465146368) [you](https://mobile.twitter.com/sin_clav/status/1069065073912496130).
 
-## TODOs
-
-- [x] Unit graph framework
-    - [x] frameworks
-    - [x] zero, offset, gain
-    - [x] stereonize (pan)
-- [x] Oscillators
-    - [x] Sine, Triangle, Saw, Square
-    - [x] Wavetable
-- [x] Effects
-    - [x] Filters
-    - [x] Delay
-- [x] Sequencers
-    - [x] Envelope
-    - [x] Events (notes, fx values)
-    - [x] Sequencers
-    - [x] MML-like score description
-- [x] SAVE the graph
-    - [x] Lisp reader/printer
-    - [x] Construct unit graph (with cheap `eval`)
-    - [x] Global binding and `def` (with unit sharing)
-    - [x] SAVE the graph
-- [x] FUSE interfaces
-    - [x] Simple in-memory filesystem
-    - [x] Map unit graph into filesystem (read only)
-    - [x] Unit manipulation via filesystem
-- [x] Command line interfaces
-    - [x] initial configuration
-    - [x] mountpoint
-    - [x] dump current configuration by signals
-- [x] Module & Crate separating
-    - [x] Tapirus (unit generators & TapirLisp)
-    - [x] KFS (types, KotoNode, Filesystem trait)
-- [x] Documentation
-    - [x] Koto concept
-    - [x] Sound modules
-    - [x] Filesystem representations
-
 ## Requirements
 
 ### GNU/Linux
