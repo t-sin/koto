@@ -64,8 +64,11 @@ fn main() {
         Err(err) => panic!("Error!!! {:?}", err),
     };
 
+    let lock = Arc::new(Mutex::new(true));
+
     let ug_clone = ug.clone();
     let env_clone = env.clone();
+    let lock_clone = lock.clone();
     let signal = unsafe {
         signal_hook::register(signal_hook::SIGUSR1, move || {
             let filename = format!(
@@ -73,13 +76,17 @@ fn main() {
                 time::strftime("%Y%m%dT%H%M%S", &time::now()).unwrap()
             );
             let mut f = File::create(filename).unwrap();
-            let config = tlisp::dump(ug_clone.clone(), &env_clone);
-            let _ = f.write_all(config.as_bytes());
+            let mut config = None;
+            if let Ok(_) = lock_clone.lock() {
+                config = Some(tlisp::dump(ug_clone.clone(), &env_clone));
+            }
+            if let Some(config) = config {
+                let _ = f.write_all(config.as_bytes());
+            }
         })
     }
     .unwrap();
 
-    let lock = Arc::new(Mutex::new(true));
     let transport = Arc::new(Mutex::new(env.transport));
     let ad = AudioDevice::open(sample_rate);
     let mut lcd = SoundSystem::new(transport.clone(), ug.clone(), lock.clone());
