@@ -45,11 +45,10 @@
 - [x] Module & Crate separating
     - [x] Tapirus (unit generators & TapirLisp)
     - [x] KFS (types, KotoNode, Filesystem trait)
-- [ ] Documentation
+- [x] Documentation
     - [x] Koto concept
-    - [ ] Sound modules
+    - [x] Sound modules
     - [x] Filesystem representations
-    - [ ] Configurations and Tapir Lisp
 
 ## Requirements
 
@@ -140,7 +139,83 @@ Now we have 440 Hz sine wave.
 
 ### Sound modules
 
-Upcomming...
+Koto has some sound modules. Here is a list of modules and its parameters.
+
+#### Oscillators
+
+- `rand`: noise generator
+    - `freq`: a sample time to renew output value.
+- `sine`: sine wave generator
+    - `init_ph`: initial phase of oscillator. for phase distortion synthesis.
+    - `freq`: a frequency of this oscillator
+- `tri`: triangle wave generator
+    - `init_ph`: initial phase of oscillator. for phase distortion synthesis.
+    - `freq`: a frequency of this oscillator
+- `saw`: saw wave generator
+    - `init_ph`: initial phase of oscillator. for phase distortion synthesis.
+    - `freq`: a frequency of this oscillator
+- `pulse`: pulse (square) wave generator
+    - `init_ph`: initial phase of oscillator. for phase distortion synthesis.
+    - `freq`: a frequency of this oscillator.
+    - `duty`: duty ratio.
+- `phase`: phase ocsillator utility for wavetable
+    - it restrict input in range of [0.0, 1.0]
+    - `osc`: phase source.
+- `wavetable`: wave table oscillator
+    - NOTE: now this module interporate linear between table samples.
+    - `table`: wave table.
+    - `ph`: phase source.
+
+#### Sequencers
+
+- `trig`: envelope trigger
+    - `eg`: main envelove generator. `trig` returns this module's value.
+    - `srcN`: other envelove generators triggered by `trig`. output is discarded. rest parameter.
+- `adsr`: ADSR envelop generator
+    - `a`: attack value in sec.
+    - `d`: decay value in sec.
+    - `s`: sustin value in range of [0.0, 1.0].
+    - `r`: release value in sec.
+- `seq`: Sequencer
+    - `pattern`: sequencer pattern.
+    - `osc`: oscillator.
+    - `osc_mod`: frequency modulator for the `osc`.
+    - `eg`: envelope generator. it's triggered by `seq`.
+
+#### Effects
+
+- `lpf`: simple low-pass filter
+    - `freq`: cutoff frequency.
+    - `q`: filter resonance.
+    - `src`: filter source.
+- `delay`: mono delay
+    - `time`: delay time in sec.
+    - `feedback`: feedback volume in percent.
+    - `mix`: mix in percent.
+    - `src`: delay source.
+
+#### Utilities
+
+- `pan`: panning utility
+    - `pan`: pan value. left is -1.0, right is 1.0.
+    - `src`: source.
+- `clip`: clipping utility
+    - `min`: min value.
+    - `max`: max value.
+    - `src`: source.
+- `offset`: offset utility
+    - `val`: base value
+    - `src`: source.
+- `gain`: gain utility
+    - `gain`: gain multiplyer
+    - `src`: source.
+- `+`: signal addition utility
+    - `srcN`: signal sources. rest parameter.
+- `*`: signal multiplying utility
+    - `srcN`: signal sources. rest parameter.
+- `out`: mixing utility with volume
+    - `vol`: volume
+    - `srcN`: signal sources. rest parameter.
 
 ## Author
 
