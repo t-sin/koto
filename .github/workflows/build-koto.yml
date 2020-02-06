@@ -1,0 +1,44 @@
+name: Release Koto binary
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+        rust: [stable]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-linux
+          - os: macOS-latest
+            target: x86_64-macos
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Setup Rust
+        uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: ${{ matrix.rust }}
+
+      - run: sudo apt install pkg-config libasound2-dev libfuse-dev
+        if: matrix.os == 'ubuntu-latest'
+      - run: brew install pkg-config && brew cask install osxfuse
+        if: matrix.os == 'macos-latest'
+
+      - uses: actions/checkout@v2
+      - name: Build koto
+        run: cargo build --release --verbose
+      - name: Pack koto
+        run: tar -zcf 'koto-${{ matrix.target }}.tar.gz' README.md LICENSE -C target/release/ koto
+
+      - uses: softprops/action-gh-release@v1
+        with:
+          body_path: "RELEASENOTE.md"
+          files: './*.tar.gz'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
