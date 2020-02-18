@@ -36,7 +36,8 @@ jobs:
       - name: Pack koto
         run: tar -zcf 'koto-${{ matrix.target }}.tar.gz' README.md LICENSE -C target/release/ koto
 
-      - uses: softprops/action-gh-release@v1
+      - if: matrix.os == 'ubuntu-latest'
+        uses: softprops/action-gh-release@v1
         with:
           body_path: "RELEASENOTE.md"
           files: './*.tar.gz'
