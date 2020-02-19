@@ -12,10 +12,11 @@
       }
       body {
         color: #494855;
+        background-color: #fff;
         font-family: 'Delius', cursive;
         font-size: 1.3em;
       }
-      #container {
+      .max-width {
         max-width: 900px;
         margin: 0 auto;
       }
@@ -23,7 +24,7 @@
         max-width: 680px;
         margin: 1em auto;
         font-family: 'Concert One', cursive;
-        font-size: 2em;
+        font-size: 2.3em;
         text-align: center;
       }
       header h1 {
@@ -33,14 +34,30 @@
         font-family: 'Concert One', cursive;
         font-size: 2em;
       }
-      .feature {
+      section {
+        margin: 2em auto;
+      }
+      #abstract {
         box-sizing: border-box;
-        margin: 10px;
-        height: 5em;
-        padding: 10px;
-        color: #fff;
-        border-radius: 25px;
-      background: linear-gradient(100deg, #69b7e8, #8ac4e6);
+        height: 400px;
+        margin-top: 100px;
+        padding: 100px 0;
+//        background-color: #239af4;
+        font-size: 1.2em;
+      }
+      .feature {
+        height: 350px;
+      margin-bottom: 10em;
+      }
+      .feature-text {
+        box-sizing: border-box;
+        text-align: center;
+//        background-color: #239af4;
+      }
+      .feature-text h3 {
+//        margin: 1em;
+        font-family: 'Concert One', cursive;
+        font-size: 2em;
       }
     </style>
   </head>
@@ -51,30 +68,62 @@
         Make your filesystem soundful.
       </header>
       
-      <section>
-      <p>Koto is a music performing filesystem, or a filesystem (sound) synthesizer. Koto allows to perform music by interaction with mounted FUSE filesystem. If you don't make sense with it, check this demo movies below.</p>
-      </section>
-
-      <section>
-        <h2>Features</h2>
-        <div class="pure-g">
-          <article class="feature pure-u-1-5">free Software</article>
-          <article class="feature pure-u-1-5">runs on GNU/Linux and macOS</article>
-          <article class="feature pure-u-1-5">basic oscillators</article>
-          <article class="feature pure-u-1-5">sequencers</article>
-          <article class="feature pure-u-1-5">effects (delay!!)</article>
-          <article class="feature pure-u-1-5">some utilities</article>
+      <section id="abstract">
+        <div class="max-width">
+          <p>
+            Koto is a music performing filesystem, or a filesystem (sound) synthesizer.<br />
+            Koto allows to perform music by interaction with mounted FUSE filesystem.
+          </p>
         </div>
       </section>
 
       <section>
+        <article class="pure-g">
+          <img src="waves.png" class="feature pure-u-3-5">
+          <div class="feature-text feature pure-u-2-5">
+            <h3>Sound & Music</h3>
+            <p>
+              Koto generates sound and music nicely.<br />
+              We get nice groove with interacting Koto.
+            </p>
+          </div>
+
+          <div class="feature-text feature pure-u-2-5">
+            <h3>Modularity</h3>
+            <p>
+              Koto has a modular synthesizer architecture.<br />
+              Oscillators, envelope generators and effects can be connected freely,
+              like modular synthesizers.
+            </p>
+          </div>
+          <img src="modular.png" class="feature pure-u-3-5">
+
+          <img src="tapir.png" class="feature pure-u-3-5">
+          <div class="feature-text feature pure-u-2-5">
+            <h3>Tapir</h3>
+            <p>
+              Koto, she is a Malayan Tapir living in Tobu Zoo.
+              <br />
+              She was born in one winter way, 17th March, 2018.
+              Tapir babies' fur texture is usually called like "watermelon" (see <a href="https://twitter.com/tobuzoo7/status/999061314818359296">this</a>). 
+              The texture save them from predator because it disappear under teetop shadows.
+              <br />
+              She was, and she is very naughty.
+              She chews her fence, <a href="https://mobile.twitter.com/sin_clav/status/1069065073912496130">climb her fence</a>, climb her mother, and so on...
+            </p>
+          </div>
+        </article>
+
+      </section>
+
+      <section class="max-width">
         <h2>Demo video</h2>
         <p>Performance video with Koto is here!</p>
 
         <iframe width="560" height="315" src="https://www.youtube.com/embed/Rxh-msWrj6o" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </section>
 
-      <section>
+      <section class="max-width">
         <h2>Download</h2>
         Check <a href="https://github.com/t-sin/koto/releases">releases</a> and try!
       </section>
