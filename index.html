@@ -2,26 +2,59 @@
   <head>
     <title>Koto - Music performing filesystem.</title>
     <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.1/build/pure-min.css" integrity="sha384-oAOxQR6DkCoMliIh8yFnu25d7Eq/PHS21PClpwjOTeU2jRSq11vu66rf90/cZr47" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Concert+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Overlock&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Delius&display=swap" rel="stylesheet">
+
+    <style>
+      body {
+        color: #494855;
+        font-family: 'Delius', cursive;
+        font-size: 1.3em;
+      }
+      #container {
+        margin: 0 auto;
+        max-width: 900px;
+      }
+      header {
+        max-width: 700px;
+        margin: 1em auto;
+        font-family: 'Concert One', cursive;
+        font-size: 2em;
+        text-align: center;
+      }
+      header h1 {
+        margin: 0;
+      }
+      h2 {
+        font-family: 'Concert One', cursive;
+        font-size: 2em;
+      }
+    </style>
   </head>
   <body>
-    <header>
-      <h1>Koto</h1>
-      Make your filesystem soundful.
-    </header>
+    <div id="container">
+      <header>
+        <h1><img title="Koto logo" src="./koto-logo.gif" width="680" height="200"></h1>
+        Make your filesystem soundful.
+      </header>
 
-    <section>
-      <h2>Features</h2>
-      <ul>
-        <li><em>Koto</em> is a free Software</li>
-        <li><em>Koto</em> runs on GNU/Linux and macOS</li>
-        <li><em>Koto</em> has basic oscillators and sequencers</li>
-        <li><em>Koto</em> has some effects and utilities</li>
-      </ul>
-    </section>
+      <p>Koto is a music performing filesystem, or a filesystem (sound) synthesizer. Koto allows to perform music by interaction with mounted FUSE filesystem. If you don't make sense with it, check this demo movies below.</p>
 
-    <section>
-      <h2>Download</h2>
-      Check <a href="https://github.com/t-sin/koto/releases">releases</a> and try!
-    </section>
+      <section>
+        <h2>Features</h2>
+        <ul>
+          <li><em>Koto</em> is a free Software</li>
+          <li><em>Koto</em> runs on GNU/Linux and macOS</li>
+          <li><em>Koto</em> has basic oscillators and sequencers</li>
+          <li><em>Koto</em> has some effects and utilities</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Download</h2>
+        Check <a href="https://github.com/t-sin/koto/releases">releases</a> and try!
+      </section>
+    </div>
   </body>
 </html>
