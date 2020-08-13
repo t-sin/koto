@@ -36,19 +36,19 @@
 (def $bass-eg (adsr 0.05 0.3 0 0))
 
 (def $key1-pat (pat (c5 1) (r 1) (r 2) (c5 3) (r 2) (c5 1) (r 1) (r 2)
-                    (b4 3) (b4 2) (r 2) (c5 1) (r 1) (b4 1) (r 1) (r 2) (r 3) 
+                    (b4 3) (b4 2) (r 2) (c5 1) (r 1) (b4 1) (r 1) (r 2) (r 3)
                     loop))
 (def $key1-osc (sine 0 0))
 (def $key1-eg (adsr 0.08 0.12 0.7 0))
 
 (def $key2-pat (pat (e5 1) (r 1) (r 2) (e5 3) (r 2) (e5 1) (r 1) (r 2)
-                    (e5 3) (e5 2) (r 2) (e5 1) (r 1) (d5 1) (r 1) (r 2) (r 3) 
+                    (e5 3) (e5 2) (r 2) (e5 1) (r 1) (d5 1) (r 1) (r 2) (r 3)
                     loop))
 (def $key2-osc (sine 0 0))
 (def $key2-eg (adsr 0.08 0.12 0.7 0))
 
 (def $key3-pat (pat (g5 1) (r 1) (r 2) (g5 3) (r 2) (g5 1) (r 1) (r 2)
-                    (g5 3) (g5 2) (r 2) (g5 1) (r 1) (g5 1) (r 1) (r 2) (r 3) 
+                    (g5 3) (g5 2) (r 2) (g5 1) (r 1) (g5 1) (r 1) (r 2) (r 3)
                     loop))
 (def $key3-osc (sine 0 0))
 (def $key3-eg (adsr 0.08 0.12 0.7 0))
