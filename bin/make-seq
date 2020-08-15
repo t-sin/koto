@@ -1,0 +1,42 @@
+#!/bin/bash
+
+usage () {
+	cat <<USAGE
+usage: make-seq NAME OSCTYPE [PATSTR]
+
+make-seq create a sequencer into the current directory with NAME,
+and its oscillator type is OSCTYPE.
+USAGE
+}
+
+if [ "$#" -lt 2 ] ; then
+    usage
+    exit 1
+fi
+
+SEQ_NAME="$1.seq"
+OSC_NAME="osc.$2"
+EG_NAME="eg.adsr"
+PAT_NAME="pattern.pat"
+
+if [ -e "$SEQ_NAME" ] ; then
+    echo "Cannot create a sequencer because '$SEQ_NAME' is already exists."
+    exit 1
+fi
+
+# create sequencer directory
+mkdir "$SEQ_NAME"
+pushd "$SEQ_NAME"
+
+# create envelope generator directory as adsr by default
+mkdir "$EG_NAME"
+
+# create oscillator directory
+mkdir "$OSC_NAME"
+
+if [ "$#" -gt 2 ] ; then
+    PAT_STR="$3"
+    echo "$PAT_STR " > "$PAT_NAME"
+fi
+
+popd
