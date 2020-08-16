@@ -1,0 +1,38 @@
+#!/bin/bash
+
+usage () {
+	cat <<USAGE
+usage: make-osc PATHNAME OSCTYPE [DUTY]
+
+make-osc create an ocillator with PATHNAME and with frequency FREQ.
+This command cannot create wave table oscillator. If OSCTYPE is 'pulse'
+its duty ratio can be specified by DUTY. Default duty ratio is 0.5.
+USAGE
+}
+
+if [ ! "$#" -eq 2 ] && [ ! "$#" -eq 3 ] ; then
+    usage
+    exit 1
+fi
+
+OSC_NAME="$1.$2"
+
+if [ -e "$OSC_NAME" ] ; then
+    echo "Cannot create a '$2' ocillator because '$OSC_NAME' is already exists."
+    exit 1
+fi
+
+# create ocillator directory
+mkdir "$OSC_NAME"
+
+# set default frequecy
+echo "440" > "$OSC_NAME/freq.val"
+
+# set duty ratio for pulse ocillator
+if [ "$2" = "pulse" ] ; then
+    if [ "$#" -eq 3 ] ; then
+        echo "$3" > "$OSC_NAME/duty.val"
+    else
+        echo "0.5" > "$OSC_NAME/duty.val"
+    fi
+fi
