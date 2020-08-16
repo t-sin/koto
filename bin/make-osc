@@ -26,7 +26,11 @@ fi
 mkdir "$OSC_NAME"
 
 # set default frequecy
-echo "440" > "$OSC_NAME/freq.val"
+if [ "$2" = "rand" ] ; then
+    echo "0" > "$OSC_NAME/freq.val"
+else
+    echo "440" > "$OSC_NAME/freq.val"
+fi
 
 # set duty ratio for pulse ocillator
 if [ "$2" = "pulse" ] ; then
