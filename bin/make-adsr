@@ -1,0 +1,38 @@
+#!/bin/bash
+
+usage () {
+	cat <<USAGE
+usage: make-adsr PATHNAME [A D S R]
+
+make-adsr create an ADSR envelope generator with PATHNAME,
+with A D S R values.
+USAGE
+}
+
+if [ ! "$#" -eq 1 ] && [ ! "$#" -eq 5 ] ; then
+    usage
+    exit 1
+fi
+
+ADSR_NAME="$1.adsr"
+
+if [ -e "$ADSR_NAME" ] ; then
+    echo "Cannot create an ADSR envelope generator because '$ADSR_NAME' is already exists."
+    exit 1
+fi
+
+# create ADSR directory
+mkdir "$ADSR_NAME"
+
+# set values when specified
+if [ "$#" -eq 5 ] ; then
+    echo "$2" > "$ADSR_NAME/a.val"
+    echo "$3" > "$ADSR_NAME/d.val"
+    echo "$4" > "$ADSR_NAME/s.val"
+    echo "$5" > "$ADSR_NAME/r.val"
+else
+    echo "0.0" > "$ADSR_NAME/a.val"
+    echo "0.01" > "$ADSR_NAME/d.val"
+    echo "1.0" > "$ADSR_NAME/s.val"
+    echo "0.0" > "$ADSR_NAME/r.val"
+fi
