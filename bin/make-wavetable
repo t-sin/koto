@@ -1,0 +1,42 @@
+#!/bin/bash
+
+usage () {
+	cat <<USAGE
+usage: make-wavetable PATHNAME [WAV]
+
+make-wavetable create a wave table ocillator with PATHNAME. If this is specified WAV
+as a path to .wav file, the wave table is initialized with the wave form of it. To read
+.wav file this command needs `sox` and some GNU core utility commands.
+USAGE
+}
+
+if [ ! "$#" -eq 1 ] && [ ! "$#" -eq 2 ] ; then
+    usage
+    exit 1
+fi
+
+OSC_NAME="$1.wavetable"
+
+if [ -e "$OSC_NAME" ] ; then
+    echo "Cannot create a wavetable ocillator because '$OSC_NAME' is already exists."
+    exit 1
+fi
+
+# create ocillator directory
+mkdir "$OSC_NAME"
+
+WAV_PATH="$2"
+
+# create phase signal
+PHASE_PATH="ph.phase/osc.saw"
+mkdir -p "$OSC_NAME/$PHASE_PATH/"
+echo 1 > "$OSC_NAME/$PHASE_PATH/freq.val"
+echo 0 > "$OSC_NAME/$PHASE_PATH/init_ph.val"
+
+# set wave form to table
+if [ "$#" -eq 2 ] ; then
+    to-table "$WAV_PATH" > "$OSC_NAME/table.tab"
+    echo ' ' >> "$OSC_NAME/table.tab"
+else
+    '-1 -1 -1 -1 1 1 1 1 ' > "$OSC_NAME/table.tab"
+fi
