@@ -14,7 +14,8 @@ if [ "$#" -lt 2 ] ; then
 fi
 
 SEQ_NAME="$1.seq"
-OSC_NAME="osc.$2"
+OSC_NAME="osc"
+OSC_TYPE="$2"
 EG_NAME="eg"
 PAT_NAME="pattern.pat"
 
@@ -31,7 +32,7 @@ pushd "$SEQ_NAME" 2>&1 >/dev/null
 make-adsr "$EG_NAME"
 
 # create oscillator directory
-mkdir "$OSC_NAME"
+make-osc "$OSC_NAME" "$OSC_TYPE"
 
 if [ "$#" -gt 2 ] ; then
     PAT_STR="$3"
