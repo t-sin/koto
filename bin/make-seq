@@ -26,7 +26,7 @@ fi
 
 # create sequencer directory
 mkdir "$SEQ_NAME"
-pushd "$SEQ_NAME"
+pushd "$SEQ_NAME" 2>&1 >/dev/null
 
 # create envelope generator directory as adsr by default
 mkdir "$EG_NAME"
@@ -39,4 +39,4 @@ if [ "$#" -gt 2 ] ; then
     echo "$PAT_STR " > "$PAT_NAME"
 fi
 
-popd
+popd 2>&1 >/dev/null
