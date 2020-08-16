@@ -2,10 +2,9 @@
 
 usage () {
 	cat <<USAGE
-usage: make-seq NAME OSCTYPE [PATSTR]
+usage: make-seq PATHNAME OSCTYPE [PATSTR]
 
-make-seq create a sequencer into the current directory with NAME,
-and its oscillator type is OSCTYPE.
+make-seq create a sequencer with PATHNAME, and its oscillator type is OSCTYPE.
 USAGE
 }
 
@@ -16,7 +15,7 @@ fi
 
 SEQ_NAME="$1.seq"
 OSC_NAME="osc.$2"
-EG_NAME="eg.adsr"
+EG_NAME="eg"
 PAT_NAME="pattern.pat"
 
 if [ -e "$SEQ_NAME" ] ; then
@@ -29,7 +28,7 @@ mkdir "$SEQ_NAME"
 pushd "$SEQ_NAME" 2>&1 >/dev/null
 
 # create envelope generator directory as adsr by default
-mkdir "$EG_NAME"
+make-adsr "$EG_NAME"
 
 # create oscillator directory
 mkdir "$OSC_NAME"
