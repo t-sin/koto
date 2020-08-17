@@ -16,7 +16,7 @@ fi
 WAV_PATH="$1"
 
 
-sox "$WAV_PATH" -t f32 -c 1 - |
+sox "$WAV_PATH" -r 44100 -c 1 -t f32 - |
     od -An -v -t f4 --endian=little |
     tr -d '\n' |
     tr -s ' '
