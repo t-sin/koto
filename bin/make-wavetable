@@ -46,8 +46,8 @@ fi
 # (if at twice of normal speed, the ratio should be `1 : 2 * sample_rate`)
 # so the n is `table_len / (2 * sample_rate)`.
 # frequency is n's reciprocal, thus f is `(2 * sample_rate) / table_len`.
-TABLE_LEN="$(cat $TABLE_PATH | wc -w)"
-PHASE_FREQ="$(echo \"10 k 44100.0 2 * $TABLE_LEN / p\" | dc)"
+TABLE_LEN=$(cat $TABLE_PATH | wc -w)
+PHASE_FREQ=$(echo "10 k 44100.0 2 * $TABLE_LEN / p" | dc)
 
 # create phase signal
 PHASE_PATH="ph.phase/osc.saw"
