@@ -6,7 +6,7 @@ usage: make-wavetable PATHNAME [WAV]
 
 make-wavetable create a wave table ocillator with PATHNAME. If this is specified WAV
 as a path to .wav file, the wave table is initialized with the wave form of it. To read
-.wav file this command needs `sox` and some GNU core utility commands.
+.wav file this command needs 'sox' and some GNU core utility commands.
 USAGE
 }
 
@@ -33,6 +33,7 @@ if [ "$#" -eq 2 ] ; then
     echo ' ' >> "$TABLE_PATH"
 else
     echo '-1 -1 -1 -1 1 1 1 1 ' > "$OSC_NAME/table.tab"
+    exit 0
 fi
 
 # calculate the phase oscillator frequency (f)
