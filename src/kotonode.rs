@@ -169,6 +169,7 @@ impl KotoNode {
             "gain" => "(gain 0 0)",
             "+" => "(+)",
             "*" => "(*)",
+            "oneshot" => "(oneshot 0 0)",
             "rand" => "(rand 0)",
             "sine" => "(sine 0 0)",
             "tri" => "(tri 0 0)",
