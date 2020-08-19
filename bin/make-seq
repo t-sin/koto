@@ -29,7 +29,7 @@ mkdir "$SEQ_NAME"
 pushd "$SEQ_NAME" 2>&1 >/dev/null
 
 # create envelope generator directory as adsr by default
-make-adsr "$EG_NAME"
+make-adsr "$EG_NAME" 0 0.1 0 0
 
 # create oscillator directory
 make-osc "$OSC_NAME" "$OSC_TYPE"
