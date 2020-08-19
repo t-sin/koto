@@ -1,0 +1,27 @@
+#!/bin/bash
+
+usage () {
+	cat <<USAGE
+usage: make-phase PATHNAME OSCTYPE FREQ
+
+make-phase creates a phase ocillator with PATHNAME.
+USAGE
+}
+
+if [ ! "$#" -eq 3 ] ; then
+    usage
+    exit 1
+fi
+
+PHASE_NAME="$1.phase"
+
+if [ -e "$PHASE_NAME" ] ; then
+    echo "Cannot create a phase ocillator because '$PHASE_NAME' is already exists."
+    exit 1
+fi
+
+OSC_PATH="$PHASE_NAME/osc.$2"
+mkdir -p "$OSC_PATH"
+
+echo "$3" > "$OSC_PATH/freq.val"
+echo 0 > "$OSC_PATH/init_ph.val"

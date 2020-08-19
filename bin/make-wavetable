@@ -36,22 +36,5 @@ else
     exit 0
 fi
 
-# calculate the phase oscillator frequency (f)
-# to play wav file at normal speed, the oscillator's period (n sec) must satisfy this expression:
-#
-#   n : table_len / n = 1 : sample_rate
-#
-# this says that the phase oscillator progress `n` sec, the pointer in wave form progress `table_len / n`,
-# and, to play wave form at normal speed, this ratio must be `1 : sample_rate`
-# (if at twice of normal speed, the ratio should be `1 : 2 * sample_rate`)
-# so the n is `table_len / (2 * sample_rate)`.
-# frequency is n's reciprocal, thus f is `(2 * sample_rate) / table_len`.
-TABLE_LEN=$(cat $TABLE_PATH | wc -w)
-PHASE_FREQ=$(echo "10 k 44100.0 2 * $TABLE_LEN / p" | dc)
-
 # create phase signal
-PHASE_PATH="ph.phase/osc.saw"
-mkdir -p "$OSC_NAME/$PHASE_PATH/"
-
-echo "$PHASE_FREQ" > "$OSC_NAME/$PHASE_PATH/freq.val"
-echo 0 > "$OSC_NAME/$PHASE_PATH/init_ph.val"
+make-phase "$OSC_NAME/ph" saw 440
