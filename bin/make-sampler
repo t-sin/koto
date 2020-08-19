@@ -1,0 +1,49 @@
+#!/bin/bash
+
+usage () {
+	cat <<USAGE
+usage: make-sampler PATHNAME [WAV]
+
+make-sampler create a sampler with PATHNAME. If this is specified WAV
+as a path to .wav file, the samplre is initialized with the wave form of it.
+To read .wav file this command needs 'sox' and some GNU core utility commands.
+USAGE
+}
+
+if [ ! "$#" -eq 1 ] && [ ! "$#" -eq 2 ] ; then
+    usage
+    exit 1
+fi
+
+OSC_NAME="$1.wavetable"
+
+if [ -e "$OSC_NAME" ] ; then
+    echo "Cannot create a wavetable ocillator because '$OSC_NAME' is already exists."
+    exit 1
+fi
+
+# create ocillator directory
+mkdir "$OSC_NAME"
+
+WAV_PATH="$2"
+TABLE_PATH="$OSC_NAME/table.tab"
+# set wave form to table
+if [ "$#" -eq 2 ] ; then
+    to-table "$WAV_PATH" > "$OSC_NAME/table.tab"
+    echo ' ' >> "$TABLE_PATH"
+else
+    echo '-1 -1 -1 -1 1 1 1 1 ' > "$OSC_NAME/table.tab"
+    exit 0
+fi
+
+# oneshot oscillator
+ONESHOT_PATH="ph.oneshot"
+
+# create phase signal
+PHASE_PATH="$ONESHOT_PATH/osc.phase/osc.saw"
+mkdir -p "$OSC_NAME/$PHASE_PATH/"
+echo 0 > "$OSC_NAME/$PHASE_PATH/init_ph.val"
+echo "$(calc-phasef $TABLE_PATH)" > "$OSC_NAME/$PHASE_PATH/freq.val"
+
+# make envelope generator
+make-adsr "$OSC_NAME/$ONESHOT_PATH/eg"
