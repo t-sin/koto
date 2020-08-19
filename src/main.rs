@@ -46,7 +46,7 @@ fn main() {
         let mut f = File::open(config).unwrap();
         let _ = f.read_to_string(&mut init_config);
     } else {
-        init_config = "(out 0 0)".to_string();
+        init_config = "(out 0.25 0)".to_string();
     }
 
     let mountpoint = matches
