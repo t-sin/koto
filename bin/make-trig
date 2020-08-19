@@ -1,0 +1,24 @@
+#!/bin/bash
+
+usage () {
+	cat <<USAGE
+usage: make-trig PATHNAME
+
+make-trig create an envelope trigger PATHNAME.
+USAGE
+}
+
+if [ ! "$#" -eq 1 ] ; then
+    usage
+    exit 1
+fi
+
+TRIG_NAME="$1.trig"
+
+if [ -e "$ADSR_NAME" ] ; then
+    echo "Cannot create an envelope trigger because '$TRIG_NAME' is already exists."
+    exit 1
+fi
+
+# create trigger directory
+mkdir "$TRIG_NAME"
