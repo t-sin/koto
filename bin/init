@@ -1,0 +1,14 @@
+cat <<EOF
+You're in Koto scripts enabled bash.
+
+'activate' added some shell scripts for Koto.
+If you exit from this shell, simply type Ctrl-D.
+
+EOF
+
+echo "Koto scripts in $KOTO_BIN are here:"
+
+ls --color $KOTO_BIN
+
+export PS1=$KOTO_PS1
+export PATH=$KOTO_BIN:$PATH
